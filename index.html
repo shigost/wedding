@@ -6,131 +6,134 @@
 <title>A & T · Portugal 2027</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Jost:wght@200;300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Lato:wght@300;400;700&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
-<style>
-/* ── THEMES ── */
+<style>/* ── THEMES ── */
 
 /* CREAM & GOLD — Warm editorial, antique ivory, old-world luxury */
 [data-theme="cream"] {
   --font-display: 'Cormorant Garamond', serif;
   --font-body: 'Jost', sans-serif;
-  --font-weight-display: 300;
-  --font-weight-body: 300;
-  --letter-spacing-display: 0.08em;
+  --font-weight-display: 400;
+  --font-weight-body: 400;
+  --letter-spacing-display: 0.06em;
 
-  --bg: #f9f5ee;
-  --bg2: #f0e8d8;
-  --surface: #fffdf8;
-  --border: #ddd0b8;
-  --border-light: #ede4d4;
-  --gold: #8a6820;
-  --gold-light: #b8901a;
-  --gold-pale: #f8f0d8;
-  --dark: #1e1608;
-  --text: #2e220c;
-  --muted: #7a6840;
-  --muted-light: #a89870;
-  --accent: #3a5c7a;
-  --accent-light: #e4eef6;
-  --sage: #4a6e3a;
-  --sage-light: #e2eed8;
-  --love: #8a2828;
-  --love-light: #f8e8e8;
-  --nav-bg: #1e1608;
-  --nav-text: #e8d8a8;
-  --nav-active: #d4a830;
+  --bg: #f7f2e9;
+  --bg2: #ede4d0;
+  --surface: #fffef9;
+  --border: #cfc0a0;
+  --border-light: #e8dcc8;
+  --gold: #7a5c10;
+  --gold-light: #a87e20;
+  --gold-pale: #f5e8c0;
+  --dark: #181004;
+  --text: #1a1200;
+  --muted: #5a4a28;
+  --muted-light: #8a7248;
+  --accent: #1e4a70;
+  --accent-light: #d8eaf8;
+  --sage: #2e5a1e;
+  --sage-light: #d4ecc8;
+  --love: #7a1818;
+  --love-light: #fad8d8;
+  --nav-bg: #181004;
+  --nav-text: #f0d890;
+  --nav-active: #f0c030;
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.08);
 }
 
-/* LINEN & BLUSH — Soft romantic, French country, sun-bleached coastal */
+/* LINEN & BLUSH — Soft romantic, French country */
 [data-theme="blush"] {
   --font-display: 'Playfair Display', serif;
   --font-body: 'Lato', sans-serif;
-  --font-weight-display: 400;
-  --font-weight-body: 300;
-  --letter-spacing-display: 0.04em;
+  --font-weight-display: 500;
+  --font-weight-body: 400;
+  --letter-spacing-display: 0.03em;
 
-  --bg: #fdf6f0;
-  --bg2: #f5e8dc;
-  --surface: #fffaf6;
-  --border: #e8cfc0;
-  --border-light: #f4e4da;
-  --gold: #b06848;
-  --gold-light: #d08860;
-  --gold-pale: #fdf0e8;
-  --dark: #2a1008;
-  --text: #3c1e10;
-  --muted: #9a6858;
-  --muted-light: #c8a898;
-  --accent: #7a4870;
-  --accent-light: #f4e8f4;
-  --sage: #5a7248;
-  --sage-light: #eaf4e0;
-  --love: #a83040;
-  --love-light: #fdeaec;
-  --nav-bg: #2a0e08;
-  --nav-text: #f8dfd0;
-  --nav-active: #e8a880;
+  --bg: #faf2ec;
+  --bg2: #f0e0d4;
+  --surface: #fffaf7;
+  --border: #d4b8a8;
+  --border-light: #e8d4c8;
+  --gold: #8a4020;
+  --gold-light: #b05830;
+  --gold-pale: #fce8dc;
+  --dark: #200c04;
+  --text: #2c1008;
+  --muted: #6a3820;
+  --muted-light: #9a6850;
+  --accent: #5a2860;
+  --accent-light: #f0d8f4;
+  --sage: #3a5828;
+  --sage-light: #d8ecd0;
+  --love: #8a1830;
+  --love-light: #fad4dc;
+  --nav-bg: #200c04;
+  --nav-text: #fce8dc;
+  --nav-active: #e89060;
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.07);
 }
 
-/* CLEAN MINIMAL — Architectural, Swiss grid, pure function */
+/* CLEAN MINIMAL — Architectural, Swiss grid */
 [data-theme="minimal"] {
   --font-display: 'DM Serif Display', serif;
   --font-body: 'DM Sans', sans-serif;
   --font-weight-display: 400;
-  --font-weight-body: 300;
+  --font-weight-body: 400;
   --letter-spacing-display: 0.01em;
 
-  --bg: #f6f6f4;
-  --bg2: #edede9;
+  --bg: #f4f4f2;
+  --bg2: #e8e8e4;
   --surface: #ffffff;
-  --border: #d8d8d2;
-  --border-light: #e8e8e4;
-  --gold: #1a1a1a;
-  --gold-light: #444444;
-  --gold-pale: #f0f0ee;
-  --dark: #080808;
-  --text: #181818;
-  --muted: #666666;
-  --muted-light: #aaaaaa;
-  --accent: #1a3a5c;
-  --accent-light: #e8f0f8;
-  --sage: #2a4a2a;
-  --sage-light: #e8f0e8;
-  --love: #6a1818;
-  --love-light: #f8ecec;
-  --nav-bg: #080808;
+  --border: #c8c8c0;
+  --border-light: #e0e0d8;
+  --gold: #0a0a0a;
+  --gold-light: #2a2a2a;
+  --gold-pale: #ececea;
+  --dark: #040404;
+  --text: #0c0c0c;
+  --muted: #484840;
+  --muted-light: #888880;
+  --accent: #0c2a48;
+  --accent-light: #dce8f4;
+  --sage: #183418;
+  --sage-light: #d8ead8;
+  --love: #580808;
+  --love-light: #f8e0e0;
+  --nav-bg: #040404;
   --nav-text: #f0f0f0;
-  --nav-active: #f0f0f0;
+  --nav-active: #ffffff;
+  --card-shadow: 0 1px 8px rgba(0,0,0,0.06);
 }
 
-/* DARK EDITORIAL — Midnight luxury, fashion magazine, moody Atlantic */
+/* DARK EDITORIAL — Midnight luxury, moody Atlantic */
 [data-theme="dark"] {
   --font-display: 'Libre Baskerville', serif;
   --font-body: 'Montserrat', sans-serif;
   --font-weight-display: 400;
-  --font-weight-body: 300;
-  --letter-spacing-display: 0.12em;
+  --font-weight-body: 400;
+  --letter-spacing-display: 0.1em;
 
-  --bg: #090808;
-  --bg2: #111010;
-  --surface: #161414;
-  --border: #2a2525;
-  --border-light: #201c1c;
-  --gold: #c8a84a;
-  --gold-light: #e8cc70;
-  --gold-pale: #1c1808;
-  --dark: #f8f0e0;
-  --text: #e4d8c0;
-  --muted: #786860;
-  --muted-light: #504040;
-  --accent: #5a8aaa;
-  --accent-light: #0c1820;
-  --sage: #486838;
-  --sage-light: #0c1408;
-  --love: #c83838;
-  --love-light: #1c0808;
-  --nav-bg: #040404;
-  --nav-text: #c8a848;
-  --nav-active: #e8cc70;
+  --bg: #080808;
+  --bg2: #101010;
+  --surface: #141414;
+  --border: #282828;
+  --border-light: #1c1c1c;
+  --gold: #d4a840;
+  --gold-light: #f0cc60;
+  --gold-pale: #1c1800;
+  --dark: #f8f4e8;
+  --text: #e8e0cc;
+  --muted: #a09070;
+  --muted-light: #706050;
+  --accent: #4880b0;
+  --accent-light: #081828;
+  --sage: #408050;
+  --sage-light: #081808;
+  --love: #d04040;
+  --love-light: #200404;
+  --nav-bg: #020202;
+  --nav-text: #d4a840;
+  --nav-active: #f0cc60;
+  --card-shadow: 0 2px 16px rgba(0,0,0,0.4);
 }
 
 /* ── RESET & BASE ── */
@@ -138,12 +141,14 @@
 html, body { height: 100%; overflow: hidden; }
 body {
   font-family: var(--font-body, 'Jost', sans-serif);
-  font-weight: var(--font-weight-body, 300);
+  font-weight: var(--font-weight-body, 400);
   background: var(--bg);
   color: var(--text);
   display: flex;
+  font-size: 16px;
   flex-direction: column;
   transition: background 0.4s, color 0.4s, font-family 0.2s;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Apply display font everywhere it's used */
@@ -166,7 +171,7 @@ body {
 
 /* ── TOP BAR ── */
 #topbar {
-  height: 52px;
+  height: 58px;
   background: var(--nav-bg);
   display: flex;
   align-items: center;
@@ -177,7 +182,7 @@ body {
 }
 .topbar-title {
   font-family: var(--font-display, 'Cormorant Garamond', serif);
-  font-size: 1rem;
+  font-size: 1.15rem;
   font-weight: var(--font-weight-display, 400);
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -225,11 +230,11 @@ body {
 .nav-item {
   flex-shrink: 0;
   padding: 0 1rem;
-  height: 42px;
+  height: 48px;
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.58rem;
+  font-size: 0.62rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--muted);
@@ -262,7 +267,7 @@ body {
 
 /* ── PAGE HEADER ── */
 .page-header {
-  padding: 1.5rem 1.2rem 1rem;
+  padding: 1.6rem 1.4rem 1.1rem;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
   position: sticky;
@@ -271,32 +276,32 @@ body {
 }
 .page-title {
   font-family: var(--font-display, 'Cormorant Garamond', serif);
-  font-size: 1.6rem;
+  font-size: 2rem;
   font-weight: var(--font-weight-display, 400);
   color: var(--dark);
   letter-spacing: var(--letter-spacing-display, 0.05em);
 }
 .page-sub {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--muted-light);
   margin-top: 0.2rem;
 }
-.page-body { padding: 1rem; }
+.page-body { padding: 1.2rem; }
 
 /* ── CARDS ── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem;
-  margin-bottom: 0.8rem;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+  border-radius: 12px;
+  padding: 1.2rem 1.3rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--card-shadow, 0 2px 12px rgba(0,0,0,0.07));
 }
 .card-title {
-  font-size: 0.58rem;
-  letter-spacing: 0.22em;
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--gold);
   margin-bottom: 0.7rem;
@@ -310,8 +315,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
+  padding: 0.65rem 1.2rem;
+  border-radius: 6px;
   font-family: var(--font-body, 'Jost', sans-serif);
   font-size: 0.62rem;
   letter-spacing: 0.12em;
@@ -328,15 +333,15 @@ body {
 .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
 .btn-gold { background: var(--gold); color: white; }
 .btn-gold:hover { background: var(--gold-light); }
-.btn-sm { padding: 0.35rem 0.7rem; font-size: 0.55rem; }
+.btn-sm { padding: 0.42rem 0.85rem; font-size: 0.6rem; }
 .btn-danger { background: var(--love-light); color: var(--love); border: 1px solid rgba(154,56,56,0.2); }
 
 /* ── INPUTS ── */
 input[type="text"], input[type="number"], input[type="email"], select, textarea {
   width: 100%;
-  padding: 0.55rem 0.75rem;
+  padding: 0.7rem 0.9rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   font-family: var(--font-body, 'Jost', sans-serif);
   font-size: 0.78rem;
   color: var(--text);
@@ -347,7 +352,7 @@ input[type="text"], input[type="number"], input[type="email"], select, textarea 
 input:focus, select:focus, textarea:focus { border-color: var(--gold); }
 label {
   display: block;
-  font-size: 0.55rem;
+  font-size: 0.6rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--muted);
@@ -360,7 +365,7 @@ label {
 /* ── TAGS / PILLS ── */
 .pill {
   display: inline-block;
-  padding: 0.18rem 0.55rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 20px;
   font-size: 0.58rem;
   letter-spacing: 0.08em;
@@ -393,7 +398,7 @@ label {
   text-transform: uppercase;
 }
 .dashboard-date {
-  font-size: 0.6rem;
+  font-size: 0.68rem;
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: rgba(255,255,255,0.35);
@@ -414,19 +419,19 @@ label {
 .stat-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.8rem 0.6rem;
+  border-radius: 12px;
+  padding: 1.1rem 0.8rem;
   text-align: center;
 }
 .stat-num {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.6rem;
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: 2rem;
   font-weight: 400;
   color: var(--gold);
   line-height: 1;
 }
 .stat-label {
-  font-size: 0.52rem;
+  font-size: 0.6rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--muted-light);
@@ -440,16 +445,16 @@ label {
 .quick-link {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem;
+  border-radius: 12px;
+  padding: 1.2rem;
   cursor: pointer;
   transition: all 0.15s;
   text-align: left;
 }
 .quick-link:hover { border-color: var(--gold); background: var(--gold-pale); }
-.ql-icon { font-size: 1.2rem; margin-bottom: 0.4rem; display: block; }
-.ql-title { font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; color: var(--dark); }
-.ql-sub { font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-light); margin-top: 0.15rem; }
+.ql-icon { font-size: 1.4rem; margin-bottom: 0.4rem; display: block; }
+.ql-title { font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 1.1rem; color: var(--dark); }
+.ql-sub { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-light); margin-top: 0.15rem; }
 
 /* ───────────────────────────────────────────
    PAGE: GUEST LIST
@@ -494,14 +499,14 @@ label {
   font-style: italic;
 }
 .filter-q {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   color: var(--text);
   line-height: 1.5;
   margin-bottom: 0.8rem;
   font-weight: 400;
 }
 .filter-q-num {
-  font-size: 0.52rem;
+  font-size: 0.6rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--gold);
@@ -563,8 +568,8 @@ label {
 .guest-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
@@ -572,12 +577,12 @@ label {
   gap: 0.6rem;
 }
 .guest-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1rem;
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: 1.15rem;
   color: var(--dark);
 }
 .guest-side {
-  font-size: 0.55rem;
+  font-size: 0.62rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted-light);
@@ -622,12 +627,12 @@ label {
   text-align: center;
 }
 .bt-num {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.25rem;
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: 1.5rem;
   color: var(--dark);
 }
 .bt-label {
-  font-size: 0.5rem;
+  font-size: 0.58rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--muted-light);
@@ -641,7 +646,7 @@ label {
   border-bottom: 1px solid var(--border-light);
 }
 .budget-item:last-child { border-bottom: none; }
-.bi-name { flex: 1; font-size: 0.8rem; color: var(--text); }
+.bi-name { flex: 1; font-size: 0.88rem; color: var(--text); }
 .bi-cat { font-size: 0.55rem; color: var(--muted-light); margin-top: 0.1rem; }
 .bi-amount {
   font-family: 'Cormorant Garamond', serif;
@@ -698,10 +703,10 @@ label {
 }
 .tl-content {
   flex: 1;
-  padding-bottom: 1.2rem;
+  padding-bottom: 1.5rem;
 }
 .tl-when {
-  font-size: 0.52rem;
+  font-size: 0.6rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--gold);
@@ -709,7 +714,7 @@ label {
   font-weight: 500;
 }
 .tl-task {
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   color: var(--text);
   line-height: 1.4;
 }
@@ -733,18 +738,18 @@ label {
   margin-bottom: 0.5rem;
 }
 .vendor-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.05rem;
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: 1.2rem;
   color: var(--dark);
 }
 .vendor-cat {
-  font-size: 0.55rem;
+  font-size: 0.62rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted-light);
   margin-top: 0.15rem;
 }
-.vendor-details { font-size: 0.73rem; color: var(--muted); line-height: 1.6; }
+.vendor-details { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
 .vendor-status { flex-shrink: 0; }
 
 /* ───────────────────────────────────────────
@@ -1040,7 +1045,7 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
   margin: 0.3rem 0;
 }
 .profile-dist {
-  font-size: 0.65rem; color: var(--accent);
+  font-size: 0.72rem; color: var(--accent);
   font-weight: 500; margin-bottom: 0.7rem;
 }
 .score-row {
@@ -1068,7 +1073,7 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
 
 .tag-row { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 1rem; }
 .vtag {
-  font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
   padding: 0.2rem 0.55rem; border-radius: 20px;
   border: 1px solid rgba(74,110,138,0.2);
   color: var(--accent); background: var(--accent-light);
@@ -1086,11 +1091,11 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
   box-shadow: 0 1px 4px rgba(0,0,0,0.03);
 }
 .info-label {
-  font-size: 0.5rem; letter-spacing: 0.2em;
+  font-size: 0.58rem; letter-spacing: 0.2em;
   text-transform: uppercase; color: var(--muted-light);
   margin-bottom: 0.3rem;
 }
-.info-value { font-size: 0.8rem; font-weight: 500; color: var(--text); line-height: 1.3; }
+.info-value { font-size: 0.88rem; font-weight: 500; color: var(--text); line-height: 1.3; }
 .info-value.gold { color: var(--gold); }
 .info-value.green { color: var(--sage); }
 .info-value.accent { color: var(--accent); }
@@ -1110,7 +1115,7 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--border-light);
 }
-.psec-body { font-size: 0.77rem; line-height: 1.75; color: var(--muted); }
+.psec-body { font-size: 0.85rem; line-height: 1.8; color: var(--muted); }
 .psec-body strong { color: var(--text); font-weight: 500; }
 
 .check-row {
@@ -1121,8 +1126,8 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
 }
 .check-row:last-child { border-bottom: none; }
 .chk { flex-shrink: 0; font-size: 0.8rem; margin-top: 0.05rem; }
-.chk-label { color: var(--text); font-weight: 400; }
-.chk-note { font-size: 0.65rem; color: var(--muted); margin-top: 0.1rem; }
+.chk-label { color: var(--text); font-weight: 500; font-size: 0.82rem; }
+.chk-note { font-size: 0.7rem; color: var(--muted); margin-top: 0.1rem; }
 
 .hotel-grid { display: grid; grid-template-columns: 1fr; gap: 0.4rem; }
 @media (min-width: 500px) { .hotel-grid { grid-template-columns: repeat(3, 1fr); } }
@@ -1131,13 +1136,13 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
   border: 1px solid var(--border);
   border-radius: 7px; padding: 0.6rem 0.75rem;
 }
-.hotel-name { font-size: 0.72rem; font-weight: 500; color: var(--text); line-height: 1.3; }
-.hotel-meta { font-size: 0.58rem; color: var(--muted); margin-top: 0.12rem; }
-.hotel-price { font-size: 0.6rem; color: var(--gold); margin-top: 0.12rem; font-weight: 500; }
+.hotel-name { font-size: 0.8rem; font-weight: 500; color: var(--text); line-height: 1.3; }
+.hotel-meta { font-size: 0.65rem; color: var(--muted); margin-top: 0.12rem; }
+.hotel-price { font-size: 0.68rem; color: var(--gold); margin-top: 0.12rem; font-weight: 500; }
 
 .area-pills { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .area-pill {
-  font-size: 0.62rem; padding: 0.22rem 0.65rem;
+  font-size: 0.68rem; padding: 0.22rem 0.65rem;
   border-radius: 20px;
   border: 1px solid var(--border);
   color: var(--muted); background: var(--bg);
@@ -1147,7 +1152,7 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
 .pc-head { font-size: 0.52rem; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 0.45rem; font-weight: 500; }
 .pro-list, .con-list { list-style: none; }
 .pro-list li, .con-list li {
-  font-size: 0.72rem; padding: 0.3rem 0;
+  font-size: 0.8rem; padding: 0.3rem 0;
   border-bottom: 1px solid var(--border-light);
   display: flex; gap: 0.45rem;
   color: var(--muted); line-height: 1.45;
@@ -1451,7 +1456,214 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
   margin-top: 0.3rem;
   line-height: 1.5;
 }
+
+/* ── PIN LOCK ── */
+#pin-lock {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--nav-bg, #1e1608);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+#pin-lock.hidden { display: none; }
+.pin-title {
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  font-weight: 300;
+  color: var(--gold-light, #d4aa6a);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 0.3rem;
+}
+.pin-sub {
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+.pin-divider {
+  width: 40px; height: 1px;
+  background: var(--gold-light, #d4aa6a);
+  opacity: 0.4;
+  margin: 0 auto 2rem;
+}
+.pin-dots {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+.pin-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  background: transparent;
+  transition: all 0.15s;
+}
+.pin-dot.filled {
+  background: var(--gold-light, #d4aa6a);
+  border-color: var(--gold-light, #d4aa6a);
+}
+.pin-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  gap: 0.6rem;
+  justify-content: center;
+}
+.pin-btn {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  color: white;
+  font-family: var(--font-body, 'Jost', sans-serif);
+  font-size: 1.2rem;
+  font-weight: 300;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pin-btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); }
+.pin-btn:active { transform: scale(0.92); }
+.pin-btn.del { font-size: 1rem; color: rgba(255,255,255,0.5); }
+.pin-error {
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #c84848;
+  margin-top: 1rem;
+  height: 1rem;
+  text-align: center;
+  transition: opacity 0.3s;
+}
+
+/* ── SYNC STATUS ── */
+#sync-status {
+  position: fixed;
+  bottom: 0.8rem;
+  right: 1rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-light);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.sync-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--muted-light);
+  animation: syncpulse 2s ease-in-out infinite;
+}
+.sync-dot.ok { background: var(--sage); animation: none; }
+.sync-dot.error { background: var(--love); animation: none; }
+@keyframes syncpulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+/* ── GLOBAL READABILITY IMPROVEMENTS ── */
+p, li, .psec-body, .vendor-details, .section-body {
+  line-height: 1.8;
+}
+
+/* Better focus states */
+input:focus, select:focus, textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(var(--gold), 0.1);
+  outline: none;
+}
+
+/* Smoother scrolling */
+.page, #profile-view, #compare-view, #venue-compare-view {
+  scroll-behavior: smooth;
+}
+
+/* Better empty states */
+.empty-state {
+  padding: 4rem 1.5rem;
+}
+.empty-icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
+.empty-text { font-size: 0.88rem; line-height: 1.8; }
+
+/* Venue profile body more breathing room */
+.profile-body { padding: 1.4rem; }
+
+/* Info grid more breathing room */
+.info-grid { gap: 0.7rem; margin-bottom: 1.2rem; }
+.info-card { padding: 0.85rem 1rem; border-radius: 10px; }
+
+/* Section more padding */
+.psec { padding: 1.1rem 1.2rem; margin-bottom: 1rem; border-radius: 12px; }
+.psec-title { font-size: 0.6rem; margin-bottom: 0.8rem; padding-bottom: 0.6rem; }
+
+/* Check rows more room */
+.check-row { padding: 0.55rem 0; gap: 0.7rem; }
+
+/* Hotel grid gap */
+.hotel-card { padding: 0.75rem 0.9rem; border-radius: 8px; }
+
+/* Pro con grid */
+.pro-con-grid { gap: 1rem; }
+.pro-list li, .con-list li { padding: 0.38rem 0; }
+
+/* CTA row */
+.cta-row { gap: 0.6rem; margin-top: 1.2rem; margin-bottom: 2rem; }
+
+/* Dashboard hero more padding */
+.dashboard-hero { padding: 2.5rem 1.5rem 2rem; }
+
+/* Stat grid more room */
+.stat-grid { gap: 0.7rem; margin-bottom: 1rem; }
+
+/* Quick links more room */  
+.quick-links { gap: 0.7rem; }
+
+/* Timeline more room */
+.timeline-wrap { padding: 1.2rem; }
+
+/* Budget totals */
+.budget-totals { gap: 0.6rem; margin-bottom: 1.2rem; }
+.budget-total-card { padding: 0.9rem 1rem; border-radius: 10px; }
+
+/* Archive sheet */
+.archive-sheet { padding: 1.8rem 1.4rem 2.5rem; }
+.archive-sheet-title { font-size: 1.4rem; }
+.archive-reason-btn { padding: 0.75rem 0.9rem; font-size: 0.75rem; }
+
+/* Mood board */
+.mood-label { font-size: 0.68rem; padding: 0.5rem 0.7rem; }
+
+/* Filter modal */
+.filter-sheet { padding: 1.8rem 1.4rem 2.5rem; }
+.filter-title { font-size: 1.5rem; }
+.filter-name { font-size: 0.75rem; margin-bottom: 1.4rem; }
+.filter-result-text { font-size: 1.4rem; }
+.filter-result-sub { font-size: 0.8rem; }
+
+/* Guest filters */
+.gf-btn { padding: 0.32rem 0.8rem; font-size: 0.62rem; }
+
+/* Venue nav items */
+.vnav-name { font-size: 0.9rem; }
+.vnav-dist { font-size: 0.6rem; }
+
+/* Score row */
+.score-chip { font-size: 0.68rem; padding: 0.25rem 0.7rem; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://zcyomgflbojqplxuilre.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_L590M8TNqBs2wJXCUtqu_g_pw0tLpci';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
 </head>
 <body data-theme="cream">
 
@@ -1844,11 +2056,75 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
   </div>
 </div>
 
-<script>// ── STORAGE
+<script>// ── STORAGE (localStorage fallback for venues/theme only)
 const S = {
   get: (k) => { try { return JSON.parse(localStorage.getItem('at2027_'+k)||'null'); } catch(e) { return null; } },
   set: (k,v) => { try { localStorage.setItem('at2027_'+k, JSON.stringify(v)); } catch(e) {} },
 };
+
+// ── SUPABASE DATA LAYER
+function setSyncStatus(state, label) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  if (!dot || !lbl) return;
+  dot.className = 'sync-dot ' + (state || '');
+  lbl.textContent = label || '';
+}
+
+async function dbLoad(table) {
+  try {
+    const { data, error } = await sb.from(table).select('*').order('created_at', { ascending: true });
+    if (error) throw error;
+    return data || [];
+  } catch(e) { console.error('dbLoad error', table, e); return []; }
+}
+
+async function dbInsert(table, row) {
+  setSyncStatus('', 'Saving...');
+  try {
+    const { data, error } = await sb.from(table).insert(row).select().single();
+    if (error) throw error;
+    setSyncStatus('ok', 'Saved');
+    setTimeout(() => setSyncStatus('ok', 'Live'), 1500);
+    return data;
+  } catch(e) {
+    setSyncStatus('error', 'Error saving');
+    console.error('dbInsert error', table, e);
+    return null;
+  }
+}
+
+async function dbUpdate(table, id, updates) {
+  setSyncStatus('', 'Saving...');
+  try {
+    const { error } = await sb.from(table).update(updates).eq('id', id);
+    if (error) throw error;
+    setSyncStatus('ok', 'Saved');
+    setTimeout(() => setSyncStatus('ok', 'Live'), 1500);
+  } catch(e) {
+    setSyncStatus('error', 'Error saving');
+    console.error('dbUpdate error', table, e);
+  }
+}
+
+async function dbDelete(table, id) {
+  setSyncStatus('', 'Saving...');
+  try {
+    const { error } = await sb.from(table).delete().eq('id', id);
+    if (error) throw error;
+    setSyncStatus('ok', 'Saved');
+    setTimeout(() => setSyncStatus('ok', 'Live'), 1500);
+  } catch(e) {
+    setSyncStatus('error', 'Error saving');
+    console.error('dbDelete error', table, e);
+  }
+}
+
+function subscribeRealtime(table, callback) {
+  sb.channel(table + '_changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table }, callback)
+    .subscribe();
+}
 
 
 // ═══════════════════════════════════════════
@@ -2694,7 +2970,7 @@ const FILTER_QUESTIONS = [
 
 let filterGuest = null;
 let filterStep = 0;
-let guests = S.get('guests') || [];
+let guests = [];
 let guestFilter = 'all';
 
 function startGuestFilter() {
@@ -2708,15 +2984,13 @@ function startGuestFilter() {
   renderFilterStep();
 }
 
-function addGuestDirect() {
+async function addGuestDirect() {
   const name = document.getElementById('guest-name-input').value.trim();
   const side = document.getElementById('guest-side-input').value;
   if (!name) return;
-  guests.push({ name, side, status: 'invited', id: Date.now() });
-  S.set('guests', guests);
   document.getElementById('guest-name-input').value = '';
-  renderGuests();
-  updateDashboard();
+  const row = await dbInsert('guests', { name, side, status: 'invited' });
+  if (row) { guests.push(row); renderGuests(); updateDashboard(); }
 }
 
 function renderFilterStep() {
@@ -2749,11 +3023,11 @@ function answerFilter(ans) {
   }
 }
 
-function finishFilter(status) {
+async function finishFilter(status) {
   filterGuest.status = status;
-  guests.push(filterGuest);
-  S.set('guests', guests);
   document.getElementById('guest-name-input').value = '';
+  const savedGuest = await dbInsert('guests', { name: filterGuest.name, side: filterGuest.side, status });
+  if (savedGuest) { guests.push(savedGuest); filterGuest = savedGuest; }
   const isInvite = status === 'invited';
   document.getElementById('fm-body').innerHTML = `
     <div class="filter-result">
@@ -2775,14 +3049,14 @@ function closeFilterModal() {
   filterGuest = null;
 }
 
-function changeGuestStatus(id, status) {
+async function changeGuestStatus(id, status) {
   const g = guests.find(x => x.id === id);
-  if (g) { g.status = status; S.set('guests', guests); renderGuests(); updateDashboard(); }
+  if (g) { g.status = status; await dbUpdate('guests', id, { status }); renderGuests(); updateDashboard(); }
 }
 
-function removeGuest(id) {
+async function removeGuest(id) {
+  await dbDelete('guests', id);
   guests = guests.filter(x => x.id !== id);
-  S.set('guests', guests);
   renderGuests();
   updateDashboard();
 }
@@ -2832,10 +3106,11 @@ function renderGuests() {
   `).join('');
 }
 
-function clearCutGuests() {
+async function clearCutGuests() {
   if (!confirm('Remove all cut guests?')) return;
+  const cutIds = guests.filter(g => g.status === 'cut').map(g => g.id);
+  for (const id of cutIds) await dbDelete('guests', id);
   guests = guests.filter(g => g.status !== 'cut');
-  S.set('guests', guests);
   renderGuests();
   updateDashboard();
 }
@@ -2846,25 +3121,24 @@ function exportGuests() {
 }
 
 // ── BUDGET
-let budgetItems = S.get('budget') || [];
+let budgetItems = [];
 const MASTER_BUDGET = 60000;
 
-function addBudgetItem() {
+async function addBudgetItem() {
   const name = document.getElementById('b-name').value.trim();
   const cat = document.getElementById('b-cat').value;
   const amount = parseFloat(document.getElementById('b-amount').value) || 0;
   const status = document.getElementById('b-status').value;
   if (!name) return;
-  budgetItems.push({ id: Date.now(), name, cat, amount, status });
-  S.set('budget', budgetItems);
   document.getElementById('b-name').value = '';
   document.getElementById('b-amount').value = '';
-  renderBudget();
+  const row = await dbInsert('budget_items', { name, cat, amount, status });
+  if (row) { budgetItems.push(row); renderBudget(); }
 }
 
-function removeBudgetItem(id) {
+async function removeBudgetItem(id) {
+  await dbDelete('budget_items', id);
   budgetItems = budgetItems.filter(x => x.id !== id);
-  S.set('budget', budgetItems);
   renderBudget();
 }
 
@@ -2933,28 +3207,27 @@ const DEFAULT_TIMELINE = [
   { id:15, when:'Sept 2027', task:'Rehearsal & welcome dinner', priority:'upcoming', done:false },
 ];
 
-let timelineTasks = S.get('timeline') || DEFAULT_TIMELINE;
+let timelineTasks = [];
 
-function addTimelineTask() {
+async function addTimelineTask() {
   const task = document.getElementById('tl-task-input').value.trim();
   const when = document.getElementById('tl-when-input').value.trim();
   const priority = document.getElementById('tl-priority').value;
   if (!task) return;
-  timelineTasks.push({ id: Date.now(), task, when: when||'TBD', priority, done: false });
-  S.set('timeline', timelineTasks);
   document.getElementById('tl-task-input').value = '';
   document.getElementById('tl-when-input').value = '';
-  renderTimeline();
+  const row = await dbInsert('timeline_tasks', { task, when_label: when||'TBD', priority, done: false, sort_order: timelineTasks.length });
+  if (row) { timelineTasks.push(row); renderTimeline(); }
 }
 
-function toggleTimelineTask(id) {
+async function toggleTimelineTask(id) {
   const t = timelineTasks.find(x => x.id === id);
-  if (t) { t.done = !t.done; S.set('timeline', timelineTasks); renderTimeline(); }
+  if (t) { t.done = !t.done; await dbUpdate('timeline_tasks', id, { done: t.done }); renderTimeline(); }
 }
 
-function removeTimelineTask(id) {
+async function removeTimelineTask(id) {
+  await dbDelete('timeline_tasks', id);
   timelineTasks = timelineTasks.filter(x => x.id !== id);
-  S.set('timeline', timelineTasks);
   renderTimeline();
 }
 
@@ -2978,34 +3251,33 @@ function renderTimeline() {
 }
 
 // ── VENDORS
-let vendors = S.get('vendors') || [];
+let vendors = [];
 
 const STATUS_COLORS = { researching:'muted', contacted:'accent', quoted:'gold', booked:'sage', paid:'sage' };
 
-function addVendor() {
+async function addVendor() {
   const name = document.getElementById('v-name').value.trim();
   const cat = document.getElementById('v-cat').value;
   const contact = document.getElementById('v-contact').value.trim();
   const status = document.getElementById('v-status').value;
   const notes = document.getElementById('v-notes').value.trim();
   if (!name) return;
-  vendors.push({ id: Date.now(), name, cat, contact, status, notes });
-  S.set('vendors', vendors);
   document.getElementById('v-name').value = '';
   document.getElementById('v-contact').value = '';
   document.getElementById('v-notes').value = '';
-  renderVendors();
+  const row = await dbInsert('vendors', { name, cat, contact, status, notes });
+  if (row) { vendors.push(row); renderVendors(); }
 }
 
-function removeVendor(id) {
+async function removeVendor(id) {
+  await dbDelete('vendors', id);
   vendors = vendors.filter(x => x.id !== id);
-  S.set('vendors', vendors);
   renderVendors();
 }
 
-function updateVendorStatus(id, status) {
+async function updateVendorStatus(id, status) {
   const v = vendors.find(x => x.id === id);
-  if (v) { v.status = status; S.set('vendors', vendors); renderVendors(); }
+  if (v) { v.status = status; await dbUpdate('vendors', id, { status }); renderVendors(); }
 }
 
 function renderVendors() {
@@ -3039,22 +3311,21 @@ function renderVendors() {
 }
 
 // ── MOOD BOARD
-let moodImages = S.get('moodboard') || [];
+let moodImages = [];
 
-function addMoodImage() {
+async function addMoodImage() {
   const url = document.getElementById('mood-url').value.trim();
   const label = document.getElementById('mood-label').value.trim();
   if (!url) return;
-  moodImages.push({ id: Date.now(), url, label: label||'Inspo' });
-  S.set('moodboard', moodImages);
   document.getElementById('mood-url').value = '';
   document.getElementById('mood-label').value = '';
-  renderMoodBoard();
+  const row = await dbInsert('mood_images', { url, label: label||'Inspo' });
+  if (row) { moodImages.push(row); renderMoodBoard(); }
 }
 
-function removeMoodImage(id) {
+async function removeMoodImage(id) {
+  await dbDelete('mood_images', id);
   moodImages = moodImages.filter(x => x.id !== id);
-  S.set('moodboard', moodImages);
   renderMoodBoard();
 }
 
@@ -3098,7 +3369,7 @@ function downloadCSV(content, filename) {
 // ═══════════════════════════════════════════
 // VENUE ARCHIVE SYSTEM
 // ═══════════════════════════════════════════
-let archivedVenues = S.get('archivedVenues') || [];
+let archivedVenues = [];
 let archiveTargetIdx = null;
 let archiveSelectedReason = null;
 
@@ -3135,7 +3406,7 @@ function selectArchiveReason(id) {
   renderArchiveReasons();
 }
 
-function confirmArchive() {
+async function confirmArchive() {
   if (archiveTargetIdx === null) return;
   const v = VENUES[archiveTargetIdx];
   const reason = archiveSelectedReason
@@ -3143,23 +3414,19 @@ function confirmArchive() {
     : { id: 'other', label: 'No reason given' };
   const note = document.getElementById('archive-note-input').value.trim();
 
-  archivedVenues.push({
+  const archiveRow = {
     id: v.id,
     name: v.name,
     type: v.type,
-    score: v.score,
-    dist: v.dist,
-    website: v.website,
-    reasonId: reason.id,
-    reasonLabel: reason.label,
+    reason_label: reason.label,
     note: note,
-    archivedAt: new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }),
+    archived_at: new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }),
     images: v.images,
-  });
-
+  };
+  archivedVenues.push(archiveRow);
   // Remove from active VENUES
   VENUES.splice(archiveTargetIdx, 1);
-  S.set('archivedVenues', archivedVenues);
+  await dbInsert('archived_venues', archiveRow);
 
   closeArchiveModal();
 
@@ -3183,7 +3450,7 @@ function closeArchiveModal() {
   archiveTargetIdx = null;
 }
 
-function restoreVenue(archivedId) {
+async function restoreVenue(archivedId) {
   const idx = archivedVenues.findIndex(v => v.id === archivedId);
   if (idx === -1) return;
   const av = archivedVenues[idx];
@@ -3218,7 +3485,7 @@ function restoreVenue(archivedId) {
   });
 
   archivedVenues.splice(idx, 1);
-  S.set('archivedVenues', archivedVenues);
+  await dbDelete('archived_venues', archivedId);
   buildNav();
   venueRenderProfile(VENUES.length - 1);
   marqueeHalfWidth = 0;
@@ -3260,8 +3527,100 @@ window.closeArchiveModal = closeArchiveModal;
 window.restoreVenue = restoreVenue;
 window.showArchivePage = showArchivePage;
 
+// ── PIN LOCK
+const CORRECT_PIN = '2509'; // Sept 25 — change this!
+let pinEntry = '';
+
+function pinPress(digit) {
+  if (pinEntry.length >= 4) return;
+  pinEntry += digit;
+  updatePinDots();
+  if (pinEntry.length === 4) {
+    setTimeout(() => checkPin(), 100);
+  }
+}
+
+function pinDel() {
+  pinEntry = pinEntry.slice(0, -1);
+  updatePinDots();
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('pd' + i);
+    if (dot) dot.classList.toggle('filled', i < pinEntry.length);
+  }
+}
+
+function checkPin() {
+  if (pinEntry === CORRECT_PIN) {
+    document.getElementById('pin-lock').classList.add('hidden');
+    localStorage.setItem('at2027_pin_ok', '1');
+    loadAllData();
+  } else {
+    pinEntry = '';
+    updatePinDots();
+    const err = document.getElementById('pin-error');
+    if (err) {
+      err.textContent = 'Incorrect — try again';
+      setTimeout(() => { err.textContent = ''; }, 2000);
+    }
+  }
+}
+
+window.pinPress = pinPress;
+window.pinDel = pinDel;
+
+// ── LOAD ALL DATA FROM SUPABASE
+async function loadAllData() {
+  setSyncStatus('', 'Loading...');
+  try {
+    const [g, b, t, v, a, m] = await Promise.all([
+      dbLoad('guests'),
+      dbLoad('budget_items'),
+      dbLoad('timeline_tasks'),
+      dbLoad('vendors'),
+      dbLoad('archived_venues'),
+      dbLoad('mood_images'),
+    ]);
+    guests = g;
+    budgetItems = b;
+    timelineTasks = t.length > 0 ? t : DEFAULT_TIMELINE.map(d => ({...d, when_label: d.when}));
+    vendors = v;
+    archivedVenues = a.map(av => ({...av, reasonLabel: av.reason_label, archivedAt: av.archived_at}));
+    moodImages = m;
+
+    // If no timeline tasks in DB yet, seed with defaults
+    if (t.length === 0) {
+      for (const task of DEFAULT_TIMELINE) {
+        await dbInsert('timeline_tasks', { task: task.task, when_label: task.when, priority: task.priority, done: false, sort_order: task.id });
+      }
+      timelineTasks = await dbLoad('timeline_tasks');
+    }
+
+    setSyncStatus('ok', 'Live');
+    updateDashboard();
+    renderTimeline();
+    renderMoodBoard();
+
+    // Subscribe to real-time changes
+    subscribeRealtime('guests', () => { dbLoad('guests').then(d => { guests = d; renderGuests(); updateDashboard(); }); });
+    subscribeRealtime('budget_items', () => { dbLoad('budget_items').then(d => { budgetItems = d; renderBudget(); }); });
+    subscribeRealtime('timeline_tasks', () => { dbLoad('timeline_tasks').then(d => { timelineTasks = d; renderTimeline(); }); });
+    subscribeRealtime('vendors', () => { dbLoad('vendors').then(d => { vendors = d; renderVendors(); }); });
+  } catch(e) {
+    setSyncStatus('error', 'Connection error');
+    console.error('loadAllData error', e);
+  }
+}
+
 // ── INIT
 window.addEventListener('DOMContentLoaded', () => {
+  // Check if already unlocked in this session
+  if (localStorage.getItem('at2027_pin_ok') === '1') {
+    document.getElementById('pin-lock').classList.add('hidden');
+    loadAllData();
+  }
   updateDashboard();
   renderTimeline();
   renderMoodBoard();
@@ -3326,5 +3685,40 @@ window.addEventListener('DOMContentLoaded', () => {
     </div>
   </div>
 </div>
+
+<!-- PIN LOCK -->
+<div id="pin-lock">
+  <div class="pin-title">A &amp; T</div>
+  <div class="pin-divider"></div>
+  <div class="pin-sub">Portugal · September 2027</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-pad">
+    <button class="pin-btn" onclick="pinPress('1')">1</button>
+    <button class="pin-btn" onclick="pinPress('2')">2</button>
+    <button class="pin-btn" onclick="pinPress('3')">3</button>
+    <button class="pin-btn" onclick="pinPress('4')">4</button>
+    <button class="pin-btn" onclick="pinPress('5')">5</button>
+    <button class="pin-btn" onclick="pinPress('6')">6</button>
+    <button class="pin-btn" onclick="pinPress('7')">7</button>
+    <button class="pin-btn" onclick="pinPress('8')">8</button>
+    <button class="pin-btn" onclick="pinPress('9')">9</button>
+    <button class="pin-btn del" onclick="pinDel()">⌫</button>
+    <button class="pin-btn" onclick="pinPress('0')">0</button>
+    <button class="pin-btn" style="opacity:0" disabled></button>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+</div>
+
+<!-- SYNC STATUS -->
+<div id="sync-status">
+  <div class="sync-dot" id="sync-dot"></div>
+  <span id="sync-label">Syncing...</span>
+</div>
+
 </body>
 </html>
