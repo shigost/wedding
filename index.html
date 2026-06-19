@@ -939,6 +939,47 @@ label {
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: 6px; font-size: 0.7rem;
 }
+.mood-edit-btn {
+  flex-shrink: 0; width: 30px; height: 30px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 6px; font-size: 0.7rem;
+}
+/* Broken / non-image URL fallback */
+.mood-img-broken {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted-light); padding: 0.6rem;
+}
+/* Theme tag picker (add + edit forms) */
+.mood-theme-picker { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.mood-theme-pick {
+  font-family: var(--font-body, 'Jost', sans-serif);
+  font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;
+  padding: 0.45rem 0.7rem; border-radius: 999px;
+  background: var(--bg2); color: var(--muted); border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.15s;
+}
+.mood-theme-pick.active { background: var(--gold); color: #fff; border-color: var(--gold); }
+.mood-theme-pick:active { transform: scale(0.95); }
+/* Mood-board theme filter bar */
+.mood-filterbar { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+.mood-filter-lbl { font-size: 0.56rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted-light); margin-right: 0.1rem; }
+.mood-filter-pill {
+  font-family: var(--font-body, 'Jost', sans-serif);
+  font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;
+  padding: 0.45rem 0.8rem; border-radius: 999px;
+  background: var(--surface); color: var(--muted); border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.15s;
+}
+.mood-filter-pill.active { background: var(--gold); color: #fff; border-color: var(--gold); }
+/* Inline mood edit (full-width) */
+.mood-card.editing { grid-column: 1 / -1; cursor: default; }
+.mood-edit {
+  display: flex; gap: 0.8rem; padding: 0.8rem; flex-wrap: wrap;
+}
+.mood-edit-thumb { width: 84px; height: 84px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: var(--bg2); }
+.mood-edit-fields { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 0.6rem; }
+.mood-edit-actions { display: flex; gap: 0.4rem; }
 .mood-palette {
   display: flex;
   gap: 0.5rem;
@@ -2883,10 +2924,16 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         <div class="mood-or"><span>or</span></div>
         <div class="mood-url-row">
           <input type="text" id="mood-url" placeholder="Paste image URL…" onkeydown="if(event.key==='Enter')addMoodImage()">
-          <button class="btn btn-secondary" onclick="addMoodImage()">Add</button>
+          <button class="btn btn-secondary" id="mood-url-btn" onclick="addMoodImage()">Add</button>
+        </div>
+        <div class="form-row" style="margin-top:0.7rem;margin-bottom:0">
+          <label>Tag themes (optional)</label>
+          <div class="mood-theme-picker" id="mood-add-themes"></div>
         </div>
         <div class="mood-error" id="mood-upload-error"></div>
       </div>
+
+      <div class="mood-filterbar" id="mood-filterbar"></div>
 
       <div class="mood-grid" id="mood-grid">
         <div class="empty-state" style="grid-column:1/-1">
@@ -4282,11 +4329,13 @@ function renderMoodTheme() {
 
 // Call renderMoodTheme when theme changes
 const _originalSetTheme = window.setTheme;
+let moodReady = false; // set true once mood state/consts are declared (see mood section)
 function setTheme(t) {
   document.body.setAttribute('data-theme', t);
   document.querySelectorAll('.theme-dot').forEach(d => d.classList.toggle('active', d.dataset.t === t));
   S.set('theme', t);
   renderMoodTheme();
+  if (moodReady) renderMoodBoard(); // re-filter the mood board to match the active theme
 }
 const savedTheme = S.get('theme');
 if (savedTheme) setTheme(savedTheme);
@@ -5026,6 +5075,9 @@ function renderVendors() {
 
 const MOOD_BUCKET = 'mood-images';
 const MOOD_PUBLIC_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/${MOOD_BUCKET}/`;
+const MOOD_THEMES = [['beira','Beira Mar'],['jardim','Jardim'],['editorial','Editorial'],['noite','Noite']];
+let moodFilterMode = S.get('moodFilter') || 'theme'; // 'theme' = follow active theme, 'all' = everything
+moodReady = true; // mood state is now declared — setTheme may render the board
 
 // Returns the Storage object path if the URL is an upload to our bucket, else null.
 // (Lets delete clean up the file without needing a storage_path column.)
@@ -5033,6 +5085,66 @@ function storagePathFromUrl(url) {
   if (typeof url !== 'string' || !url.startsWith(MOOD_PUBLIC_PREFIX)) return null;
   const path = url.slice(MOOD_PUBLIC_PREFIX.length).split('?')[0];
   return path ? decodeURIComponent(path) : null;
+}
+
+// Theme tag picker — shared by the add form and the edit form.
+function moodThemePickerHtml(selected) {
+  const sel = Array.isArray(selected) ? selected : [];
+  return MOOD_THEMES.map(([val, lbl]) =>
+    `<button type="button" class="mood-theme-pick ${sel.includes(val) ? 'active' : ''}" data-theme="${val}" onclick="this.classList.toggle('active')">${lbl}</button>`
+  ).join('');
+}
+function collectMoodThemes(scope) {
+  if (!scope) return [];
+  return [...scope.querySelectorAll('.mood-theme-pick.active')].map(b => b.dataset.theme);
+}
+function resetMoodAddThemes() {
+  document.querySelectorAll('#mood-add-themes .mood-theme-pick.active').forEach(b => b.classList.remove('active'));
+}
+
+function activeTheme() { return document.body.getAttribute('data-theme') || 'beira'; }
+// Visible if: showing all, OR untagged (shows on every theme), OR tagged with the active theme.
+function moodVisible(img) {
+  if (moodFilterMode === 'all') return true;
+  const tags = Array.isArray(img.themes) ? img.themes : [];
+  if (tags.length === 0) return true;
+  return tags.includes(activeTheme());
+}
+function setMoodFilter(mode) {
+  moodFilterMode = mode;
+  S.set('moodFilter', mode);
+  renderMoodBoard();
+}
+function renderMoodFilterBar() {
+  const bar = document.getElementById('mood-filterbar');
+  if (!bar) return;
+  const themeLabel = (MOOD_THEMES.find(([v]) => v === activeTheme()) || [,'Theme'])[1];
+  bar.innerHTML = `
+    <span class="mood-filter-lbl">Show</span>
+    <button class="mood-filter-pill ${moodFilterMode === 'all' ? 'active' : ''}" onclick="setMoodFilter('all')">All</button>
+    <button class="mood-filter-pill ${moodFilterMode === 'theme' ? 'active' : ''}" onclick="setMoodFilter('theme')">${escapeHtml(themeLabel)} only</button>
+  `;
+}
+
+// Preload an image URL to confirm it's actually a displayable image (catches
+// webpage URLs and hotlink-blocked hosts before we save a blank card).
+function checkImageUrl(url) {
+  return new Promise(resolve => {
+    const probe = new Image();
+    let done = false;
+    const finish = ok => { if (!done) { done = true; resolve(ok); } };
+    probe.onload = () => finish(true);
+    probe.onerror = () => finish(false);
+    probe.src = url;
+    setTimeout(() => finish(false), 10000);
+  });
+}
+// Replace a failed <img> with a visible placeholder (instead of a blank card).
+function moodImgFallback(imgEl) {
+  const ph = document.createElement('div');
+  ph.className = 'mood-img mood-img-broken';
+  ph.textContent = '⚠ Image unavailable';
+  imgEl.replaceWith(ph);
 }
 
 function setMoodUploadState(loading) {
@@ -5057,6 +5169,7 @@ async function uploadMoodImage(event) {
   if (file.size > 10 * 1024 * 1024) { moodError('Image is too large (max 10 MB).'); input.value = ''; return; }
 
   const label = document.getElementById('mood-label').value.trim();
+  const themes = collectMoodThemes(document.getElementById('mood-add-themes'));
   setMoodUploadState(true);
   setSyncStatus('', 'Uploading...');
   try {
@@ -5065,10 +5178,11 @@ async function uploadMoodImage(event) {
     const { error: upErr } = await sb.storage.from(MOOD_BUCKET).upload(path, file, { contentType: file.type, upsert: false });
     if (upErr) throw upErr;
     const { data: pub } = sb.storage.from(MOOD_BUCKET).getPublicUrl(path);
-    const row = await dbInsert('mood_images', { url: pub.publicUrl, label: label || 'Inspo' });
+    const row = await dbInsert('mood_images', { url: pub.publicUrl, label: label || 'Inspo', themes });
     if (row) {
       moodImages.push(row);
       document.getElementById('mood-label').value = '';
+      resetMoodAddThemes();
       renderMoodBoard();
     }
   } catch(e) {
@@ -5081,7 +5195,7 @@ async function uploadMoodImage(event) {
   }
 }
 
-// Add by direct image URL.
+// Add by direct image URL — validates it's a real image first.
 async function addMoodImage() {
   const urlEl = document.getElementById('mood-url');
   const url = urlEl.value.trim();
@@ -5089,9 +5203,19 @@ async function addMoodImage() {
   moodError('');
   if (!url) return;
   if (!/^https?:\/\//i.test(url)) { moodError('Enter a valid image URL (http/https).'); return; }
+  const themes = collectMoodThemes(document.getElementById('mood-add-themes'));
+  const btn = document.getElementById('mood-url-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Checking…'; }
+  const ok = await checkImageUrl(url);
+  if (btn) { btn.disabled = false; btn.textContent = 'Add'; }
+  if (!ok) {
+    moodError("That URL doesn't appear to be a direct image link. Open the image, right-click → Copy image address, and paste that.");
+    return;
+  }
   urlEl.value = '';
   document.getElementById('mood-label').value = '';
-  const row = await dbInsert('mood_images', { url, label: label || 'Inspo' });
+  resetMoodAddThemes();
+  const row = await dbInsert('mood_images', { url, label: label || 'Inspo', themes });
   if (row) { moodImages.push(row); renderMoodBoard(); }
 }
 
@@ -5111,21 +5235,68 @@ async function removeMoodImage(id) {
   }
 }
 
+// Inline edit (full-width): label + theme tags.
+function startEditMoodImage(id) {
+  const img = moodImages.find(x => x.id === id);
+  const card = document.getElementById('mood-card-' + id);
+  if (!img || !card) return;
+  card.classList.add('editing');
+  card.innerHTML = `
+    <div class="mood-edit">
+      <img class="mood-edit-thumb" src="${escapeHtml(img.url)}" alt="" onerror="moodImgFallback(this)">
+      <div class="mood-edit-fields">
+        <input type="text" id="mood-edit-label-${id}" value="${escapeHtml(img.label || '')}" placeholder="Label / caption">
+        <div class="mood-theme-picker" id="mood-edit-themes-${id}">${moodThemePickerHtml(img.themes)}</div>
+        <div class="mood-edit-actions">
+          <button class="btn btn-gold btn-sm" onclick="saveEditMoodImage(${id})">Save</button>
+          <button class="btn btn-secondary btn-sm" onclick="renderMoodBoard()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function saveEditMoodImage(id) {
+  const img = moodImages.find(x => x.id === id);
+  if (!img) return;
+  const label = document.getElementById('mood-edit-label-' + id)?.value.trim();
+  const themes = collectMoodThemes(document.getElementById('mood-edit-themes-' + id));
+  img.label = label || 'Inspo';
+  img.themes = themes;
+  await dbUpdate('mood_images', id, { label: img.label, themes });
+  renderMoodBoard();
+}
+
 function renderMoodBoard() {
   const grid = document.getElementById('mood-grid');
   if (!grid) return;
+  // Populate the add-form theme picker once (preserves any in-progress selection)
+  const addPicker = document.getElementById('mood-add-themes');
+  if (addPicker && !addPicker.children.length) addPicker.innerHTML = moodThemePickerHtml([]);
+  renderMoodFilterBar();
+
   if (moodImages.length === 0) {
     grid.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◉</div>
       <div class="empty-text">Add images above to build your mood board.</div></div>`;
     return;
   }
-  grid.innerHTML = moodImages.map(img => `
-    <div class="mood-card">
-      <img class="mood-img" src="${escapeHtml(img.url)}" alt="${escapeHtml(img.label)}" loading="lazy" onerror="this.style.display='none'">
+  const visible = moodImages.filter(moodVisible);
+  if (visible.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◉</div>
+      <div class="empty-text">No images tagged for this theme.<br>Tap “All” above to see everything.</div></div>`;
+    return;
+  }
+  grid.innerHTML = visible.map(img => `
+    <div class="mood-card" id="mood-card-${img.id}">
+      <img class="mood-img" src="${escapeHtml(img.url)}" alt="${escapeHtml(img.label)}" loading="lazy" onerror="moodImgFallback(this)">
       <div class="mood-card-foot">
         <div class="mood-label" style="padding:0">${escapeHtml(img.label)}</div>
-        <button class="btn btn-danger mood-del" onclick="removeMoodImage(${img.id})" aria-label="Delete image">✕</button>
+        <div style="display:flex;gap:0.3rem;flex-shrink:0;">
+          <button class="btn btn-secondary mood-edit-btn" onclick="startEditMoodImage(${img.id})" aria-label="Edit label and tags">✎</button>
+          <button class="btn btn-danger mood-del" onclick="removeMoodImage(${img.id})" aria-label="Delete image">✕</button>
+        </div>
       </div>
     </div>
   `).join('');
@@ -5779,6 +5950,10 @@ window.addEventListener('DOMContentLoaded', () => {
   window.addMoodImage = addMoodImage;
   window.uploadMoodImage = uploadMoodImage;
   window.removeMoodImage = removeMoodImage;
+  window.startEditMoodImage = startEditMoodImage;
+  window.saveEditMoodImage = saveEditMoodImage;
+  window.setMoodFilter = setMoodFilter;
+  window.moodImgFallback = moodImgFallback;
 });
 </script>
 
