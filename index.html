@@ -972,6 +972,7 @@ label {
   cursor: pointer; transition: all 0.15s;
 }
 .mood-filter-pill.active { background: var(--gold); color: #fff; border-color: var(--gold); }
+.mood-filter-all { margin-left: 0.35rem; border-style: dashed; color: var(--gold); border-color: var(--gold); background: transparent; }
 /* Inline mood edit (full-width) */
 .mood-card.editing { grid-column: 1 / -1; cursor: default; }
 .mood-edit {
@@ -4416,13 +4417,12 @@ function renderMoodTheme() {
 
 // Call renderMoodTheme when theme changes
 const _originalSetTheme = window.setTheme;
-let moodReady = false; // set true once mood state/consts are declared (see mood section)
 function setTheme(t) {
   document.body.setAttribute('data-theme', t);
   document.querySelectorAll('.theme-dot').forEach(d => d.classList.toggle('active', d.dataset.t === t));
   S.set('theme', t);
   renderMoodTheme();
-  if (moodReady) renderMoodBoard(); // re-filter the mood board to match the active theme
+  // Note: the mood board filter is independent of the app theme — no re-render here.
 }
 const savedTheme = S.get('theme');
 if (savedTheme) setTheme(savedTheme);
@@ -5163,8 +5163,15 @@ function renderVendors() {
 const MOOD_BUCKET = 'mood-images';
 const MOOD_PUBLIC_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/${MOOD_BUCKET}/`;
 const MOOD_THEMES = [['beira','Beira Mar'],['jardim','Jardim'],['editorial','Editorial'],['noite','Noite']];
-let moodFilterMode = S.get('moodFilter') || 'theme'; // 'theme' = follow active theme, 'all' = everything
-moodReady = true; // mood state is now declared — setTheme may render the board
+// Independent, combinable mood-board filter (decoupled from the app theme skin).
+const MOOD_FILTER_KEYS = ['beira','jardim','editorial','noite','untagged'];
+const MOOD_FILTER_LABELS = { beira:'Beira Mar', jardim:'Jardim', editorial:'Editorial', noite:'Noite', untagged:'Untagged' };
+function loadMoodFilter() {
+  const saved = S.get('moodFilters');
+  if (Array.isArray(saved)) return new Set(saved.filter(k => MOOD_FILTER_KEYS.includes(k)));
+  return new Set(MOOD_FILTER_KEYS); // default: all pills on
+}
+let moodFilter = loadMoodFilter();
 
 // Returns the Storage object path if the URL is an upload to our bucket, else null.
 // (Lets delete clean up the file without needing a storage_path column.)
@@ -5189,27 +5196,36 @@ function resetMoodAddThemes() {
   document.querySelectorAll('#mood-add-themes .mood-theme-pick.active').forEach(b => b.classList.remove('active'));
 }
 
-function activeTheme() { return document.body.getAttribute('data-theme') || 'beira'; }
-// Visible if: showing all, OR untagged (shows on every theme), OR tagged with the active theme.
+// Union logic: untagged images show when 'untagged' is on; tagged images show
+// when ANY of their tags is on. Fully independent of the app theme.
 function moodVisible(img) {
-  if (moodFilterMode === 'all') return true;
   const tags = Array.isArray(img.themes) ? img.themes : [];
-  if (tags.length === 0) return true;
-  return tags.includes(activeTheme());
+  if (tags.length === 0) return moodFilter.has('untagged');
+  return tags.some(t => moodFilter.has(t));
 }
-function setMoodFilter(mode) {
-  moodFilterMode = mode;
-  S.set('moodFilter', mode);
+function saveMoodFilter() { S.set('moodFilters', [...moodFilter]); }
+function toggleMoodFilter(key) {
+  if (moodFilter.has(key)) moodFilter.delete(key); else moodFilter.add(key);
+  saveMoodFilter();
+  renderMoodBoard();
+}
+// Single smart toggle: turn everything on, or clear when everything is already on.
+function moodFilterAll() {
+  const allOn = MOOD_FILTER_KEYS.every(k => moodFilter.has(k));
+  moodFilter = new Set(allOn ? [] : MOOD_FILTER_KEYS);
+  saveMoodFilter();
   renderMoodBoard();
 }
 function renderMoodFilterBar() {
   const bar = document.getElementById('mood-filterbar');
   if (!bar) return;
-  const themeLabel = (MOOD_THEMES.find(([v]) => v === activeTheme()) || [,'Theme'])[1];
+  const allOn = MOOD_FILTER_KEYS.every(k => moodFilter.has(k));
   bar.innerHTML = `
-    <span class="mood-filter-lbl">Show</span>
-    <button class="mood-filter-pill ${moodFilterMode === 'all' ? 'active' : ''}" onclick="setMoodFilter('all')">All</button>
-    <button class="mood-filter-pill ${moodFilterMode === 'theme' ? 'active' : ''}" onclick="setMoodFilter('theme')">${escapeHtml(themeLabel)} only</button>
+    <span class="mood-filter-lbl">Filter</span>
+    ${MOOD_FILTER_KEYS.map(k =>
+      `<button class="mood-filter-pill ${moodFilter.has(k) ? 'active' : ''}" onclick="toggleMoodFilter('${k}')">${escapeHtml(MOOD_FILTER_LABELS[k])}</button>`
+    ).join('')}
+    <button class="mood-filter-pill mood-filter-all" onclick="moodFilterAll()">${allOn ? 'Clear' : 'All'}</button>
   `;
 }
 
@@ -5372,7 +5388,7 @@ function renderMoodBoard() {
   if (visible.length === 0) {
     grid.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◉</div>
-      <div class="empty-text">No images tagged for this theme.<br>Tap “All” above to see everything.</div></div>`;
+      <div class="empty-text">No images match the current filters.<br>Tap “All” above to see everything.</div></div>`;
     return;
   }
   grid.innerHTML = visible.map(img => `
@@ -6209,7 +6225,8 @@ window.addEventListener('DOMContentLoaded', () => {
   window.removeMoodImage = removeMoodImage;
   window.startEditMoodImage = startEditMoodImage;
   window.saveEditMoodImage = saveEditMoodImage;
-  window.setMoodFilter = setMoodFilter;
+  window.toggleMoodFilter = toggleMoodFilter;
+  window.moodFilterAll = moodFilterAll;
   window.moodImgFallback = moodImgFallback;
   window.openMoodViewer = openMoodViewer;
   window.closeMoodViewer = closeMoodViewer;
