@@ -909,6 +909,36 @@ label {
   text-transform: uppercase;
   color: var(--muted);
 }
+/* Mood board: add controls */
+.mood-upload-btn { width: 100%; justify-content: center; padding: 0.9rem 1.2rem; font-size: 0.66rem; }
+.mood-upload-btn:disabled { opacity: 0.7; cursor: default; }
+.mood-or {
+  display: flex; align-items: center; text-align: center;
+  color: var(--muted-light); font-size: 0.56rem; letter-spacing: 0.2em;
+  text-transform: uppercase; margin: 0.8rem 0;
+}
+.mood-or::before, .mood-or::after { content: ''; flex: 1; height: 1px; background: var(--border-light); }
+.mood-or span { padding: 0 0.7rem; }
+.mood-url-row { display: flex; gap: 0.5rem; }
+.mood-url-row input { flex: 1; }
+.mood-url-row .btn { flex-shrink: 0; }
+.mood-error { color: var(--love); font-size: 0.62rem; margin-top: 0.5rem; }
+.mood-spinner {
+  display: inline-block; width: 12px; height: 12px;
+  border: 2px solid rgba(255,255,255,0.35); border-top-color: currentColor;
+  border-radius: 50%; animation: moodspin 0.7s linear infinite; vertical-align: -2px;
+}
+@keyframes moodspin { to { transform: rotate(360deg); } }
+/* Mood board: card footer + delete tap target */
+.mood-card-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.4rem; padding: 0.4rem 0.6rem;
+}
+.mood-del {
+  flex-shrink: 0; width: 30px; height: 30px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 6px; font-size: 0.7rem;
+}
 .mood-palette {
   display: flex;
   gap: 0.5rem;
@@ -2843,14 +2873,19 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
       <div class="card">
         <div class="card-title">Add Inspiration Image</div>
         <div class="form-row">
-          <label>Image URL</label>
-          <input type="text" id="mood-url" placeholder="Paste from Pinterest, venue site, Instagram...">
-        </div>
-        <div class="form-row">
-          <label>Label</label>
+          <label>Label (optional)</label>
           <input type="text" id="mood-label" placeholder="e.g. Ceremony inspo · Florals · Dress">
         </div>
-        <button class="btn btn-primary" onclick="addMoodImage()">+ Add Image</button>
+        <input type="file" id="mood-file" accept="image/*" style="display:none" onchange="uploadMoodImage(event)">
+        <button class="btn btn-primary mood-upload-btn" id="mood-upload-btn" onclick="document.getElementById('mood-file').click()">
+          <span id="mood-upload-label">📷 Upload from device</span>
+        </button>
+        <div class="mood-or"><span>or</span></div>
+        <div class="mood-url-row">
+          <input type="text" id="mood-url" placeholder="Paste image URL…" onkeydown="if(event.key==='Enter')addMoodImage()">
+          <button class="btn btn-secondary" onclick="addMoodImage()">Add</button>
+        </div>
+        <div class="mood-error" id="mood-upload-error"></div>
       </div>
 
       <div class="mood-grid" id="mood-grid">
@@ -4989,35 +5024,108 @@ function renderVendors() {
 // ── MOOD BOARD
 // moodImages declared at top
 
-async function addMoodImage() {
-  const url = document.getElementById('mood-url').value.trim();
+const MOOD_BUCKET = 'mood-images';
+const MOOD_PUBLIC_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/${MOOD_BUCKET}/`;
+
+// Returns the Storage object path if the URL is an upload to our bucket, else null.
+// (Lets delete clean up the file without needing a storage_path column.)
+function storagePathFromUrl(url) {
+  if (typeof url !== 'string' || !url.startsWith(MOOD_PUBLIC_PREFIX)) return null;
+  const path = url.slice(MOOD_PUBLIC_PREFIX.length).split('?')[0];
+  return path ? decodeURIComponent(path) : null;
+}
+
+function setMoodUploadState(loading) {
+  const btn = document.getElementById('mood-upload-btn');
+  const lbl = document.getElementById('mood-upload-label');
+  if (btn) btn.disabled = loading;
+  if (lbl) lbl.innerHTML = loading ? '<span class="mood-spinner"></span> Uploading…' : '📷 Upload from device';
+}
+
+function moodError(msg) {
+  const el = document.getElementById('mood-upload-error');
+  if (el) el.textContent = msg || '';
+}
+
+// Upload a device image to Storage, then save its public URL to mood_images.
+async function uploadMoodImage(event) {
+  const input = event.target;
+  const file = input.files && input.files[0];
+  if (!file) return;
+  moodError('');
+  if (!file.type.startsWith('image/')) { moodError('Please choose an image file.'); input.value = ''; return; }
+  if (file.size > 10 * 1024 * 1024) { moodError('Image is too large (max 10 MB).'); input.value = ''; return; }
+
   const label = document.getElementById('mood-label').value.trim();
+  setMoodUploadState(true);
+  setSyncStatus('', 'Uploading...');
+  try {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error: upErr } = await sb.storage.from(MOOD_BUCKET).upload(path, file, { contentType: file.type, upsert: false });
+    if (upErr) throw upErr;
+    const { data: pub } = sb.storage.from(MOOD_BUCKET).getPublicUrl(path);
+    const row = await dbInsert('mood_images', { url: pub.publicUrl, label: label || 'Inspo' });
+    if (row) {
+      moodImages.push(row);
+      document.getElementById('mood-label').value = '';
+      renderMoodBoard();
+    }
+  } catch(e) {
+    console.error('mood upload error', JSON.stringify(e), e.message || e);
+    moodError('Upload failed. Please try again.');
+    setSyncStatus('error', 'Error saving');
+  } finally {
+    setMoodUploadState(false);
+    input.value = ''; // allow re-selecting the same file
+  }
+}
+
+// Add by direct image URL.
+async function addMoodImage() {
+  const urlEl = document.getElementById('mood-url');
+  const url = urlEl.value.trim();
+  const label = document.getElementById('mood-label').value.trim();
+  moodError('');
   if (!url) return;
-  document.getElementById('mood-url').value = '';
+  if (!/^https?:\/\//i.test(url)) { moodError('Enter a valid image URL (http/https).'); return; }
+  urlEl.value = '';
   document.getElementById('mood-label').value = '';
-  const row = await dbInsert('mood_images', { url, label: label||'Inspo' });
+  const row = await dbInsert('mood_images', { url, label: label || 'Inspo' });
   if (row) { moodImages.push(row); renderMoodBoard(); }
 }
 
 async function removeMoodImage(id) {
+  if (!confirm('Remove this image?')) return;
+  const img = moodImages.find(x => x.id === id);
   await dbDelete('mood_images', id);
   moodImages = moodImages.filter(x => x.id !== id);
   renderMoodBoard();
+  // If it was an upload to our bucket, delete the Storage file too.
+  const path = img && storagePathFromUrl(img.url);
+  if (path) {
+    try {
+      const { error } = await sb.storage.from(MOOD_BUCKET).remove([path]);
+      if (error) console.error('storage remove error', error);
+    } catch(e) { console.error('storage remove error', e); }
+  }
 }
 
 function renderMoodBoard() {
+  const grid = document.getElementById('mood-grid');
+  if (!grid) return;
   if (moodImages.length === 0) {
-    document.getElementById('mood-grid').innerHTML = `
+    grid.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◉</div>
       <div class="empty-text">Add images above to build your mood board.</div></div>`;
     return;
   }
-  document.getElementById('mood-grid').innerHTML = moodImages.map(img => `
+  grid.innerHTML = moodImages.map(img => `
     <div class="mood-card">
-      <img class="mood-img" src="${escapeHtml(img.url)}" alt="${escapeHtml(img.label)}" onerror="this.style.display='none'">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:0.4rem 0.6rem">
+      <img class="mood-img" src="${escapeHtml(img.url)}" alt="${escapeHtml(img.label)}" loading="lazy" onerror="this.style.display='none'">
+      <div class="mood-card-foot">
         <div class="mood-label" style="padding:0">${escapeHtml(img.label)}</div>
-        <button class="btn btn-danger btn-sm" onclick="removeMoodImage(${img.id})">✕</button>
+        <button class="btn btn-danger mood-del" onclick="removeMoodImage(${img.id})" aria-label="Delete image">✕</button>
       </div>
     </div>
   `).join('');
@@ -5669,6 +5777,7 @@ window.addEventListener('DOMContentLoaded', () => {
   window.removeVendor = removeVendor;
   window.updateVendorStatus = updateVendorStatus;
   window.addMoodImage = addMoodImage;
+  window.uploadMoodImage = uploadMoodImage;
   window.removeMoodImage = removeMoodImage;
 });
 </script>
