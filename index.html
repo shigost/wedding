@@ -1506,6 +1506,93 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
   color: rgba(255,255,255,0.5);
 }
 
+/* ── MOOD IMAGE VIEWER ── */
+#mood-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0,0,0,0.96);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none; /* we handle pinch/pan ourselves */
+}
+#mood-lightbox.open { display: flex; }
+#ml-img {
+  max-width: 96vw;
+  max-height: 92vh;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  will-change: transform;
+  transform-origin: center center;
+  transition: transform 0.16s ease-out;
+  cursor: zoom-in;
+}
+#mood-lightbox.zoomed #ml-img { cursor: grab; }
+#mood-lightbox.panning #ml-img { transition: none; cursor: grabbing; }
+#ml-close {
+  position: absolute;
+  top: 1rem; right: 1.2rem;
+  width: 40px; height: 40px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 50%;
+  color: white; font-size: 1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+  z-index: 12;
+}
+#ml-close:hover { background: rgba(255,255,255,0.2); }
+#ml-details-btn {
+  position: absolute;
+  bottom: 1.1rem; left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: #fff;
+  font-family: var(--font-body, 'Jost', sans-serif);
+  font-size: 0.58rem; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  transition: all 0.15s;
+}
+#mood-lightbox.details-open #ml-details-btn { background: var(--gold); border-color: var(--gold); color: #fff; }
+#ml-details {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 11;
+  padding: 2.5rem 1.2rem 4.2rem;
+  background: linear-gradient(to top, rgba(0,0,0,0.92), rgba(0,0,0,0));
+  text-align: center;
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+#mood-lightbox.details-open #ml-details { transform: translateY(0); opacity: 1; pointer-events: auto; }
+#ml-caption {
+  color: #fff;
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: 1.05rem;
+  line-height: 1.4;
+  margin-bottom: 0.6rem;
+}
+#ml-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; }
+.ml-tag {
+  font-family: var(--font-body, 'Jost', sans-serif);
+  font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600;
+  padding: 0.32rem 0.65rem; border-radius: 999px;
+  background: rgba(255,255,255,0.16); color: #fff;
+}
+.ml-tag-none { opacity: 0.5; }
+
 /* ── VENUE SUB-PAGES ── */
 .venue-subpage { display:none; flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; background:var(--bg); }
 .venue-subpage.active { display:flex; flex-direction:column; }
@@ -5290,7 +5377,7 @@ function renderMoodBoard() {
   }
   grid.innerHTML = visible.map(img => `
     <div class="mood-card" id="mood-card-${img.id}">
-      <img class="mood-img" src="${escapeHtml(img.url)}" alt="${escapeHtml(img.label)}" loading="lazy" onerror="moodImgFallback(this)">
+      <img class="mood-img" src="${escapeHtml(img.url)}" alt="${escapeHtml(img.label)}" loading="lazy" onerror="moodImgFallback(this)" onclick="openMoodViewer(${img.id})">
       <div class="mood-card-foot">
         <div class="mood-label" style="padding:0">${escapeHtml(img.label)}</div>
         <div style="display:flex;gap:0.3rem;flex-shrink:0;">
@@ -5301,6 +5388,176 @@ function renderMoodBoard() {
     </div>
   `).join('');
 }
+
+// ── MOOD IMAGE VIEWER (lightbox with zoom/pan) ──────────────
+const ML_MAX = 4, ML_DBLTAP = 2.5;
+let ml = { scale: 1, tx: 0, ty: 0 };
+let mlBase = { left: 0, top: 0, w: 0, h: 0 };
+let mlPointers = new Map();
+let mlPinch = null;       // { dist, scale }
+let mlPanLast = null;     // { x, y }
+let mlDown = null;        // { x, y, target, moved }
+let mlLastTap = 0;
+const mlClamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+function measureMoodBase() {
+  const img = document.getElementById('ml-img');
+  if (!img) return;
+  const prev = img.style.transform;
+  img.style.transform = 'none';
+  const r = img.getBoundingClientRect();
+  mlBase = { left: r.left, top: r.top, w: r.width, h: r.height };
+  img.style.transform = prev;
+}
+
+function mlApply() {
+  const img = document.getElementById('ml-img');
+  if (img) img.style.transform = `translate(${ml.tx}px, ${ml.ty}px) scale(${ml.scale})`;
+  document.getElementById('mood-lightbox').classList.toggle('zoomed', ml.scale > 1.01);
+}
+
+function mlClampPan() {
+  const exX = Math.max(0, (mlBase.w * ml.scale - window.innerWidth) / 2) + 40;
+  const exY = Math.max(0, (mlBase.h * ml.scale - window.innerHeight) / 2) + 40;
+  ml.tx = mlClamp(ml.tx, -exX, exX);
+  ml.ty = mlClamp(ml.ty, -exY, exY);
+}
+
+// Zoom to a target scale while keeping the screen point (px,py) anchored.
+function mlZoomAt(px, py, newScale) {
+  newScale = mlClamp(newScale, 1, ML_MAX);
+  const ccx = mlBase.left + mlBase.w / 2, ccy = mlBase.top + mlBase.h / 2;
+  const ox = (px - ccx - ml.tx) / ml.scale, oy = (py - ccy - ml.ty) / ml.scale;
+  ml.tx = px - ccx - newScale * ox;
+  ml.ty = py - ccy - newScale * oy;
+  ml.scale = newScale;
+  if (ml.scale <= 1.001) { ml.scale = 1; ml.tx = 0; ml.ty = 0; }
+  mlClampPan();
+  mlApply();
+}
+
+function mlResetZoom() { ml = { scale: 1, tx: 0, ty: 0 }; mlApply(); }
+
+function openMoodViewer(id) {
+  const item = moodImages.find(x => x.id === id);
+  if (!item) return;
+  const box = document.getElementById('mood-lightbox');
+  const img = document.getElementById('ml-img');
+  mlResetZoom();
+  img.src = item.url;
+  document.getElementById('ml-caption').innerHTML = escapeHtml(item.label || '');
+  const tags = Array.isArray(item.themes) ? item.themes : [];
+  document.getElementById('ml-tags').innerHTML = tags.length
+    ? tags.map(t => `<span class="ml-tag">${escapeHtml((MOOD_THEMES.find(([v]) => v === t) || [, t])[1])}</span>`).join('')
+    : '<span class="ml-tag ml-tag-none">No theme tags</span>';
+  box.classList.remove('details-open');
+  box.classList.add('open');
+  img.onload = measureMoodBase;
+  requestAnimationFrame(() => requestAnimationFrame(measureMoodBase));
+  document.addEventListener('keydown', mlKeyHandler);
+}
+
+function closeMoodViewer() {
+  document.getElementById('mood-lightbox').classList.remove('open');
+  document.removeEventListener('keydown', mlKeyHandler);
+  mlPointers.clear(); mlPinch = null; mlPanLast = null; mlDown = null;
+}
+
+function toggleMoodDetails(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('mood-lightbox').classList.toggle('details-open');
+}
+
+function mlKeyHandler(e) { if (e.key === 'Escape') closeMoodViewer(); }
+
+function mlDist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+
+function mlPointerDown(e) {
+  const box = document.getElementById('mood-lightbox');
+  const img = document.getElementById('ml-img');
+  if (e.target.closest('#ml-close, #ml-details-btn, #ml-details')) return; // let controls work
+  box.setPointerCapture && box.setPointerCapture(e.pointerId);
+  mlPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  mlDown = { x: e.clientX, y: e.clientY, target: e.target, moved: false };
+  if (mlPointers.size === 2) {
+    const p = [...mlPointers.values()];
+    mlPinch = { dist: mlDist(p[0], p[1]), scale: ml.scale };
+    mlPanLast = null;
+    box.classList.add('panning');
+  } else if (mlPointers.size === 1) {
+    mlPanLast = { x: e.clientX, y: e.clientY };
+  }
+}
+
+function mlPointerMove(e) {
+  if (!mlPointers.has(e.pointerId)) return;
+  mlPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const box = document.getElementById('mood-lightbox');
+  if (mlPointers.size === 2 && mlPinch) {
+    const p = [...mlPointers.values()];
+    const d = mlDist(p[0], p[1]);
+    const mid = { x: (p[0].x + p[1].x) / 2, y: (p[0].y + p[1].y) / 2 };
+    mlZoomAt(mid.x, mid.y, mlPinch.scale * (d / mlPinch.dist));
+    mlDown && (mlDown.moved = true);
+    e.preventDefault();
+  } else if (mlPointers.size === 1 && mlPanLast && ml.scale > 1) {
+    box.classList.add('panning');
+    ml.tx += e.clientX - mlPanLast.x;
+    ml.ty += e.clientY - mlPanLast.y;
+    mlPanLast = { x: e.clientX, y: e.clientY };
+    mlClampPan(); mlApply();
+    if (Math.abs(e.clientX - mlDown.x) > 6 || Math.abs(e.clientY - mlDown.y) > 6) mlDown.moved = true;
+    e.preventDefault();
+  } else if (mlDown && (Math.abs(e.clientX - mlDown.x) > 6 || Math.abs(e.clientY - mlDown.y) > 6)) {
+    mlDown.moved = true;
+  }
+}
+
+function mlPointerUp(e) {
+  const box = document.getElementById('mood-lightbox');
+  if (!mlPointers.has(e.pointerId)) return;
+  mlPointers.delete(e.pointerId);
+  const wasMulti = !!mlPinch;
+  if (mlPointers.size < 2) { mlPinch = null; box.classList.remove('panning'); }
+  if (mlPointers.size === 1) { const p = [...mlPointers.values()][0]; mlPanLast = { x: p.x, y: p.y }; }
+
+  if (mlPointers.size === 0 && mlDown && !mlDown.moved && !wasMulti) {
+    const img = document.getElementById('ml-img');
+    if (mlDown.target === box) {            // tap on backdrop → close
+      closeMoodViewer();
+    } else if (mlDown.target === img) {     // tap on image → toggle zoom
+      if (e.pointerType === 'mouse') {
+        ml.scale > 1.01 ? mlResetZoom() : mlZoomAt(e.clientX, e.clientY, ML_DBLTAP);
+      } else {
+        const now = Date.now();
+        if (now - mlLastTap < 300) { ml.scale > 1.01 ? mlResetZoom() : mlZoomAt(e.clientX, e.clientY, ML_DBLTAP); mlLastTap = 0; }
+        else { mlLastTap = now; }
+      }
+    }
+  }
+  if (mlPointers.size === 0) { mlPanLast = null; mlDown = null; }
+}
+
+function mlWheel(e) {
+  if (!document.getElementById('mood-lightbox').classList.contains('open')) return;
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+  mlZoomAt(e.clientX, e.clientY, ml.scale * factor);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const box = document.getElementById('mood-lightbox');
+  if (!box) return;
+  box.addEventListener('pointerdown', mlPointerDown);
+  box.addEventListener('pointermove', mlPointerMove);
+  box.addEventListener('pointerup', mlPointerUp);
+  box.addEventListener('pointercancel', mlPointerUp);
+  box.addEventListener('wheel', mlWheel, { passive: false });
+  box.addEventListener('dblclick', e => e.preventDefault());
+});
+window.addEventListener('resize', () => {
+  if (document.getElementById('mood-lightbox').classList.contains('open')) measureMoodBase();
+});
 
 // ── DASHBOARD
 function updateDashboard() {
@@ -5954,6 +6211,9 @@ window.addEventListener('DOMContentLoaded', () => {
   window.saveEditMoodImage = saveEditMoodImage;
   window.setMoodFilter = setMoodFilter;
   window.moodImgFallback = moodImgFallback;
+  window.openMoodViewer = openMoodViewer;
+  window.closeMoodViewer = closeMoodViewer;
+  window.toggleMoodDetails = toggleMoodDetails;
 });
 </script>
 
@@ -5966,6 +6226,17 @@ window.addEventListener('DOMContentLoaded', () => {
   <button id="lightbox-next" onclick="lightboxNav(1)">›</button>
   <div id="lightbox-dots"></div>
   <div id="lightbox-counter"></div>
+</div>
+
+<!-- Mood image viewer -->
+<div id="mood-lightbox">
+  <button id="ml-close" onclick="closeMoodViewer()" aria-label="Close">✕</button>
+  <img id="ml-img" src="" alt="" draggable="false">
+  <button id="ml-details-btn" onclick="toggleMoodDetails(event)" aria-label="Show details">ⓘ Details</button>
+  <div id="ml-details">
+    <div id="ml-caption"></div>
+    <div id="ml-tags"></div>
+  </div>
 </div>
 
 <!-- Archive Modal -->
