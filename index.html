@@ -1110,8 +1110,8 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
 
 /* ── VENUE NAV (JS marquee + drag) ── */
 #venue-nav {
-  position: absolute;
-  top: 0; left: 0; right: 0;
+  position: relative;
+  flex-shrink: 0;
   height: 80px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -3324,7 +3324,7 @@ const ARCHIVED_DEFAULTS = [
   },
 ];
 
-const VENUES = [
+let VENUES = [
   {
     id: 'fontenova',
     name: 'Palácio da Fonte Nova',
@@ -3711,6 +3711,61 @@ let currentVenueView = 'profile';
 let heroIdx = 0;
 
 // ── BUILD NAV
+// ── DB → template mapping ─────────────────────────────────────────
+// Snapshot the hardcoded venues (also drops the stray-comma array hole).
+// Used as the fallback data source and to bridge photos-by-slug until the
+// venue images are migrated to Storage (DB rows currently have photos: []).
+const HARDCODED_VENUES = VENUES.filter(Boolean);
+const HARDCODED_IMAGES_BY_SLUG = {};
+HARDCODED_VENUES.forEach(v => { if (v && v.id) HARDCODED_IMAGES_BY_SLUG[v.id] = Array.isArray(v.images) ? v.images : []; });
+
+// Map a venues-table row to the exact object shape the template expects.
+// Every list defaults to [] and every scalar to '' so no field can throw.
+function venueRowToProfile(row) {
+  const la = (row && row.local_area && typeof row.local_area === 'object') ? row.local_area : {};
+  const photos = Array.isArray(row.photos) ? row.photos : [];
+  let images = photos.map(p => (typeof p === 'string' ? p : (p && p.url))).filter(Boolean);
+  if (images.length === 0) images = HARDCODED_IMAGES_BY_SLUG[row.slug] || []; // bridge from hardcoded until Storage stage
+  return {
+    id:               row.slug || row.id,
+    name:             row.name || '',
+    type:             row.subtitle || '',
+    area:             row.area || '',
+    dist:             row.dist || '',
+    distMin:          (typeof row.dist_min === 'number') ? row.dist_min : '',
+    score:            (row.score ?? '') === '' ? '' : row.score,
+    ocean:            !!row.ocean,
+    onSiteRooms:      !!row.on_site_rooms,
+    cateringIncluded: !!row.catering_included,
+    tags:             Array.isArray(row.tags) ? row.tags : [],
+    budget:           row.cost_estimate || '',
+    guests:           row.capacity || '',
+    bestSeason:       row.best_season || '',
+    desc:             row.overview || '',
+    availability:     row.availability || '',
+    accommodations:   Array.isArray(row.inclusions) ? row.inclusions : [],
+    hotels:           Array.isArray(row.hotels) ? row.hotels : [],
+    localArea:        la.text || '',
+    localSpots:       Array.isArray(la.tags) ? la.tags : [],
+    localImage:       la.photo || null,
+    pros:             Array.isArray(row.pros) ? row.pros : [],
+    cons:             Array.isArray(row.cons) ? row.cons : [],
+    website:          row.website || '',
+    mapSrc:           row.map_src || '',
+    images:           images,
+    liked:            !!row.liked,
+    archived:         !!row.archived,
+  };
+}
+
+// Rebuild VENUES from DB rows; keep the hardcoded fallback if the load is empty.
+function applyVenueRows(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return false;
+  VENUES = rows.filter(r => r && !r.archived).map(venueRowToProfile);
+  if (currentIdx >= VENUES.length) currentIdx = 0;
+  return true;
+}
+
 function buildNav() {
   const activeItems = VENUES.map((v, i) => `
     <div class="vnav-item ${i === 0 ? 'active' : ''}" data-idx="${i}" onclick="selectVenue(${i})">
@@ -3866,10 +3921,26 @@ function selectVenue(idx) {
 }
 
 // ── PROFILE
+function venueEmptyStateHtml(msg) {
+  return `<div style="padding:3rem 1.5rem;text-align:center;color:var(--muted)">
+    <div style="font-size:2rem;margin-bottom:0.6rem;color:var(--gold-light)">◈</div>
+    <div style="font-size:0.9rem;letter-spacing:0.05em">${escapeHtml(msg || '')}</div>
+  </div>`;
+}
+
 function venueRenderProfile(idx) {
+  const inner = document.getElementById('venue-profile-inner');
+  if (!inner) return;
+  if (!Array.isArray(VENUES) || VENUES.length === 0) {
+    inner.innerHTML = venueEmptyStateHtml('No venues to show yet.');
+    return;
+  }
+  if (idx == null || idx < 0 || idx >= VENUES.length) idx = 0;
   const v = VENUES[idx];
+  if (!v) { inner.innerHTML = venueEmptyStateHtml('This venue could not be loaded.'); return; }
   heroIdx = 0;
-  document.getElementById('venue-profile-inner').innerHTML = `
+  try {
+    inner.innerHTML = `
     <div class="profile-hero" id="hero-area" onclick="openLightbox(VENUES[${idx}].images, heroIdx, VENUES[${idx}].name)">
       <img id="hero-img" src="${v.images[0]}" alt="${v.name}">
       <div class="hero-nav left" onclick="event.stopPropagation();cycleHero(${idx}, -1)"><div class="hn-arrow">‹</div></div>
@@ -3962,7 +4033,11 @@ function venueRenderProfile(idx) {
       </div>
     </div>
   `;
-  startHeroAuto(idx);
+    startHeroAuto(idx);
+  } catch (e) {
+    console.error('venueRenderProfile failed for', (v && v.name) || idx, e);
+    inner.innerHTML = venueEmptyStateHtml((v && v.name ? v.name + ' — ' : '') + 'could not be displayed.');
+  }
 }
 
 function cycleHero(idx, dir) {
@@ -5956,7 +6031,7 @@ window.exportItinerary = exportItinerary;
 async function loadAllData() {
   setSyncStatus('', 'Loading...');
   try {
-    const [g, b, t, v, a, m, itin] = await Promise.all([
+    const [g, b, t, v, a, m, itin, ven] = await Promise.all([
       dbLoad('guests'),
       dbLoad('budget_items'),
       dbLoad('timeline_tasks'),
@@ -5964,6 +6039,7 @@ async function loadAllData() {
       dbLoad('archived_venues'),
       dbLoad('mood_images'),
       dbLoad('itinerary_items'),
+      dbLoad('venues'),
     ]);
     guests = g;
     budgetItems = b;
@@ -6013,12 +6089,17 @@ async function loadAllData() {
     renderVendors();
     renderItinerary();
 
+    // Venues: drive the rich template from the DB (keeps hardcoded fallback if empty).
+    // Photos are bridged from the hardcoded array by slug until the Storage stage.
+    if (applyVenueRows(ven)) { buildNav(); venueRenderProfile(0); }
+
     // Subscribe to real-time changes
     subscribeRealtime('guests', () => { dbLoad('guests').then(d => { guests = d; renderGuests(); updateDashboard(); }); });
     subscribeRealtime('budget_items', () => { dbLoad('budget_items').then(d => { budgetItems = d; renderBudget(); }); });
     subscribeRealtime('timeline_tasks', () => { dbLoad('timeline_tasks').then(d => { timelineTasks = d; renderTimeline(); }); });
     subscribeRealtime('vendors', () => { dbLoad('vendors').then(d => { vendors = d; renderVendors(); }); });
     subscribeRealtime('itinerary_items', () => { dbLoad('itinerary_items').then(d => { itinItems = d; renderItinerary(); }); });
+    subscribeRealtime('venues', () => { dbLoad('venues').then(d => { if (applyVenueRows(d)) { buildNav(); venueRenderProfile(currentIdx); } }); });
   } catch(e) {
     setSyncStatus('error', 'Connection error');
     console.error('loadAllData error', e);
