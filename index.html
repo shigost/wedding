@@ -6037,11 +6037,14 @@ async function loadAllData() {
     return { inserted: 0, skipped: 0 };
   }
   const existing = await dbLoad('venues');
-  const haveSlugs = new Set(existing.map(r => r.slug).filter(Boolean));
-  const haveNames = new Set(existing.map(r => (r.name || '').trim().toLowerCase()));
-  let inserted = 0, skipped = 0;
+  const haveSlugs = new Set(existing.map(r => r && r.slug).filter(Boolean));
+  const haveNames = new Set(existing.map(r => ((r && r.name) || '').trim().toLowerCase()).filter(Boolean));
+  let inserted = 0, skipped = 0, holes = 0;
   for (const v of VENUES) {
-    const nameKey = (v.name || '').trim().toLowerCase();
+    // The VENUES literal has a stray `},,` which creates an array hole → v is undefined.
+    // Skip holes / any entry missing a name so the migration completes gracefully.
+    if (!v || !v.name) { holes++; continue; }
+    const nameKey = v.name.trim().toLowerCase();
     if (haveSlugs.has(v.id) || haveNames.has(nameKey)) { skipped++; continue; }
     const row = {
       slug:              v.id || null,
@@ -6074,8 +6077,8 @@ async function loadAllData() {
     if (res) { inserted++; haveSlugs.add(v.id); haveNames.add(nameKey); }
     else console.warn('migrateVenuesToDB: insert failed for', v.name);
   }
-  console.log(`Venue migration complete — inserted ${inserted}, skipped ${skipped} (already present). Total in DB now: ${existing.length + inserted}.`);
-  return { inserted, skipped };
+  console.log(`Venue migration complete — inserted ${inserted}, skipped ${skipped} (already present)${holes ? `, ignored ${holes} empty slot(s)` : ''}. Total in DB now: ${existing.length + inserted}.`);
+  return { inserted, skipped, holes };
 }
 window.migrateVenuesToDB = migrateVenuesToDB;
 
