@@ -1602,6 +1602,69 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
 #page-venues { display:none; flex-direction:column; }
 #page-venues.active { display:flex; }
 
+/* ── VENUE ADD/EDIT FORM MODAL ── */
+#venue-form-modal {
+  position: fixed; inset: 0; z-index: 1200;
+  background: rgba(0,0,0,0.55);
+  display: none; align-items: flex-end; justify-content: center;
+}
+#venue-form-modal.open { display: flex; }
+#venue-form-sheet {
+  background: var(--bg);
+  width: 100%; max-width: 640px;
+  max-height: 94vh;
+  border-radius: 16px 16px 0 0;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.3);
+}
+@media (min-width: 641px) { #venue-form-modal { align-items: center; } #venue-form-sheet { border-radius: 14px; } }
+#venue-form-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.2rem; border-bottom: 1px solid var(--border);
+  background: var(--surface); flex-shrink: 0;
+}
+#venue-form-title {
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: 1.4rem; color: var(--dark); letter-spacing: 0.03em;
+}
+.vf-close {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--muted); font-size: 0.95rem; cursor: pointer; flex-shrink: 0;
+}
+#venue-form-body { padding: 1.1rem 1.2rem; overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; }
+#venue-form-foot {
+  display: flex; gap: 0.5rem; padding: 0.9rem 1.2rem;
+  border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0;
+}
+.vf-section-title {
+  font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--gold); font-weight: 600;
+  margin: 1.3rem 0 0.6rem; padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border-light);
+}
+.vf-section-title:first-child { margin-top: 0; }
+.vf-row { display: flex; gap: 0.4rem; align-items: center; margin-bottom: 0.45rem; }
+.vf-row input { flex: 1; min-width: 0; }
+.vf-del {
+  flex-shrink: 0; width: 30px; height: 30px; padding: 0; border-radius: 6px;
+  background: var(--love-light); color: var(--love); border: 1px solid rgba(154,56,56,0.2);
+  cursor: pointer; font-size: 0.7rem;
+}
+.vf-incl-y {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 6px; cursor: pointer;
+  font-size: 0.9rem; border: 1px solid var(--border);
+}
+.vf-incl-y.yes { background: var(--sage); color: #fff; border-color: var(--sage); }
+.vf-incl-y.no  { background: var(--love-light); color: var(--love); border-color: rgba(154,56,56,0.25); }
+.vf-add-btn {
+  margin-top: 0.2rem; font-size: 0.62rem; padding: 0.4rem 0.8rem;
+}
+.vf-checks { display: flex; flex-wrap: wrap; gap: 0.8rem; }
+.vf-check { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: var(--text); }
+.vf-check input { width: auto; }
+
 /* ── ARCHIVE ── */
 #archive-modal {
   position: fixed;
@@ -2600,7 +2663,8 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
       <button class="vtab active" onclick="setVenueView('profile')">Profile</button>
       <button class="vtab" onclick="setVenueView('map')">Map</button>
       <button class="vtab" onclick="setVenueView('compare')">Compare</button>
-      <button class="vtab vtab-back" id="vtab-back" onclick="setVenueView('profile')" style="display:none;margin-left:auto;color:var(--muted);">← Back</button>
+      <button class="vtab" id="vtab-add" onclick="openVenueForm()" style="margin-left:auto;color:var(--gold);">+ Add Venue</button>
+      <button class="vtab vtab-back" id="vtab-back" onclick="setVenueView('profile')" style="display:none;color:var(--muted);">← Back</button>
     </div>
     <!-- Map back button now lives inside venue-view-tabs -->
 
@@ -3727,6 +3791,7 @@ function venueRowToProfile(row) {
   let images = photos.map(p => (typeof p === 'string' ? p : (p && p.url))).filter(Boolean);
   if (images.length === 0) images = HARDCODED_IMAGES_BY_SLUG[row.slug] || []; // bridge from hardcoded until Storage stage
   return {
+    _row:             row,   // raw DB row, for the edit form (id/status/rating/slug + jsonb in DB shape)
     id:               row.slug || row.id,
     name:             row.name || '',
     type:             row.subtitle || '',
@@ -4029,6 +4094,7 @@ function venueRenderProfile(idx) {
         <button class="cta-btn cta-secondary" onclick="setVenueView('map')">📍 Map</button>
         <button class="cta-btn cta-secondary" onclick="setVenueView('compare')">⇄ Compare</button>
         <button class="cta-btn cta-secondary" onclick="openSwipe(${idx})" style="color:var(--sage)">♥ Swipe</button>
+        <button class="cta-btn cta-secondary" onclick="openVenueForm(${idx})">✎ Edit</button>
         <button class="cta-btn btn-danger" onclick="openArchiveModal(${idx})">Archive</button>
       </div>
     </div>
@@ -6164,6 +6230,238 @@ async function loadAllData() {
 window.migrateVenuesToDB = migrateVenuesToDB;
 
 
+// ── VENUE ADD/EDIT FORM ─────────────────────────────────────────────
+let editingVenueRow = null;   // raw DB row being edited, or null for a new venue
+
+function slugify(s) {
+  return (s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || null;
+}
+const vfEsc = (x) => escapeHtml(x == null ? '' : String(x));
+
+function openVenueForm(idx) {
+  const row = (idx != null && VENUES[idx]) ? (VENUES[idx]._row || null) : null;
+  editingVenueRow = row;
+  renderVenueForm(row);
+  document.getElementById('venue-form-modal').classList.add('open');
+  document.getElementById('venue-form-body').scrollTop = 0;
+}
+function closeVenueForm() {
+  document.getElementById('venue-form-modal').classList.remove('open');
+  editingVenueRow = null;
+}
+
+// Dynamic-list row appenders (also used to prefill on open).
+function vfAddTag(v) { vfAppend('vf-tags-list', `<input type="text" class="vf-item" placeholder="Tag" value="${vfEsc(v)}">`); }
+function vfAddPro(v) { vfAppend('vf-pros-list', `<input type="text" class="vf-item" placeholder="Strength" value="${vfEsc(v)}">`); }
+function vfAddCon(v) { vfAppend('vf-cons-list', `<input type="text" class="vf-item" placeholder="Watch-out" value="${vfEsc(v)}">`); }
+function vfAddLocalTag(v) { vfAppend('vf-la-tags-list', `<input type="text" class="vf-item" placeholder="Nearby spot" value="${vfEsc(v)}">`); }
+function vfAddPhoto(o) { o = o || {}; vfAppend('vf-photos-list',
+  `<input type="text" class="vf-photo-url" placeholder="Image URL" value="${vfEsc(o.url)}"><input type="text" class="vf-photo-cap" placeholder="Caption" value="${vfEsc(o.caption)}" style="flex:0.8">`); }
+function vfAddHotel(o) { o = o || {}; vfAppend('vf-hotels-list',
+  `<input type="text" class="vf-h-name" placeholder="Hotel" value="${vfEsc(o.name)}"><input type="text" class="vf-h-stars" placeholder="5★" value="${vfEsc(o.stars)}" style="flex:0.5"><input type="text" class="vf-h-dist" placeholder="5 min" value="${vfEsc(o.dist)}" style="flex:0.6"><input type="text" class="vf-h-price" placeholder="€…/night" value="${vfEsc(o.price)}" style="flex:0.8">`); }
+function vfAddInclusion(o) {
+  o = o || {};
+  const yes = o.y !== false; // default true for new rows
+  vfAppend('vf-incl-list',
+    `<button type="button" class="vf-incl-y ${yes ? 'yes' : 'no'}" data-y="${yes}" onclick="vfToggleY(this)">${yes ? '✓' : '✗'}</button>` +
+    `<input type="text" class="vf-incl-label" placeholder="Included / not" value="${vfEsc(o.label)}"><input type="text" class="vf-incl-note" placeholder="Note" value="${vfEsc(o.note)}" style="flex:0.9">`);
+}
+function vfToggleY(btn) {
+  const yes = btn.dataset.y === 'true';
+  btn.dataset.y = String(!yes);
+  btn.textContent = !yes ? '✓' : '✗';
+  btn.classList.toggle('yes', !yes);
+  btn.classList.toggle('no', yes);
+}
+// Append a .vf-row (inner inputs + a remove button) into a list container.
+function vfAppend(listId, innerHtml) {
+  const c = document.getElementById(listId);
+  if (!c) return;
+  const d = document.createElement('div');
+  d.className = 'vf-row';
+  d.innerHTML = innerHtml + `<button type="button" class="vf-del" onclick="this.closest('.vf-row').remove()" aria-label="Remove">✕</button>`;
+  c.appendChild(d);
+}
+
+function renderVenueForm(row) {
+  const r = row || {};
+  const la = (r.local_area && typeof r.local_area === 'object') ? r.local_area : {};
+  document.getElementById('venue-form-title').textContent = row ? 'Edit Venue' : 'Add Venue';
+  const numAttr = (v) => v == null ? '' : vfEsc(v);
+  document.getElementById('venue-form-body').innerHTML = `
+    <div class="vf-section-title">Basics</div>
+    <div class="form-row"><label>Name *</label><input type="text" id="vf-name" value="${vfEsc(r.name)}" placeholder="Venue name"></div>
+    <div class="form-row"><label>Subtitle</label><input type="text" id="vf-subtitle" value="${vfEsc(r.subtitle)}" placeholder="e.g. Ivy Palace · Sintra · Est. 1743"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Area / Location</label><input type="text" id="vf-area" value="${vfEsc(r.area)}" placeholder="e.g. Sintra"></div>
+      <div class="form-row"><label>Transfer (text)</label><input type="text" id="vf-dist" value="${vfEsc(r.dist)}" placeholder="e.g. 25 min from Lisbon"></div>
+      <div class="form-row"><label>Transfer (min)</label><input type="number" id="vf-dist-min" value="${numAttr(r.dist_min)}" placeholder="25"></div>
+      <div class="form-row"><label>Score (0–10)</label><input type="number" step="0.1" id="vf-score" value="${numAttr(r.score)}" placeholder="9.0"></div>
+      <div class="form-row"><label>Status</label><input type="text" id="vf-status" value="${vfEsc(r.status)}" placeholder="e.g. Researching"></div>
+      <div class="form-row"><label>Rating (1–5)</label><input type="number" id="vf-rating" value="${numAttr(r.rating)}" placeholder="4"></div>
+    </div>
+    <div class="vf-checks" style="margin-top:0.4rem">
+      <label class="vf-check"><input type="checkbox" id="vf-ocean" ${r.ocean ? 'checked' : ''}> Ocean access</label>
+      <label class="vf-check"><input type="checkbox" id="vf-onsite" ${r.on_site_rooms ? 'checked' : ''}> On-site rooms</label>
+      <label class="vf-check"><input type="checkbox" id="vf-catering" ${r.catering_included ? 'checked' : ''}> Catering incl.</label>
+      <label class="vf-check"><input type="checkbox" id="vf-archived" ${r.archived ? 'checked' : ''}> Archived</label>
+    </div>
+
+    <div class="vf-section-title">Stat cards</div>
+    <div class="form-grid">
+      <div class="form-row"><label>Est. Cost</label><input type="text" id="vf-cost" value="${vfEsc(r.cost_estimate)}" placeholder="Pricing on request"></div>
+      <div class="form-row"><label>Guests</label><input type="text" id="vf-capacity" value="${vfEsc(r.capacity)}" placeholder="e.g. 60–1,200"></div>
+      <div class="form-row"><label>Best Season</label><input type="text" id="vf-season" value="${vfEsc(r.best_season)}" placeholder="Apr–Oct"></div>
+    </div>
+
+    <div class="vf-section-title">Overview & availability</div>
+    <div class="form-row"><label>Overview</label><textarea id="vf-overview" rows="3" placeholder="Description">${vfEsc(r.overview)}</textarea></div>
+    <div class="form-row"><label>Availability</label><textarea id="vf-availability" rows="2" placeholder="Availability notes">${vfEsc(r.availability)}</textarea></div>
+
+    <div class="vf-section-title">Tags</div>
+    <div id="vf-tags-list"></div>
+    <button type="button" class="btn btn-secondary vf-add-btn" onclick="vfAddTag()">+ Add tag</button>
+
+    <div class="vf-section-title">Inclusions checklist</div>
+    <div id="vf-incl-list"></div>
+    <button type="button" class="btn btn-secondary vf-add-btn" onclick="vfAddInclusion()">+ Add inclusion</button>
+
+    <div class="vf-section-title">Photos (URL + caption)</div>
+    <div id="vf-photos-list"></div>
+    <button type="button" class="btn btn-secondary vf-add-btn" onclick="vfAddPhoto()">+ Add photo</button>
+
+    <div class="vf-section-title">Nearby hotels</div>
+    <div id="vf-hotels-list"></div>
+    <button type="button" class="btn btn-secondary vf-add-btn" onclick="vfAddHotel()">+ Add hotel</button>
+
+    <div class="vf-section-title">Local area</div>
+    <div class="form-row"><label>Local area photo (URL)</label><input type="text" id="vf-la-photo" value="${vfEsc(la.photo)}" placeholder="Image URL"></div>
+    <div class="form-row"><label>Local area text</label><textarea id="vf-la-text" rows="2" placeholder="About the surrounding area">${vfEsc(la.text)}</textarea></div>
+    <label style="display:block;margin-bottom:0.3rem">Local area tags</label>
+    <div id="vf-la-tags-list"></div>
+    <button type="button" class="btn btn-secondary vf-add-btn" onclick="vfAddLocalTag()">+ Add local tag</button>
+
+    <div class="vf-section-title">Pros</div>
+    <div id="vf-pros-list"></div>
+    <button type="button" class="btn btn-secondary vf-add-btn" onclick="vfAddPro()">+ Add strength</button>
+
+    <div class="vf-section-title">Cons</div>
+    <div id="vf-cons-list"></div>
+    <button type="button" class="btn btn-secondary vf-add-btn" onclick="vfAddCon()">+ Add watch-out</button>
+
+    <div class="vf-section-title">Links</div>
+    <div class="form-row"><label>Website</label><input type="text" id="vf-website" value="${vfEsc(r.website)}" placeholder="https://…"></div>
+    <div class="form-row"><label>Map embed URL</label><input type="text" id="vf-mapsrc" value="${vfEsc(r.map_src)}" placeholder="OpenStreetMap embed URL"></div>
+  `;
+  // Prefill dynamic lists from the row's arrays.
+  (Array.isArray(r.tags) ? r.tags : []).forEach(vfAddTag);
+  (Array.isArray(r.inclusions) ? r.inclusions : []).forEach(vfAddInclusion);
+  (Array.isArray(r.photos) ? r.photos : []).forEach(vfAddPhoto);
+  (Array.isArray(r.hotels) ? r.hotels : []).forEach(vfAddHotel);
+  (Array.isArray(la.tags) ? la.tags : []).forEach(vfAddLocalTag);
+  (Array.isArray(r.pros) ? r.pros : []).forEach(vfAddPro);
+  (Array.isArray(r.cons) ? r.cons : []).forEach(vfAddCon);
+}
+
+// Collect helpers
+function vfText(id) { const el = document.getElementById(id); const s = el ? el.value.trim() : ''; return s || null; }
+function vfNum(id) { const el = document.getElementById(id); const s = el ? el.value.trim() : ''; return s === '' ? null : Number(s); }
+function vfBool(id) { const el = document.getElementById(id); return !!(el && el.checked); }
+function vfSimpleList(listId) {
+  return [...document.querySelectorAll('#' + listId + ' .vf-item')].map(i => i.value.trim()).filter(Boolean);
+}
+
+async function saveVenueForm() {
+  const name = (document.getElementById('vf-name').value || '').trim();
+  if (!name) { alert('Venue name is required.'); return; }
+
+  const inclusions = [...document.querySelectorAll('#vf-incl-list .vf-row')].map(row => ({
+    y:     row.querySelector('.vf-incl-y').dataset.y === 'true',
+    label: row.querySelector('.vf-incl-label').value.trim(),
+    note:  row.querySelector('.vf-incl-note').value.trim(),
+  })).filter(x => x.label || x.note);
+
+  const hotels = [...document.querySelectorAll('#vf-hotels-list .vf-row')].map(row => ({
+    name:  row.querySelector('.vf-h-name').value.trim(),
+    stars: row.querySelector('.vf-h-stars').value.trim(),
+    dist:  row.querySelector('.vf-h-dist').value.trim(),
+    price: row.querySelector('.vf-h-price').value.trim(),
+  })).filter(h => h.name || h.stars || h.dist || h.price);
+
+  const photos = [...document.querySelectorAll('#vf-photos-list .vf-row')].map(row => ({
+    url:     row.querySelector('.vf-photo-url').value.trim(),
+    caption: row.querySelector('.vf-photo-cap').value.trim(),
+  })).filter(p => p.url);
+
+  const laText = vfText('vf-la-text');
+  const laPhoto = vfText('vf-la-photo');
+  const laTags = vfSimpleList('vf-la-tags-list');
+
+  const row = {
+    name,
+    subtitle:          vfText('vf-subtitle'),
+    area:              vfText('vf-area'),
+    dist:              vfText('vf-dist'),
+    dist_min:          vfNum('vf-dist-min'),
+    score:             vfNum('vf-score'),
+    status:            vfText('vf-status'),
+    rating:            vfNum('vf-rating'),
+    ocean:             vfBool('vf-ocean'),
+    on_site_rooms:     vfBool('vf-onsite'),
+    catering_included: vfBool('vf-catering'),
+    archived:          vfBool('vf-archived'),
+    cost_estimate:     vfText('vf-cost'),
+    capacity:          vfText('vf-capacity'),
+    best_season:       vfText('vf-season'),
+    overview:          vfText('vf-overview'),
+    availability:      vfText('vf-availability'),
+    website:           vfText('vf-website'),
+    map_src:           vfText('vf-mapsrc'),
+    tags:              vfSimpleList('vf-tags-list'),
+    inclusions,
+    hotels,
+    photos,
+    pros:              vfSimpleList('vf-pros-list'),
+    cons:              vfSimpleList('vf-cons-list'),
+    local_area:        { photo: laPhoto, text: laText || '', tags: laTags },
+    slug:              (editingVenueRow && editingVenueRow.slug) || slugify(name),
+  };
+
+  const editId = editingVenueRow && editingVenueRow.id;
+  let ok = true;
+  if (editId != null) {
+    await dbUpdate('venues', editId, row);
+  } else {
+    const res = await dbInsert('venues', row);
+    ok = !!res;
+    if (!ok) { alert('Could not save the venue. Please try again.'); return; }
+  }
+
+  // Reload from DB and re-render nav + profile, landing on the saved venue.
+  const rows = await dbLoad('venues');
+  applyVenueRows(rows);
+  buildNav();
+  let idx = VENUES.findIndex(x => x._row && (editId != null ? x._row.id === editId : (x._row.name || '').toLowerCase() === name.toLowerCase()));
+  if (idx < 0) idx = 0;
+  currentIdx = idx;
+  setVenueView('profile');
+  venueRenderProfile(idx);
+  closeVenueForm();
+}
+
+window.openVenueForm = openVenueForm;
+window.closeVenueForm = closeVenueForm;
+window.saveVenueForm = saveVenueForm;
+window.vfAddTag = vfAddTag;
+window.vfAddPro = vfAddPro;
+window.vfAddCon = vfAddCon;
+window.vfAddLocalTag = vfAddLocalTag;
+window.vfAddPhoto = vfAddPhoto;
+window.vfAddHotel = vfAddHotel;
+window.vfAddInclusion = vfAddInclusion;
+window.vfToggleY = vfToggleY;
+
+
 // ── VENUE SWIPE (Tinder-style)
 let swipeData = S.get('swipeData') || {}; // { venueId: { rights: 0, lefts: 0 } }
 let swipeCardIdx = null;
@@ -6407,6 +6705,21 @@ window.addEventListener('DOMContentLoaded', () => {
     <div class="archive-actions">
       <button class="btn btn-primary" onclick="confirmArchive()">Archive venue</button>
       <button class="btn btn-secondary" onclick="closeArchiveModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Venue Add/Edit Form Modal -->
+<div id="venue-form-modal">
+  <div id="venue-form-sheet">
+    <div id="venue-form-head">
+      <div id="venue-form-title">Add Venue</div>
+      <button class="vf-close" onclick="closeVenueForm()" aria-label="Close">✕</button>
+    </div>
+    <div id="venue-form-body"></div>
+    <div id="venue-form-foot">
+      <button class="btn btn-primary" onclick="saveVenueForm()">Save venue</button>
+      <button class="btn btn-secondary" onclick="closeVenueForm()">Cancel</button>
     </div>
   </div>
 </div>
