@@ -6026,6 +6026,60 @@ async function loadAllData() {
 }
 
 
+// ── ONE-TIME VENUE MIGRATION (manual: run migrateVenuesToDB() in the console once)
+// Copies the hardcoded VENUES array into the venues table. Additive + idempotent:
+// skips any venue whose slug or name already exists, so re-running inserts nothing new.
+// Reads the hardcoded VENUES array (left untouched). Photos deferred to a Storage stage
+// (base64 stays preserved in the hardcoded array), so `photos` is inserted empty for now.
+   async function migrateVenuesToDB() {
+  if (typeof VENUES === 'undefined' || !Array.isArray(VENUES)) {
+    console.warn('migrateVenuesToDB: VENUES array not found.');
+    return { inserted: 0, skipped: 0 };
+  }
+  const existing = await dbLoad('venues');
+  const haveSlugs = new Set(existing.map(r => r.slug).filter(Boolean));
+  const haveNames = new Set(existing.map(r => (r.name || '').trim().toLowerCase()));
+  let inserted = 0, skipped = 0;
+  for (const v of VENUES) {
+    const nameKey = (v.name || '').trim().toLowerCase();
+    if (haveSlugs.has(v.id) || haveNames.has(nameKey)) { skipped++; continue; }
+    const row = {
+      slug:              v.id || null,
+      name:              v.name || '',
+      subtitle:          v.type || null,
+      area:              v.area || null,
+      dist:              v.dist || null,
+      dist_min:          (typeof v.distMin === 'number') ? v.distMin : null,
+      score:             (typeof v.score === 'number') ? v.score : null,
+      ocean:             !!v.ocean,
+      on_site_rooms:     !!v.onSiteRooms,
+      catering_included: !!v.cateringIncluded,
+      tags:              Array.isArray(v.tags) ? v.tags : [],
+      cost_estimate:     v.budget || null,
+      capacity:          v.guests || null,          // 'guests' stat card → capacity
+      best_season:       v.bestSeason || null,
+      overview:          v.desc || null,
+      availability:      v.availability || null,
+      inclusions:        Array.isArray(v.accommodations) ? v.accommodations : [],
+      hotels:            Array.isArray(v.hotels) ? v.hotels : [],
+      local_area:        { photo: null, text: v.localArea || '', tags: Array.isArray(v.localSpots) ? v.localSpots : [] },
+      pros:              Array.isArray(v.pros) ? v.pros : [],
+      cons:              Array.isArray(v.cons) ? v.cons : [],
+      website:           v.website || null,
+      map_src:           v.mapSrc || null,
+      photos:            [],                          // deferred to Storage stage
+      archived:          false,
+    };
+    const res = await dbInsert('venues', row);
+    if (res) { inserted++; haveSlugs.add(v.id); haveNames.add(nameKey); }
+    else console.warn('migrateVenuesToDB: insert failed for', v.name);
+  }
+  console.log(`Venue migration complete — inserted ${inserted}, skipped ${skipped} (already present). Total in DB now: ${existing.length + inserted}.`);
+  return { inserted, skipped };
+}
+window.migrateVenuesToDB = migrateVenuesToDB;
+
+
 // ── VENUE SWIPE (Tinder-style)
 let swipeData = S.get('swipeData') || {}; // { venueId: { rights: 0, lefts: 0 } }
 let swipeCardIdx = null;
