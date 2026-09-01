@@ -1228,6 +1228,17 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
 }
 .profile-hero:hover .hn-arrow { opacity: 1; }
 
+/* Venue section photos: responsive — scale to fit, full display, no crop/overflow.
+   Targets the specific classes (not a broad `img` rule) so the cover-cropped hero is unaffected. */
+.section-photo-wrap { max-width: 100%; }
+.section-photo {
+  display: block;
+  width: 100%;
+  height: auto;      /* preserve aspect ratio */
+  max-width: 100%;   /* never exceed container / viewport width */
+}
+#venue-profile-view { overflow-x: hidden; } /* guard against any residual horizontal scroll */
+
 .profile-body { padding: 1.1rem; }
 
 .profile-name {
