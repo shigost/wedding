@@ -3817,6 +3817,9 @@ function venueRowToProfile(row) {
     cons:             Array.isArray(row.cons) ? row.cons : [],
     website:          row.website || '',
     mapSrc:           row.map_src || '',
+    contactName:      row.contact_name || '',
+    contactEmail:     row.contact_email || '',
+    contactPhone:     row.contact_phone || '',
     images:           images,
     liked:            !!row.liked,
     archived:         !!row.archived,
@@ -4088,6 +4091,17 @@ function venueRenderProfile(idx) {
           </div>
         </div>
       </div>
+
+      ${(v.contactEmail || v.contactPhone) ? `
+      <div class="psec">
+        <div class="psec-title">Contact</div>
+        ${v.contactName ? `<div class="psec-body" style="margin-bottom:0.6rem">${escapeHtml(v.contactName)}</div>` : ''}
+        <div class="cta-row">
+          ${v.contactEmail ? `<a class="cta-btn cta-secondary" href="mailto:${escapeHtml(v.contactEmail)}">✉ Email</a>` : ''}
+          ${v.contactPhone ? `<a class="cta-btn cta-secondary" href="tel:${escapeHtml(v.contactPhone)}">📞 Call</a>` : ''}
+          ${v.contactPhone ? `<a class="cta-btn cta-secondary" href="sms:${escapeHtml(v.contactPhone)}">💬 Text</a>` : ''}
+        </div>
+      </div>` : ''}
 
       <div class="cta-row">
         <a class="cta-btn cta-primary" href="${v.website}" target="_blank">↗ Website</a>
@@ -6349,6 +6363,13 @@ function renderVenueForm(row) {
     <div id="vf-cons-list"></div>
     <button type="button" class="btn btn-secondary vf-add-btn" onclick="vfAddCon()">+ Add watch-out</button>
 
+    <div class="vf-section-title">Contact</div>
+    <div class="form-row"><label>Contact name</label><input type="text" id="vf-contact-name" value="${vfEsc(r.contact_name)}" placeholder="e.g. Events team"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Contact email</label><input type="email" id="vf-contact-email" value="${vfEsc(r.contact_email)}" placeholder="events@venue.com"></div>
+      <div class="form-row"><label>Contact phone</label><input type="tel" id="vf-contact-phone" value="${vfEsc(r.contact_phone)}" placeholder="+351 …"></div>
+    </div>
+
     <div class="vf-section-title">Links</div>
     <div class="form-row"><label>Website</label><input type="text" id="vf-website" value="${vfEsc(r.website)}" placeholder="https://…"></div>
     <div class="form-row"><label>Map embed URL</label><input type="text" id="vf-mapsrc" value="${vfEsc(r.map_src)}" placeholder="OpenStreetMap embed URL"></div>
@@ -6417,6 +6438,9 @@ async function saveVenueForm() {
     availability:      vfText('vf-availability'),
     website:           vfText('vf-website'),
     map_src:           vfText('vf-mapsrc'),
+    contact_name:      vfText('vf-contact-name'),
+    contact_email:     vfText('vf-contact-email'),
+    contact_phone:     vfText('vf-contact-phone'),
     tags:              vfSimpleList('vf-tags-list'),
     inclusions,
     hotels,
