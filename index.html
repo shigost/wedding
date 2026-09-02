@@ -1881,6 +1881,20 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
 }
 .login-input::placeholder { color: rgba(255,255,255,0.3); }
 .login-input:focus { border-color: var(--gold-light, #d4aa6a); background: rgba(255,255,255,0.08); }
+/* Neutralize browser autofill so the login fields stay dark with light text
+   in every state (empty, focused, typing, autofilled) — no white flash, no dark-on-dark. */
+.login-input:-webkit-autofill,
+.login-input:-webkit-autofill:hover,
+.login-input:-webkit-autofill:focus,
+.login-input:-webkit-autofill:active,
+.login-input:autofill {
+  -webkit-text-fill-color: #fff;                     /* light typed text (overrides autofill's dark) */
+  caret-color: #fff;                                  /* visible cursor */
+  -webkit-box-shadow: 0 0 0 1000px #242424 inset;     /* repaint a solid neutral-dark bg over autofill white */
+          box-shadow: 0 0 0 1000px #242424 inset;
+  border: 1px solid rgba(255,255,255,0.15);           /* keep the same border */
+  transition: background-color 600000s 0s, color 600000s 0s; /* defeats the white-flash animation */
+}
 .login-btn {
   width: 100%;
   padding: 0.85rem 1rem;
