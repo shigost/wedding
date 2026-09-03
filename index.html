@@ -1755,6 +1755,17 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
 .vf-check { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: var(--text); }
 .vf-check input { width: auto; }
 .vf-error { color: var(--love); font-size: 0.62rem; margin: 0.2rem 0 0.4rem; min-height: 0.8rem; }
+.vf-photo-thumb {
+  flex-shrink: 0;
+  width: 52px; height: 52px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+}
+.vf-photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vf-photo-thumb.empty::after { content: '▢'; color: var(--muted-light); font-size: 1.05rem; }
 
 /* ── ARCHIVE ── */
 #archive-modal {
@@ -6445,8 +6456,29 @@ function vfAddTag(v) { vfAppend('vf-tags-list', `<input type="text" class="vf-it
 function vfAddPro(v) { vfAppend('vf-pros-list', `<input type="text" class="vf-item" placeholder="Strength" value="${vfEsc(v)}">`); }
 function vfAddCon(v) { vfAppend('vf-cons-list', `<input type="text" class="vf-item" placeholder="Watch-out" value="${vfEsc(v)}">`); }
 function vfAddLocalTag(v) { vfAppend('vf-la-tags-list', `<input type="text" class="vf-item" placeholder="Nearby spot" value="${vfEsc(v)}">`); }
-function vfAddPhoto(o) { o = o || {}; vfAppend('vf-photos-list',
-  `<input type="text" class="vf-photo-url" placeholder="Image URL" value="${vfEsc(o.url)}"><input type="text" class="vf-photo-cap" placeholder="Caption" value="${vfEsc(o.caption)}" style="flex:0.8">`); }
+function vfAddPhoto(o) {
+  o = o || {};
+  const url = o.url || '';
+  const thumb = url
+    ? `<div class="vf-photo-thumb"><img src="${vfEsc(url)}" alt="" onerror="vfPhotoThumbFail(this)"></div>`
+    : `<div class="vf-photo-thumb empty"></div>`;
+  vfAppend('vf-photos-list',
+    `${thumb}<input type="text" class="vf-photo-url" placeholder="Image URL" value="${vfEsc(url)}" oninput="vfPhotoThumb(this)">` +
+    `<input type="text" class="vf-photo-cap" placeholder="Caption" value="${vfEsc(o.caption)}" style="flex:0.8">`);
+}
+// Live-update a photo row's thumbnail when its URL changes.
+function vfPhotoThumb(input) {
+  const rowEl = input.closest('.vf-row');
+  const thumb = rowEl && rowEl.querySelector('.vf-photo-thumb');
+  if (!thumb) return;
+  const url = (input.value || '').trim();
+  if (url) { thumb.classList.remove('empty'); thumb.innerHTML = `<img src="${vfEsc(url)}" alt="" onerror="vfPhotoThumbFail(this)">`; }
+  else { thumb.classList.add('empty'); thumb.innerHTML = ''; }
+}
+function vfPhotoThumbFail(img) {
+  const thumb = img.closest('.vf-photo-thumb');
+  if (thumb) { thumb.classList.add('empty'); thumb.innerHTML = ''; } // fall back to the subtle placeholder
+}
 
 // ── Venue photo Storage (upload + add-by-URL — reuses the mood-board pattern) ──
 const VENUE_BUCKET = 'venue-images';
@@ -6730,6 +6762,8 @@ window.vfAddInclusion = vfAddInclusion;
 window.vfToggleY = vfToggleY;
 window.vfUploadPhoto = vfUploadPhoto;
 window.vfAddPhotoByUrl = vfAddPhotoByUrl;
+window.vfPhotoThumb = vfPhotoThumb;
+window.vfPhotoThumbFail = vfPhotoThumbFail;
 
 
 // ── VENUE SWIPE (Tinder-style)
