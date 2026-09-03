@@ -456,6 +456,38 @@ label {
   color: var(--muted-light);
   margin-top: 0.25rem;
 }
+/* Countdown flip tile: front = countdown, back = date editor */
+.flip-card { padding: 0; perspective: 800px; min-height: 96px; }
+.flip-inner {
+  position: relative; width: 100%; height: 100%; min-height: 96px;
+  transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
+  transform-style: preserve-3d;
+}
+.flip-card.flipped .flip-inner { transform: rotateY(180deg); }
+.flip-front, .flip-back {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.4rem; padding: 0.55rem 0.6rem;
+  -webkit-backface-visibility: hidden; backface-visibility: hidden;
+}
+.flip-front { cursor: pointer; }
+.flip-back { transform: rotateY(180deg); }
+/* Only the visible face is interactive */
+.flip-card:not(.flipped) .flip-back { pointer-events: none; }
+.flip-card.flipped .flip-front { pointer-events: none; }
+.date-input {
+  width: 100%; box-sizing: border-box;
+  font-family: var(--font-body, 'Jost', sans-serif); font-size: 0.72rem;
+  padding: 0.35rem 0.4rem; border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); background: var(--surface); outline: none;
+}
+.date-actions { display: flex; gap: 0.3rem; width: 100%; }
+.date-btn {
+  padding: 0.32rem 0.4rem; font-size: 0.6rem; letter-spacing: 0.05em;
+  border-radius: 6px; cursor: pointer; border: 1px solid var(--border);
+}
+.date-save { flex: 1; background: var(--gold); color: #fff; border-color: var(--gold); }
+.date-cancel { flex: 0 0 30px; background: var(--surface); color: var(--muted); }
 .quick-links {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2728,9 +2760,20 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     </div>
     <div class="page-body">
       <div class="stat-grid" id="dash-stats">
-        <div class="stat-card">
-          <div class="stat-num" id="dash-days">—</div>
-          <div class="stat-label">Days Away</div>
+        <div class="stat-card flip-card" id="date-tile">
+          <div class="flip-inner">
+            <div class="flip-front" onclick="flipDateTile(event)">
+              <div class="stat-num" id="dash-days">—</div>
+              <div class="stat-label" id="dash-days-label">Days Away</div>
+            </div>
+            <div class="flip-back">
+              <input type="date" id="wedding-date-input" class="date-input" onclick="event.stopPropagation()">
+              <div class="date-actions">
+                <button class="date-btn date-save" onclick="saveWeddingDate(event)">Save</button>
+                <button class="date-btn date-cancel" onclick="flipDateTile(event)" aria-label="Cancel">✕</button>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="stat-card">
           <div class="stat-num" id="dash-guests">0</div>
@@ -3289,6 +3332,7 @@ let itinItems = [];
 let timelineTasks = [];
 let moodImages = [];
 let archivedVenues = [];
+let weddingDate = null; // 'YYYY-MM-DD' from app_config, or null
 
 
 
@@ -5868,21 +5912,24 @@ window.addEventListener('resize', () => {
 });
 
 // ── DASHBOARD
+// weddingDate is a 'YYYY-MM-DD' string loaded from app_config (Supabase), or null.
 function updateDashboard() {
-  // Always calculate from actual current date — refreshes every minute
-  const wedding = new Date('2027-09-25T16:00:00'); // Sept 25 2027, ceremony time
-  const now = new Date();
-  const diffMs = wedding - now;
-  const days = Math.ceil(diffMs / (1000*60*60*24));
-
   const el = document.getElementById('dash-days');
+  const labelEl = document.getElementById('dash-days-label');
   if (el) {
-    if (diffMs < 0) {
-      el.textContent = '♥';
-    } else if (days === 0) {
-      el.textContent = 'Today!';
+    if (!weddingDate) {
+      // No date set → prompt to set one (tap to flip), never a broken number.
+      el.textContent = '＋';
+      if (labelEl) labelEl.textContent = 'Set date';
     } else {
-      el.textContent = days;
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const parts = weddingDate.split('-');
+      const wed = new Date(+parts[0], (+parts[1]) - 1, +parts[2]); // local midnight
+      const days = Math.round((wed - today) / 86400000);
+      if (days > 0) { el.textContent = days; if (labelEl) labelEl.textContent = 'Days Away'; }
+      else if (days === 0) { el.textContent = 'Today!'; if (labelEl) labelEl.textContent = 'The Big Day'; }
+      else { el.textContent = Math.abs(days); if (labelEl) labelEl.textContent = '♥ Married'; } // past → count + Married
     }
   }
 
@@ -5900,6 +5947,46 @@ function updateDashboard() {
 
 // Keep countdown live — refresh every minute
 setInterval(updateDashboard, 60000);
+
+// ── WEDDING DATE (flip tile → edit → persist to app_config) ──
+function flipDateTile(e) {
+  if (e) e.stopPropagation();
+  const card = document.getElementById('date-tile');
+  if (!card) return;
+  const willFlip = !card.classList.contains('flipped');
+  card.classList.toggle('flipped');
+  if (willFlip) {
+    const input = document.getElementById('wedding-date-input');
+    if (input) input.value = weddingDate || ''; // prefill current date on the back
+  }
+}
+
+async function saveWeddingDate(e) {
+  if (e) e.stopPropagation();
+  const input = document.getElementById('wedding-date-input');
+  const val = input ? input.value.trim() : ''; // 'YYYY-MM-DD' or ''
+  weddingDate = val || null;                    // empty clears it (front shows the set-date prompt)
+  await saveConfig('wedding_date', { date: weddingDate });
+  updateDashboard();
+  const card = document.getElementById('date-tile');
+  if (card) card.classList.remove('flipped');   // flip back to the updated countdown
+}
+
+// Upsert a single app_config key (extensible; add more keys / a couple_id later).
+async function saveConfig(key, value) {
+  setSyncStatus('', 'Saving...');
+  try {
+    const { error } = await sb.from('app_config').upsert({ key, value, updated_at: new Date().toISOString() });
+    if (error) throw error;
+    setSyncStatus('ok', 'Saved');
+    setTimeout(() => setSyncStatus('ok', 'Live'), 1200);
+  } catch(err) {
+    setSyncStatus('error', 'Error saving');
+    console.error('saveConfig error', JSON.stringify(err), err.message || err);
+  }
+}
+window.flipDateTile = flipDateTile;
+window.saveWeddingDate = saveWeddingDate;
 
 // ── CSV EXPORT
 function downloadCSV(content, filename) {
@@ -6298,7 +6385,7 @@ window.exportItinerary = exportItinerary;
 async function loadAllData() {
   setSyncStatus('', 'Loading...');
   try {
-    const [g, b, t, v, a, m, itin, ven] = await Promise.all([
+    const [g, b, t, v, a, m, itin, ven, cfg] = await Promise.all([
       dbLoad('guests'),
       dbLoad('budget_items'),
       dbLoad('timeline_tasks'),
@@ -6307,7 +6394,11 @@ async function loadAllData() {
       dbLoad('mood_images'),
       dbLoad('itinerary_items'),
       dbLoad('venues'),
+      dbLoad('app_config'),
     ]);
+    // Wedding date from config (drives the countdown tile); null if unset.
+    const wc = Array.isArray(cfg) ? cfg.find(r => r && r.key === 'wedding_date') : null;
+    weddingDate = (wc && wc.value && wc.value.date) ? wc.value.date : null;
     guests = g;
     budgetItems = b;
     // Timeline: show defaults immediately, seed to DB if empty
@@ -6367,6 +6458,7 @@ async function loadAllData() {
     subscribeRealtime('vendors', () => { dbLoad('vendors').then(d => { vendors = d; renderVendors(); }); });
     subscribeRealtime('itinerary_items', () => { dbLoad('itinerary_items').then(d => { itinItems = d; renderItinerary(); }); });
     subscribeRealtime('venues', () => { dbLoad('venues').then(d => { if (applyVenueRows(d)) { buildNav(); if (venueMode === 'grid') renderVenueGrid(); else if (venueMode === 'archived') renderArchivedGrid(); else venueRenderProfile(currentIdx); } }); });
+    subscribeRealtime('app_config', () => { dbLoad('app_config').then(d => { const wc = Array.isArray(d) ? d.find(r => r && r.key === 'wedding_date') : null; weddingDate = (wc && wc.value && wc.value.date) ? wc.value.date : null; updateDashboard(); }); });
   } catch(e) {
     setSyncStatus('error', 'Connection error');
     console.error('loadAllData error', e);
