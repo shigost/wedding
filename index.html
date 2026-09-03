@@ -6702,20 +6702,8 @@ async function saveVenueForm() {
     if (!ok) { alert('Could not save the venue. Please try again.'); return; }
   }
 
-  // Storage cleanup: any previously-saved uploaded photo that was removed this edit.
-  if (editId != null) {
-    const oldPhotos = Array.isArray(editingVenueRow.photos) ? editingVenueRow.photos : [];
-    const newUrls = new Set(photos.map(p => p.url));
-    const removedPaths = oldPhotos
-      .map(p => (typeof p === 'string' ? p : (p && p.url)))
-      .filter(u => u && !newUrls.has(u))
-      .map(venueStoragePathFromUrl)
-      .filter(Boolean);
-    if (removedPaths.length) {
-      try { await sb.storage.from(VENUE_BUCKET).remove(removedPaths); }
-      catch(e) { console.error('venue photo storage remove error', e); }
-    }
-  }
+  // Note: removed photo rows just drop from the venue's photos[] (no display),
+  // but the Storage file is intentionally kept — nothing is ever hard-deleted.
 
   // Reload from DB and re-render nav + profile, landing on the saved venue.
   const rows = await dbLoad('venues');
