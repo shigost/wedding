@@ -1955,6 +1955,19 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
 }
 .login-input::placeholder { color: rgba(255,255,255,0.3); }
 .login-input:focus { border-color: var(--gold-light, #d4aa6a); background: rgba(255,255,255,0.08); }
+/* The global `input[type="email"] { color: var(--text) }` rule (specificity 0,1,1)
+   out-specifies `.login-input` (0,1,0), so typed text fell back to the dark themed
+   color whenever the autofill pseudo wasn't active (i.e. while focused/typing).
+   Force white — as both color AND -webkit-text-fill-color — at higher specificity
+   (#login-lock … = 1,1,0) in every interaction state. */
+#login-lock .login-input,
+#login-lock .login-input:focus,
+#login-lock .login-input:hover,
+#login-lock .login-input:active {
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+}
 /* Neutralize browser autofill so the login fields stay dark with light text
    in every state (empty, focused, typing, autofilled) — no white flash, no dark-on-dark. */
 .login-input:-webkit-autofill,
