@@ -1754,6 +1754,7 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
 .vf-checks { display: flex; flex-wrap: wrap; gap: 0.8rem; }
 .vf-check { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: var(--text); }
 .vf-check input { width: auto; }
+.vf-error { color: var(--love); font-size: 0.62rem; margin: 0.2rem 0 0.4rem; min-height: 0.8rem; }
 
 /* ── ARCHIVE ── */
 #archive-modal {
@@ -6446,6 +6447,64 @@ function vfAddCon(v) { vfAppend('vf-cons-list', `<input type="text" class="vf-it
 function vfAddLocalTag(v) { vfAppend('vf-la-tags-list', `<input type="text" class="vf-item" placeholder="Nearby spot" value="${vfEsc(v)}">`); }
 function vfAddPhoto(o) { o = o || {}; vfAppend('vf-photos-list',
   `<input type="text" class="vf-photo-url" placeholder="Image URL" value="${vfEsc(o.url)}"><input type="text" class="vf-photo-cap" placeholder="Caption" value="${vfEsc(o.caption)}" style="flex:0.8">`); }
+
+// ── Venue photo Storage (upload + add-by-URL — reuses the mood-board pattern) ──
+const VENUE_BUCKET = 'venue-images';
+const VENUE_PUBLIC_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/${VENUE_BUCKET}/`;
+// Returns the Storage object path if the URL is an upload to our venue bucket, else null.
+function venueStoragePathFromUrl(url) {
+  if (typeof url !== 'string' || !url.startsWith(VENUE_PUBLIC_PREFIX)) return null;
+  const path = url.slice(VENUE_PUBLIC_PREFIX.length).split('?')[0];
+  return path ? decodeURIComponent(path) : null;
+}
+function vfPhotoError(msg) { const el = document.getElementById('vf-photo-error'); if (el) el.textContent = msg || ''; }
+function vfPhotoUploadState(loading) {
+  const btn = document.getElementById('vf-photo-upload-btn');
+  if (btn) { btn.disabled = loading; btn.innerHTML = loading ? '<span class="mood-spinner"></span> Uploading…' : '📷 Upload from device'; }
+}
+// Upload a device image → venue-images bucket → append a photo row with the public URL.
+async function vfUploadPhoto(event) {
+  const input = event.target;
+  const file = input.files && input.files[0];
+  if (!file) return;
+  vfPhotoError('');
+  if (!file.type.startsWith('image/')) { vfPhotoError('Please choose an image file.'); input.value = ''; return; }
+  if (file.size > 10 * 1024 * 1024) { vfPhotoError('Image is too large (max 10 MB).'); input.value = ''; return; }
+  vfPhotoUploadState(true);
+  setSyncStatus('', 'Uploading...');
+  try {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error: upErr } = await sb.storage.from(VENUE_BUCKET).upload(path, file, { contentType: file.type, upsert: false });
+    if (upErr) throw upErr;
+    const { data: pub } = sb.storage.from(VENUE_BUCKET).getPublicUrl(path);
+    vfAddPhoto({ url: pub.publicUrl, caption: '' });
+    setSyncStatus('ok', 'Saved');
+    setTimeout(() => setSyncStatus('ok', 'Live'), 1200);
+  } catch(e) {
+    console.error('venue photo upload error', JSON.stringify(e), e.message || e);
+    vfPhotoError('Upload failed. Please try again.');
+    setSyncStatus('error', 'Error saving');
+  } finally {
+    vfPhotoUploadState(false);
+    input.value = ''; // allow re-selecting the same file
+  }
+}
+// Add a photo by direct URL — validates it's a real image first (mood-board style).
+async function vfAddPhotoByUrl() {
+  const urlEl = document.getElementById('vf-photo-url-input');
+  const url = (urlEl ? urlEl.value : '').trim();
+  vfPhotoError('');
+  if (!url) return;
+  if (!/^https?:\/\//i.test(url)) { vfPhotoError('Enter a valid image URL (http/https).'); return; }
+  const btn = document.getElementById('vf-photo-url-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Checking…'; }
+  const ok = await checkImageUrl(url);
+  if (btn) { btn.disabled = false; btn.textContent = 'Add URL'; }
+  if (!ok) { vfPhotoError("That URL doesn't appear to be a direct image link. Open the image, right-click → Copy image address, and paste that."); return; }
+  vfAddPhoto({ url, caption: '' });
+  if (urlEl) urlEl.value = '';
+}
 function vfAddHotel(o) { o = o || {}; vfAppend('vf-hotels-list',
   `<input type="text" class="vf-h-name" placeholder="Hotel" value="${vfEsc(o.name)}"><input type="text" class="vf-h-stars" placeholder="5★" value="${vfEsc(o.stars)}" style="flex:0.5"><input type="text" class="vf-h-dist" placeholder="5 min" value="${vfEsc(o.dist)}" style="flex:0.6"><input type="text" class="vf-h-price" placeholder="€…/night" value="${vfEsc(o.price)}" style="flex:0.8">`); }
 function vfAddInclusion(o) {
@@ -6515,7 +6574,14 @@ function renderVenueForm(row) {
     <div id="vf-incl-list"></div>
     <button type="button" class="btn btn-secondary vf-add-btn" onclick="vfAddInclusion()">+ Add inclusion</button>
 
-    <div class="vf-section-title">Photos (URL + caption)</div>
+    <div class="vf-section-title">Photos</div>
+    <input type="file" id="vf-photo-file" accept="image/*" style="display:none" onchange="vfUploadPhoto(event)">
+    <button type="button" class="btn btn-secondary btn-sm" id="vf-photo-upload-btn" onclick="document.getElementById('vf-photo-file').click()" style="width:100%;justify-content:center;margin-bottom:0.5rem;">📷 Upload from device</button>
+    <div style="display:flex;gap:0.4rem;margin-bottom:0.4rem;">
+      <input type="text" id="vf-photo-url-input" placeholder="Paste image URL…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();vfAddPhotoByUrl();}">
+      <button type="button" class="btn btn-secondary btn-sm" id="vf-photo-url-btn" onclick="vfAddPhotoByUrl()">Add URL</button>
+    </div>
+    <div class="vf-error" id="vf-photo-error"></div>
     <div id="vf-photos-list"></div>
     <button type="button" class="btn btn-secondary vf-add-btn" onclick="vfAddPhoto()">+ Add photo</button>
 
@@ -6636,6 +6702,21 @@ async function saveVenueForm() {
     if (!ok) { alert('Could not save the venue. Please try again.'); return; }
   }
 
+  // Storage cleanup: any previously-saved uploaded photo that was removed this edit.
+  if (editId != null) {
+    const oldPhotos = Array.isArray(editingVenueRow.photos) ? editingVenueRow.photos : [];
+    const newUrls = new Set(photos.map(p => p.url));
+    const removedPaths = oldPhotos
+      .map(p => (typeof p === 'string' ? p : (p && p.url)))
+      .filter(u => u && !newUrls.has(u))
+      .map(venueStoragePathFromUrl)
+      .filter(Boolean);
+    if (removedPaths.length) {
+      try { await sb.storage.from(VENUE_BUCKET).remove(removedPaths); }
+      catch(e) { console.error('venue photo storage remove error', e); }
+    }
+  }
+
   // Reload from DB and re-render nav + profile, landing on the saved venue.
   const rows = await dbLoad('venues');
   applyVenueRows(rows);
@@ -6659,6 +6740,8 @@ window.vfAddPhoto = vfAddPhoto;
 window.vfAddHotel = vfAddHotel;
 window.vfAddInclusion = vfAddInclusion;
 window.vfToggleY = vfToggleY;
+window.vfUploadPhoto = vfUploadPhoto;
+window.vfAddPhotoByUrl = vfAddPhotoByUrl;
 
 
 // ── VENUE SWIPE (Tinder-style)
