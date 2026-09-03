@@ -2760,9 +2760,9 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     </div>
     <div class="page-body">
       <div class="stat-grid" id="dash-stats">
-        <div class="stat-card flip-card" id="date-tile">
+        <div class="stat-card flip-card" id="date-tile" onclick="flipDateTile(event)">
           <div class="flip-inner">
-            <div class="flip-front" onclick="flipDateTile(event)">
+            <div class="flip-front">
               <div class="stat-num" id="dash-days">—</div>
               <div class="stat-label" id="dash-days-label">Days Away</div>
             </div>
@@ -2770,7 +2770,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
               <input type="date" id="wedding-date-input" class="date-input" onclick="event.stopPropagation()">
               <div class="date-actions">
                 <button class="date-btn date-save" onclick="saveWeddingDate(event)">Save</button>
-                <button class="date-btn date-cancel" onclick="flipDateTile(event)" aria-label="Cancel">✕</button>
+                <button class="date-btn date-cancel" onclick="closeDateTile(event)" aria-label="Cancel">✕</button>
               </div>
             </div>
           </div>
@@ -5949,16 +5949,20 @@ function updateDashboard() {
 setInterval(updateDashboard, 60000);
 
 // ── WEDDING DATE (flip tile → edit → persist to app_config) ──
+// Card-level tap flips front → back (editor). Back controls stop propagation,
+// so tapping the input/Save/✕ doesn't re-trigger this.
 function flipDateTile(e) {
-  if (e) e.stopPropagation();
   const card = document.getElementById('date-tile');
   if (!card) return;
-  const willFlip = !card.classList.contains('flipped');
-  card.classList.toggle('flipped');
-  if (willFlip) {
-    const input = document.getElementById('wedding-date-input');
-    if (input) input.value = weddingDate || ''; // prefill current date on the back
-  }
+  if (card.classList.contains('flipped')) return; // already showing the editor
+  card.classList.add('flipped');
+  const input = document.getElementById('wedding-date-input');
+  if (input) input.value = weddingDate || ''; // prefill current date on the back
+}
+function closeDateTile(e) {
+  if (e) e.stopPropagation();
+  const card = document.getElementById('date-tile');
+  if (card) card.classList.remove('flipped');
 }
 
 async function saveWeddingDate(e) {
@@ -5986,6 +5990,7 @@ async function saveConfig(key, value) {
   }
 }
 window.flipDateTile = flipDateTile;
+window.closeDateTile = closeDateTile;
 window.saveWeddingDate = saveWeddingDate;
 
 // ── CSV EXPORT
