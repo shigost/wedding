@@ -1120,19 +1120,34 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
   height: 80px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   z-index: 5;
-  cursor: grab;
   -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0.15) 0%, black 3%, black 97%, rgba(0,0,0,0.15) 100%);
   mask-image: linear-gradient(to right, rgba(0,0,0,0.15) 0%, black 3%, black 97%, rgba(0,0,0,0.15) 100%);
 }
-#venue-nav.dragging { cursor: grabbing; }
+#venue-nav::-webkit-scrollbar { display: none; }
 #venue-nav-track {
   display: flex;
   width: max-content;
-  will-change: transform;
-  transform: translateX(0px);
 }
+/* Translucent "swipe to see more" hint — pulses until the first swipe, then gone. */
+#venue-nav-hint {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding-right: 0.9rem;
+  width: 45%;
+  pointer-events: none;
+  z-index: 6;
+  font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600;
+  color: #fff;
+  background: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+#venue-nav-hint.show { opacity: 1; }
 .vnav-item {
   flex-shrink: 0;
   width: 150px;
@@ -1617,6 +1632,65 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
 #venue-content { flex:1; overflow:hidden; display:flex; flex-direction:column; position:relative; }
 #page-venues { display:none; flex-direction:column; }
 #page-venues.active { display:flex; }
+
+/* ── VENUE MODES: grid (landing) · profile · archived ── */
+/* Strip + tabs only in profile mode */
+#page-venues:not(.mode-profile) #venue-nav,
+#page-venues:not(.mode-profile) #venue-view-tabs { display: none; }
+/* Profile/map/compare subviews hidden unless in profile mode */
+#page-venues:not(.mode-profile) #venue-profile-view,
+#page-venues:not(.mode-profile) #venue-map-view,
+#page-venues:not(.mode-profile) #venue-compare-view { display: none !important; }
+/* Grid + archived views */
+#venue-grid-view, #venue-archived-view { display: none; }
+#page-venues.mode-grid #venue-grid-view,
+#page-venues.mode-archived #venue-archived-view {
+  display: flex; flex-direction: column; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: var(--bg);
+}
+.venue-grid-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+  padding: 1.1rem 1.1rem 0.4rem;
+}
+.venue-grid-title { font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 1.6rem; color: var(--dark); }
+.venue-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem;
+  padding: 0.6rem 1.1rem 1.5rem;
+}
+@media (min-width: 600px) { .venue-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 900px) { .venue-grid { grid-template-columns: repeat(4, 1fr); } }
+.venue-tile {
+  position: relative;
+  border-radius: 12px; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border);
+  cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+}
+.venue-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+.venue-tile-photo { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: var(--bg2); }
+.venue-tile-body { padding: 0.55rem 0.7rem 0.7rem; }
+.venue-tile-name { font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 0.95rem; line-height: 1.15; color: var(--dark); }
+.venue-tile-score {
+  display: inline-flex; align-items: center; gap: 0.25rem; margin-top: 0.3rem;
+  font-size: 0.72rem; font-weight: 600; color: var(--gold);
+}
+.venue-tile-reason {
+  margin-top: 0.35rem; font-size: 0.56rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--love); display: inline-block;
+}
+/* Archived multi-select */
+.venue-tile.selected { outline: 3px solid var(--gold); outline-offset: -3px; }
+.venue-tile-check {
+  position: absolute; top: 0.5rem; right: 0.5rem; z-index: 2;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(0,0,0,0.45); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+  opacity: 0; transition: opacity 0.12s;
+}
+.venue-tile.selected .venue-tile-check { opacity: 1; background: var(--gold); }
+.venue-archived-bar {
+  position: sticky; bottom: 0; z-index: 3;
+  display: flex; gap: 0.5rem; align-items: center; justify-content: space-between;
+  padding: 0.7rem 1.1rem; background: var(--surface); border-top: 1px solid var(--border);
+}
 
 /* ── VENUE ADD/EDIT FORM MODAL ── */
 #venue-form-modal {
@@ -2685,15 +2759,16 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   <!-- VENUES -->
   <div class="page" id="page-venues">
 
-    <!-- Venue Nav (marquee) -->
-    <div id="venue-nav"><div id="venue-nav-track"></div></div>
+    <!-- Venue Nav (swipe strip) -->
+    <div id="venue-nav"><div id="venue-nav-track"></div><div id="venue-nav-hint">→ swipe to see more</div></div>
 
     <!-- Venue sub-tabs -->
     <div id="venue-view-tabs">
-      <button class="vtab active" onclick="setVenueView('profile')">Profile</button>
-      <button class="vtab" onclick="setVenueView('map')">Map</button>
-      <button class="vtab" onclick="setVenueView('compare')">Compare</button>
-      <button class="vtab" id="vtab-add" onclick="openVenueForm()" style="margin-left:auto;color:var(--gold);">+ Add Venue</button>
+      <button class="vtab" onclick="setVenueMode('grid')" style="color:var(--muted)">← Venues</button>
+      <button class="vtab active" data-view="profile" onclick="setVenueView('profile')">Profile</button>
+      <button class="vtab" data-view="map" onclick="setVenueView('map')">Map</button>
+      <button class="vtab" data-view="compare" onclick="setVenueView('compare')">Compare</button>
+      <button class="vtab" id="vtab-add" onclick="openVenueForm()" style="margin-left:auto;color:var(--gold);">+ Add</button>
       <button class="vtab vtab-back" id="vtab-back" onclick="setVenueView('profile')" style="display:none;color:var(--muted);">← Back</button>
     </div>
     <!-- Map back button now lives inside venue-view-tabs -->
@@ -2721,6 +2796,31 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         <!-- Scrollable compare table with inline column selectors -->
         <div id="compare-scroll-wrap">
           <table id="venue-ctable" class="venue-ctable"></table>
+        </div>
+      </div>
+
+      <!-- Landing grid (active venues) -->
+      <div id="venue-grid-view">
+        <div class="venue-grid-head">
+          <div class="venue-grid-title">Venues</div>
+          <div style="display:flex;gap:0.4rem;">
+            <button class="btn btn-secondary btn-sm" onclick="setVenueMode('archived')">View Archived</button>
+            <button class="btn btn-primary btn-sm" onclick="openVenueForm()">+ Add</button>
+          </div>
+        </div>
+        <div class="venue-grid" id="venue-grid"></div>
+      </div>
+
+      <!-- Archived venues (multi-select) -->
+      <div id="venue-archived-view">
+        <div class="venue-grid-head">
+          <div class="venue-grid-title">Archived</div>
+          <button class="btn btn-secondary btn-sm" onclick="setVenueMode('grid')">← All venues</button>
+        </div>
+        <div class="venue-grid" id="venue-archived-grid"></div>
+        <div class="venue-archived-bar">
+          <span id="venue-archived-count" style="font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);">0 selected</span>
+          <button class="btn btn-primary btn-sm" id="venue-unarchive-btn" onclick="unarchiveSelected()" disabled>↩ Unarchive selected</button>
         </div>
       </div>
     </div>
@@ -3857,44 +3957,28 @@ function venueRowToProfile(row) {
 }
 
 // Rebuild VENUES from DB rows; keep the hardcoded fallback if the load is empty.
+let venueRowsAll = []; // raw rows (active + archived), for the archived view
 function applyVenueRows(rows) {
   if (!Array.isArray(rows) || rows.length === 0) return false;
+  venueRowsAll = rows;
   VENUES = rows.filter(r => r && !r.archived).map(venueRowToProfile);
   if (currentIdx >= VENUES.length) currentIdx = 0;
   return true;
 }
 
+// Build the stationary, natively-scrollable venue strip from ACTIVE venues only.
 function buildNav() {
-  const activeItems = VENUES.map((v, i) => `
-    <div class="vnav-item ${i === 0 ? 'active' : ''}" data-idx="${i}" onclick="selectVenue(${i})">
-      <img class="vnav-thumb" src="${v.images[0]}" alt="${v.name}" onerror="this.style.opacity=0">
+  const track = document.getElementById('venue-nav-track');
+  if (!track) return;
+  track.innerHTML = VENUES.map((v, i) => `
+    <div class="vnav-item ${i === currentIdx ? 'active' : ''}" data-idx="${i}" onclick="selectVenue(${i})">
+      <img class="vnav-thumb" src="${escapeHtml(v.images[0] || '')}" alt="${escapeHtml(v.name)}" onerror="this.style.opacity=0">
       <div>
-        <div class="vnav-name">${v.name.split(' ').slice(0,3).join(' ')}</div>
-        <div class="vnav-dist">${v.distMin} min</div>
+        <div class="vnav-name">${escapeHtml(v.name.split(' ').slice(0,3).join(' '))}</div>
+        <div class="vnav-dist">${escapeHtml(String(v.distMin))} min</div>
       </div>
     </div>
   `).join('');
-
-  const archivedItems = (S.get('archivedVenues') || []).map(av => `
-    <div class="vnav-item archived" onclick="showArchivePage()">
-      <img class="vnav-thumb" src="${av.images && av.images[0] ? av.images[0] : ''}" alt="${av.name}" onerror="this.style.opacity=0">
-      <div>
-        <div class="vnav-name">${av.name.split(' ').slice(0,3).join(' ')}</div>
-        <div class="vnav-dist" style="color:var(--muted-light)">${av.reasonLabel}</div>
-      </div>
-    </div>
-  `).join('');
-
-  const divider = archivedItems ? `
-    <div class="vnav-divider">
-      <span>— Archived</span>
-    </div>
-    ${archivedItems}
-  ` : '';
-
-  const fullTrack = activeItems + divider;
-  document.getElementById('venue-nav-track').innerHTML = fullTrack + fullTrack;
-  initMarquee();
 }
 
 // ── MARQUEE ENGINE
@@ -4289,7 +4373,7 @@ function buildCompare() {
 // ── VIEW
 function setVenueView(view) {
   currentVenueView = view;
-  document.querySelectorAll('#venue-view-tabs .vtab').forEach((t, i) => t.classList.toggle('active', ['profile','map','compare'][i] === view));
+  document.querySelectorAll('#venue-view-tabs .vtab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
   document.getElementById('venue-profile-view').classList.toggle('active', view === 'profile');
   document.getElementById('venue-map-view').classList.toggle('active', view === 'map');
   document.getElementById('venue-compare-view').classList.toggle('active', view === 'compare');
@@ -4349,9 +4433,7 @@ function runNavHint() {
   requestAnimationFrame(scrollRight);
 }
 // Stop hint on user touch
-document.getElementById('venue-nav').addEventListener('touchstart', () => { navHintDone = true; }, { once: true, passive: true });
-document.getElementById('venue-nav').addEventListener('mousedown', () => { navHintDone = true; }, { once: true });
-setTimeout(runNavHint, 1200);
+// (Old marquee auto-scroll hint disabled — replaced by the stationary strip + overlay hint.)
 
 // ── HERO AUTO-ADVANCE
 function startHeroAuto(idx) {
@@ -4624,7 +4706,7 @@ function showPage(id) {
   if (id === 'vendors') renderVendors();
   if (id === 'itinerary') renderItinerary();
   if (id === 'moodboard') renderMoodTheme();
-  if (id === 'venues') initVenuePage();
+  if (id === 'venues') enterVenues();
 }
 
 // Venue summary replaced by full comparison tool
@@ -5811,12 +5893,12 @@ let archiveTargetIdx = null;
 let archiveSelectedReason = null;
 
 const ARCHIVE_REASONS = [
-  { id: 'wrong_vibe', icon: '✕', label: 'Wrong vibe' },
-  { id: 'too_expensive', icon: '◈', label: 'Too expensive' },
-  { id: 'too_far', icon: '◷', label: 'Too far away' },
-  { id: 'unavailable', icon: '⊘', label: 'Availability unclear' },
-  { id: 'aesthetics', icon: '✦', label: 'Not beautiful enough' },
-  { id: 'other', icon: '…', label: 'Other reason' },
+  { id: 'over_budget', icon: '◈', label: 'Over budget' },
+  { id: 'cap_low',     icon: '↓', label: 'Capacity too low' },
+  { id: 'cap_high',    icon: '↑', label: 'Capacity too high' },
+  { id: 'aesthetics',  icon: '✦', label: 'Aesthetics' },
+  { id: 'vibe',        icon: '✕', label: 'Vibe' },
+  { id: 'other',       icon: '…', label: 'Other' },
 ];
 
 function openArchiveModal(idx) {
@@ -5846,41 +5928,18 @@ function selectArchiveReason(id) {
 async function confirmArchive() {
   if (archiveTargetIdx === null) return;
   const v = VENUES[archiveTargetIdx];
+  if (!v || !v._row) { closeArchiveModal(); return; }
   const reason = archiveSelectedReason
-    ? ARCHIVE_REASONS.find(r => r.id === archiveSelectedReason)
-    : { id: 'other', label: 'No reason given' };
-  const note = document.getElementById('archive-note-input').value.trim();
-
-  const archiveRow = {
-    id: v.id,
-    name: v.name,
-    type: v.type,
-    reason_label: reason.label,
-    note: note,
-    archived_at: new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }),
-    images: v.images,
-  };
-  archivedVenues.push(archiveRow);
-  // Remove from active VENUES
-  VENUES.splice(archiveTargetIdx, 1);
-  await dbInsert('archived_venues', archiveRow);
-
-  haptic.warning();
+    ? ((ARCHIVE_REASONS.find(r => r.id === archiveSelectedReason) || {}).label || null)
+    : null;
+  await dbUpdate('venues', v._row.id, { archived: true, archive_reason: reason });
+  if (haptic && haptic.warning) haptic.warning();
   closeArchiveModal();
-
-  // Go back to first venue or show archive
-  if (VENUES.length > 0) {
-    currentIdx = 0;
-    heroIdx = 0;
-    buildNav();
-    venueRenderProfile(0);
-  } else {
-    buildNav();
-    showArchivePage();
-  }
-  // Reset marquee half width
-  marqueeHalfWidth = 0;
-  setTimeout(() => { marqueeHalfWidth = (document.getElementById('venue-nav-track') || {}).scrollWidth / 2 || 0; }, 300);
+  // Reload from DB and return to the landing grid (archived venue drops out of active).
+  const rows = await dbLoad('venues');
+  applyVenueRows(rows);
+  buildNav();
+  setVenueMode('grid');
 }
 
 function closeArchiveModal() {
@@ -5888,82 +5947,155 @@ function closeArchiveModal() {
   archiveTargetIdx = null;
 }
 
-async function restoreVenue(archivedId) {
-  const idx = archivedVenues.findIndex(v => v.id === archivedId);
-  if (idx === -1) return;
-  const av = archivedVenues[idx];
-
-  // Restore to VENUES — rebuild a minimal venue object
-  VENUES.push({
-    id: av.id,
-    name: av.name,
-    type: av.type,
-    score: av.score,
-    dist: av.dist,
-    distMin: 30,
-    area: '',
-    budget: '',
-    guests: '',
-    bestSeason: '',
-    ocean: false,
-    onSiteRooms: false,
-    cateringIncluded: false,
-    availability: 'Restored from archive — re-verify details',
-    mapSrc: '',
-    desc: 'Restored from archive.',
-    tags: [],
-    accommodations: [],
-    hotels: [],
-    localArea: '',
-    localSpots: [],
-    pros: [],
-    cons: [],
-    website: av.website,
-    images: av.images || [],
-  });
-
-  archivedVenues.splice(idx, 1);
-  await dbDelete('archived_venues', archivedId);
-  buildNav();
-  venueRenderProfile(VENUES.length - 1);
-  marqueeHalfWidth = 0;
-  setTimeout(() => { marqueeHalfWidth = (document.getElementById('venue-nav-track') || {}).scrollWidth / 2 || 0; }, 300);
-}
-
-function showArchivePage() {
-  // Show archived venues in the profile panel
-  const el = document.getElementById('venue-profile-inner');
-  if (!el) return;
-  if (archivedVenues.length === 0) {
-    el.innerHTML = '<div class="empty-state" style="padding:3rem 1rem"><div class="empty-icon">◎</div><div class="empty-text">No archived venues yet.</div></div>';
-    return;
-  }
-  el.innerHTML = `
-    <div style="padding:1rem">
-      <div style="font-family:var(--font-display);font-size:1.4rem;color:var(--dark);margin-bottom:0.3rem">Archive</div>
-      <div style="font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted-light);margin-bottom:1.2rem">${archivedVenues.length} venues archived</div>
-      ${archivedVenues.map(av => `
-        <div class="archive-venue-card">
-          <div class="archive-venue-name">${escapeHtml(av.name)}</div>
-          <div style="font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted-light);margin-top:0.2rem">${escapeHtml(av.type)}</div>
-          <div class="archive-reason-tag">✕ ${escapeHtml(av.reasonLabel)}</div>
-          ${av.note ? `<div class="archive-note-display">"${escapeHtml(av.note)}"</div>` : ''}
-          <div class="archive-date">Archived ${escapeHtml(av.archivedAt)}</div>
-          <div style="margin-top:0.7rem">
-            <button class="btn btn-secondary btn-sm" onclick="restoreVenue('${av.id}')">↩ Restore venue</button>
-          </div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-}
-
 window.openArchiveModal = openArchiveModal;
 window.selectArchiveReason = selectArchiveReason;
 window.confirmArchive = confirmArchive;
 window.closeArchiveModal = closeArchiveModal;
-window.restoreVenue = restoreVenue;
-window.showArchivePage = showArchivePage;
+
+
+// ── VENUE MODES: landing grid · profile · archived ──────────────────
+let venueMode = 'grid';
+let venueSelectedArchived = new Set();
+let venueStripHintInit = false;
+
+function setVenueMode(mode) {
+  venueMode = mode;
+  const page = document.getElementById('page-venues');
+  if (!page) return;
+  page.classList.remove('mode-grid', 'mode-profile', 'mode-archived');
+  page.classList.add('mode-' + mode);
+  if (mode === 'grid') renderVenueGrid();
+  else if (mode === 'archived') renderArchivedGrid();
+  else if (mode === 'profile') { buildNav(); setVenueView(currentVenueView || 'profile'); startStripHint(); }
+}
+
+function enterVenues() {
+  initVenueStripHint();
+  setVenueMode('grid');
+}
+
+function openVenueProfile(idx) {
+  currentIdx = idx;
+  heroIdx = 0;
+  currentVenueView = 'profile';
+  setVenueMode('profile');
+}
+
+function renderVenueGrid() {
+  const el = document.getElementById('venue-grid');
+  if (!el) return;
+  if (!VENUES.length) {
+    el.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◈</div><div class="empty-text">No venues yet. Add one to get started.</div></div>`;
+    return;
+  }
+  el.innerHTML = VENUES.map((v, i) => `
+    <div class="venue-tile" onclick="openVenueProfile(${i})">
+      <img class="venue-tile-photo" src="${escapeHtml(v.images[0] || '')}" alt="${escapeHtml(v.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
+      <div class="venue-tile-body">
+        <div class="venue-tile-name">${escapeHtml(v.name)}</div>
+        ${(v.score || v.score === 0) ? `<div class="venue-tile-score">★ ${escapeHtml(String(v.score))}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function archivedVenueList() {
+  return (venueRowsAll || []).filter(r => r && r.archived).map(venueRowToProfile);
+}
+
+function renderArchivedGrid() {
+  venueSelectedArchived.clear();
+  updateUnarchiveBar();
+  const el = document.getElementById('venue-archived-grid');
+  if (!el) return;
+  const list = archivedVenueList();
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◎</div><div class="empty-text">No archived venues.</div></div>`;
+    return;
+  }
+  el.innerHTML = list.map(v => {
+    const id = v._row.id;
+    const reason = v._row.archive_reason || '';
+    return `
+    <div class="venue-tile" data-id="${escapeHtml(String(id))}" onclick="toggleArchivedSelect('${escapeHtml(String(id))}')">
+      <div class="venue-tile-check">✓</div>
+      <img class="venue-tile-photo" src="${escapeHtml(v.images[0] || '')}" alt="${escapeHtml(v.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
+      <div class="venue-tile-body">
+        <div class="venue-tile-name">${escapeHtml(v.name)}</div>
+        ${(v.score || v.score === 0) ? `<div class="venue-tile-score">★ ${escapeHtml(String(v.score))}</div>` : ''}
+        ${reason ? `<div class="venue-tile-reason">✕ ${escapeHtml(reason)}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleArchivedSelect(id) {
+  id = String(id);
+  const sel = (window.CSS && CSS.escape) ? CSS.escape(id) : id;
+  const tile = document.querySelector('#venue-archived-grid .venue-tile[data-id="' + sel + '"]');
+  if (venueSelectedArchived.has(id)) { venueSelectedArchived.delete(id); if (tile) tile.classList.remove('selected'); }
+  else { venueSelectedArchived.add(id); if (tile) tile.classList.add('selected'); }
+  updateUnarchiveBar();
+}
+
+function updateUnarchiveBar() {
+  const n = venueSelectedArchived.size;
+  const cnt = document.getElementById('venue-archived-count');
+  const btn = document.getElementById('venue-unarchive-btn');
+  if (cnt) cnt.textContent = n + ' selected';
+  if (btn) btn.disabled = n === 0;
+}
+
+async function unarchiveSelected() {
+  if (venueSelectedArchived.size === 0) return;
+  const ids = [...venueSelectedArchived];
+  for (const id of ids) { await dbUpdate('venues', Number(id), { archived: false }); }
+  const rows = await dbLoad('venues');
+  applyVenueRows(rows);
+  buildNav();
+  renderArchivedGrid();
+}
+
+// ── Swipe strip hint: pulses until the first swipe, then dismissed permanently.
+let venueHintTimer = null;
+function venueHintDone() { return S.get('venueSwipeHintDone') === true; }
+function stopStripHint() { if (venueHintTimer) { clearInterval(venueHintTimer); venueHintTimer = null; } }
+function startStripHint() {
+  const hint = document.getElementById('venue-nav-hint');
+  const nav = document.getElementById('venue-nav');
+  if (!hint || !nav) return;
+  stopStripHint();
+  if (venueHintDone()) { hint.classList.remove('show'); return; }
+  const pulse = () => {
+    if (venueHintDone()) { stopStripHint(); hint.classList.remove('show'); return; }
+    if (nav.scrollWidth - nav.clientWidth > 8) {   // only hint when actually scrollable
+      hint.classList.add('show');
+      setTimeout(() => hint.classList.remove('show'), 2200);
+    }
+  };
+  setTimeout(pulse, 600);
+  venueHintTimer = setInterval(pulse, 5200);
+}
+function dismissStripHint() {
+  if (venueHintDone()) return;
+  S.set('venueSwipeHintDone', true);
+  stopStripHint();
+  const hint = document.getElementById('venue-nav-hint');
+  if (hint) hint.classList.remove('show');
+}
+function initVenueStripHint() {
+  if (venueStripHintInit) return;
+  const nav = document.getElementById('venue-nav');
+  if (!nav) return;
+  venueStripHintInit = true;
+  nav.addEventListener('scroll', dismissStripHint, { passive: true });
+  nav.addEventListener('touchmove', dismissStripHint, { passive: true });
+}
+
+window.setVenueMode = setVenueMode;
+window.openVenueProfile = openVenueProfile;
+window.toggleArchivedSelect = toggleArchivedSelect;
+window.unarchiveSelected = unarchiveSelected;
 
 
 // ═══════════════════════════════════════════
@@ -6209,7 +6341,7 @@ async function loadAllData() {
     subscribeRealtime('timeline_tasks', () => { dbLoad('timeline_tasks').then(d => { timelineTasks = d; renderTimeline(); }); });
     subscribeRealtime('vendors', () => { dbLoad('vendors').then(d => { vendors = d; renderVendors(); }); });
     subscribeRealtime('itinerary_items', () => { dbLoad('itinerary_items').then(d => { itinItems = d; renderItinerary(); }); });
-    subscribeRealtime('venues', () => { dbLoad('venues').then(d => { if (applyVenueRows(d)) { buildNav(); venueRenderProfile(currentIdx); } }); });
+    subscribeRealtime('venues', () => { dbLoad('venues').then(d => { if (applyVenueRows(d)) { buildNav(); if (venueMode === 'grid') renderVenueGrid(); else if (venueMode === 'archived') renderArchivedGrid(); else venueRenderProfile(currentIdx); } }); });
   } catch(e) {
     setSyncStatus('error', 'Connection error');
     console.error('loadAllData error', e);
