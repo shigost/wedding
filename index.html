@@ -348,6 +348,7 @@ label {
 }
 .pill-gold { background: var(--gold-pale); color: var(--gold); border: 1px solid rgba(154,122,58,0.2); }
 .pill-sage { background: var(--sage-light); color: var(--sage); border: 1px solid rgba(90,120,80,0.2); }
+.pill-foliage { background: var(--foliage-light); color: var(--foliage); border: 1px solid rgba(90,120,80,0.25); }
 .pill-love { background: var(--love-light); color: var(--love); border: 1px solid rgba(154,56,56,0.2); }
 .pill-accent { background: var(--accent-light); color: var(--accent); border: 1px solid rgba(74,106,138,0.2); }
 .pill-muted { background: var(--bg2); color: var(--muted); border: 1px solid var(--border); }
@@ -1073,6 +1074,8 @@ label {
   --muted-light: #9aa6be;
   --accent: #c56f56;
   --accent-light: #f8e7e1;
+  --foliage: #4f7a68;
+  --foliage-light: #e6f0ea;
   --sage: #3f8562;
   --sage-light: #dcefe6;
   --love: #b04a41;
@@ -2362,6 +2365,21 @@ input:focus, select:focus, textarea:focus {
 .te-hex { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: 0.06em; }
 .te-reset { margin-top: 0.75rem; background: none; border: 1px solid var(--border); color: var(--muted); font-size: 0.6rem; letter-spacing: 0.13em; text-transform: uppercase; padding: 0.45rem 0.8rem; border-radius: 8px; cursor: pointer; font-family: 'Jost', sans-serif; }
 .te-reset:hover { border-color: var(--gold); color: var(--gold); }
+.te-img { margin-top: 0.7rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.te-img > .te-role { margin-bottom: -0.1rem; }
+.te-img-main { display: flex; align-items: center; gap: 0.7rem; }
+.te-thumb { width: 72px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); flex-shrink: 0; }
+.te-thumb-empty { display: flex; align-items: center; justify-content: center; font-size: 0.52rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted-light); background: var(--bg2); }
+.te-thumb-broken { visibility: hidden; }
+.te-img-btns { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.te-imgbtn { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.42rem 0.7rem; border-radius: 7px; cursor: pointer; font-family: 'Jost', sans-serif; }
+.te-imgbtn:hover { border-color: var(--gold); color: var(--gold); }
+.te-url-row { display: flex; gap: 0.4rem; }
+.te-url { flex: 1; min-width: 0; }
+
+/* Per-theme hero image banner (dashboard + mood board) */
+.theme-hero-banner { display: block; width: 100%; height: 180px; object-fit: cover; }
+.theme-hero-banner[hidden] { display: none !important; }
 
 /* ── DASHBOARD HERO POSITIONING FIX ── */
 .dashboard-hero { position: relative; overflow: hidden; }
@@ -2587,6 +2605,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
 
   <!-- DASHBOARD -->
   <div class="page active" id="page-dashboard">
+    <img id="dash-hero-img" class="theme-hero-banner" alt="" hidden>
     <div class="dashboard-hero">
       <div class="dashboard-title">A &amp; T</div>
       <div class="dashboard-divider"></div>
@@ -3079,6 +3098,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
 
   <!-- MOOD BOARD -->
   <div class="page" id="page-moodboard">
+    <img id="mood-hero-img" class="theme-hero-banner" alt="" hidden>
     <div class="page-header">
       <div class="page-title">Mood Board</div>
       <div class="page-sub" id="mood-sub">Vision · Palette · Aesthetic</div>
@@ -4585,7 +4605,7 @@ function renderMoodTheme() {
   const vibeEl = document.getElementById('mood-vibe-pills');
   if (vibeEl) {
     vibeEl.innerHTML = mood.vibes.map(v => `
-      <span class="pill pill-${v.type}">${v.label}</span>
+      <span class="pill pill-${v.type === 'sage' ? 'foliage' : v.type}">${v.label}</span>
     `).join('');
   }
 
@@ -4602,10 +4622,10 @@ const _originalSetTheme = window.setTheme;
 //  Only ground/hero/accent are user-editable; --sage/--love stay semantic.
 // ══════════════════════════════════════════════════════════════════
 const THEME_DEFAULTS = {
-  beira:     { key:'beira',     name:'Mar',    is_dark:false, ground:'#f4f7fc', hero:'#4a6fd4', accent:'#e9b7a6', sort:0 },
-  jardim:    { key:'jardim',    name:'Blanca', is_dark:false, ground:'#fdfaf6', hero:'#c56f5d', accent:'#e9b7a6', sort:1 },
-  editorial: { key:'editorial', name:'Arena',  is_dark:false, ground:'#fbfbfa', hero:'#232b3d', accent:'#4a6fd4', sort:2 },
-  noite:     { key:'noite',     name:'Noche',  is_dark:true,  ground:'#232b3d', hero:'#d68a62', accent:'#c9a24b', sort:3 },
+  beira:     { key:'beira',     name:'Mar',    is_dark:false, ground:'#f4f7fc', hero:'#4a6fd4', accent:'#e9b7a6', foliage:'#5f8a78', hero_image_url:null, sort:0 },
+  jardim:    { key:'jardim',    name:'Blanca', is_dark:false, ground:'#fdfdfb', hero:'#c56f5d', accent:'#e9b7a6', foliage:'#7e8a55', hero_image_url:null, sort:1 },
+  editorial: { key:'editorial', name:'Arena',  is_dark:false, ground:'#fbfbfa', hero:'#232b3d', accent:'#4a6fd4', foliage:'#558a52', hero_image_url:null, sort:2 },
+  noite:     { key:'noite',     name:'Noche',  is_dark:true,  ground:'#232b3d', hero:'#d68a62', accent:'#c9a24b', foliage:'#6f9a72', hero_image_url:null, sort:3 },
 };
 const THEME_ORDER = ['beira','jardim','editorial','noite'];
 // Live records: defaults overlaid by DB values and local edits.
@@ -4628,6 +4648,8 @@ function deriveThemeVars(t){
   const D = !!t.is_dark, g = t.ground;
   const hero   = _readable(t.hero,   g, D, 3.0);                 // brand, legible on ground
   const accent = _readable(t.accent, D ? g : '#ffffff', D, 3.2); // accent doubles as text
+  const foliageIn = t.foliage || (D ? '#6f9a72' : '#5f8a4f');
+  const foliage = _readable(foliageIn, D ? g : '#ffffff', D, 3.2); // secondary accent (tags/pills)
   const text  = D ? _lighten(g,0.82) : _darken(g,0.82);
   const dark  = D ? _lighten(g,0.92) : _darken(g,0.88);
   const surface = D ? _lighten(g,0.06) : '#ffffff';
@@ -4646,6 +4668,8 @@ function deriveThemeVars(t){
     '--muted-light': _mix(text, g, 0.62),
     '--accent': accent,
     '--accent-light': D ? _mix(g, t.accent, 0.16) : _mix('#ffffff', t.accent, 0.20),
+    '--foliage': foliage,
+    '--foliage-light': D ? _mix(g, foliageIn, 0.16) : _mix('#ffffff', foliageIn, 0.20),
     // --sage / --love are SEMANTIC and fixed (never derived, never editable)
     '--sage':       D ? '#55a074' : '#3f8562',
     '--sage-light': D ? '#16251c' : '#dcefe6',
@@ -4677,10 +4701,21 @@ function setTheme(t) {
   if(!THEMES[t]) t = 'beira';
   document.body.setAttribute('data-theme', t);
   applyThemeVars(deriveThemeVars(THEMES[t]));
+  applyThemeHeroImage(t);
   document.querySelectorAll('.theme-dot').forEach(d => d.classList.toggle('active', d.dataset.t === t));
   S.set('theme', t);
   renderMoodTheme();
   // Note: the mood board filter is independent of the app theme — no re-render here.
+}
+// Per-theme hero image → dashboard + mood-board banners. Null falls back to the no-image layout.
+function applyThemeHeroImage(key){
+  const url = THEMES[key] && THEMES[key].hero_image_url;
+  ['dash-hero-img','mood-hero-img'].forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(url){ el.onerror = () => { el.hidden = true; }; el.src = url; el.hidden = false; }
+    else { el.removeAttribute('src'); el.hidden = true; }
+  });
 }
 
 // ── persistence: DB is source of truth; localStorage caches for instant apply ──
@@ -4705,7 +4740,7 @@ async function loadThemesFromDB(){
 const _themeSaveTimer = {};
 async function saveTheme(key){
   const t = THEMES[key]; cacheThemes();
-  try{ await sb.from('themes').upsert({ key:t.key, name:t.name, is_dark:t.is_dark, ground:t.ground, hero:t.hero, accent:t.accent, sort:t.sort }); }
+  try{ await sb.from('themes').upsert({ key:t.key, name:t.name, is_dark:t.is_dark, ground:t.ground, hero:t.hero, accent:t.accent, foliage:t.foliage, hero_image_url:t.hero_image_url, sort:t.sort }); }
   catch(e){ console.error('save theme', e); }
 }
 
@@ -4722,9 +4757,23 @@ function renderThemeEditor(){
         <input type="color" value="${escapeHtml(t[role])}" oninput="onThemeColor('${k}','${role}',this.value)">
         <span class="te-hex" id="te-hex-${k}-${role}">${escapeHtml(String(t[role]).toUpperCase())}</span>
       </label>`;
+    const img = t.hero_image_url;
+    const imgBlock = `<div class="te-img">
+        <span class="te-role">image</span>
+        <div class="te-img-main">
+          ${img ? `<img class="te-thumb" src="${escapeHtml(img)}" alt="" onerror="this.classList.add('te-thumb-broken')">` : `<div class="te-thumb te-thumb-empty">none</div>`}
+          <div class="te-img-btns">
+            <input type="file" id="te-file-${k}" accept="image/*" hidden onchange="onThemeImageFile('${k}', event)">
+            <button class="te-imgbtn" onclick="document.getElementById('te-file-${k}').click()">Upload</button>
+            ${img ? `<button class="te-imgbtn" onclick="onThemeImageRemove('${k}')">Remove</button>` : ''}
+          </div>
+        </div>
+        <div class="te-url-row"><input type="text" class="te-url" id="te-url-${k}" placeholder="or paste image URL…"><button class="te-imgbtn" onclick="onThemeImageUrl('${k}')">Set</button></div>
+      </div>`;
     return `<div class="te-theme${on?' te-active':''}">
       <div class="te-theme-head"><span class="te-name">${escapeHtml(t.name)}</span><span class="te-tag">${t.is_dark?'Dark':'Light'}${on?' · active':''}</span></div>
-      <div class="te-rows">${row('ground')}${row('hero')}${row('accent')}</div>
+      <div class="te-rows">${row('ground')}${row('hero')}${row('accent')}${row('foliage')}</div>
+      ${imgBlock}
       <button class="te-reset" onclick="resetTheme('${k}')">Reset to default</button>
     </div>`;
   }).join('');
@@ -4738,11 +4787,48 @@ function onThemeColor(key, role, val){
 }
 function resetTheme(key){
   THEMES[key] = {...THEME_DEFAULTS[key]};
-  if(document.body.getAttribute('data-theme') === key) applyThemeVars(deriveThemeVars(THEMES[key]));
+  if(document.body.getAttribute('data-theme') === key){ applyThemeVars(deriveThemeVars(THEMES[key])); applyThemeHeroImage(key); }
   cacheThemes(); saveTheme(key); renderThemeEditor();
 }
+
+// ── per-theme hero image (reuses the mood-board Storage bucket + upload pattern) ──
+function setThemeImage(key, url){
+  THEMES[key].hero_image_url = url || null;
+  cacheThemes(); saveTheme(key);
+  if(document.body.getAttribute('data-theme') === key) applyThemeHeroImage(key);
+  renderThemeEditor();
+}
+async function onThemeImageFile(key, event){
+  const input = event.target, file = input.files && input.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ alert('Please choose an image file.'); input.value=''; return; }
+  if(file.size > 10 * 1024 * 1024){ alert('Image is too large (max 10 MB).'); input.value=''; return; }
+  setSyncStatus('', 'Uploading...');
+  try{
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+    const path = `theme-${key}-${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const { error: upErr } = await sb.storage.from(MOOD_BUCKET).upload(path, file, { contentType: file.type, upsert:false });
+    if(upErr) throw upErr;
+    const { data: pub } = sb.storage.from(MOOD_BUCKET).getPublicUrl(path);
+    setThemeImage(key, pub.publicUrl);
+    setSyncStatus('ok', 'Live');
+  }catch(e){ console.error('theme image upload', e); alert('Upload failed. Please try again.'); setSyncStatus('error', 'Error'); }
+  finally{ input.value=''; }
+}
+async function onThemeImageUrl(key){
+  const el = document.getElementById(`te-url-${key}`), url = (el && el.value || '').trim();
+  if(!url) return;
+  if(!/^https?:\/\//i.test(url)){ alert('Enter a valid image URL (http/https).'); return; }
+  const ok = await checkImageUrl(url);
+  if(!ok){ alert("That URL doesn't appear to be a direct image link. Open the image, right-click → Copy image address, and paste that."); return; }
+  setThemeImage(key, url);
+}
+// Remove clears the URL for display only — the Storage file is NOT deleted (no hard delete).
+function onThemeImageRemove(key){ setThemeImage(key, null); }
+
 window.openThemeEditor = openThemeEditor; window.closeThemeEditor = closeThemeEditor;
 window.onThemeColor = onThemeColor; window.resetTheme = resetTheme;
+window.onThemeImageFile = onThemeImageFile; window.onThemeImageUrl = onThemeImageUrl; window.onThemeImageRemove = onThemeImageRemove;
 
 // Boot: apply cached/default colours immediately; DB reconciles in loadThemesFromDB().
 loadCachedThemes();
