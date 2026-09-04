@@ -15,140 +15,38 @@
    THEMES · A & T
    ══════════════════════════════════════════ */
 
-/* 01 — LIGHT COOL (beira) · Cabo
-   Off-white ground, Cornflower hero, Blush Coral accent. */
+/* Per-theme TYPEFACES only — colours are derived at runtime and set on :root
+   by the theme engine (deriveThemeVars). Fonts are intentionally NOT derived. */
 [data-theme="beira"] {
   --font-display: 'Cormorant Garamond', serif;
   --font-body: 'Jost', sans-serif;
   --font-weight-display: 400;
   --font-weight-body: 400;
   --letter-spacing-display: 0.08em;
-
-  --bg: #f4f7fc;
-  --bg2: #e8eef8;
-  --surface: #ffffff;
-  --border: #d4ddec;
-  --border-light: #e8edf7;
-  --gold: #4a6fd4;
-  --gold-light: #6b8ae0;
-  --gold-pale: #e9edfa;
-  --dark: #1f2a45;
-  --text: #29334e;
-  --muted: #5d6c88;
-  --muted-light: #9aa6be;
-  --accent: #c56f56;
-  --accent-light: #f8e7e1;
-  --sage: #3f8562;
-  --sage-light: #dcefe6;
-  --love: #b04a41;
-  --love-light: #f8e6e4;
-  --nav-bg: #232b3d;
-  --nav-text: #c9d3e6;
-  --nav-active: #8aa4ec;
-  --card-shadow: 0 2px 16px rgba(35,43,61,0.08);
-  --header-gradient: linear-gradient(135deg, #f4f7fc 0%, #e4ebf7 100%);
 }
 
-/* 02 — BLANCA · Light Warm · Cabo
-   White ground, blush-forward, Terracotta as punctuation. */
 [data-theme="jardim"] {
   --font-display: 'Playfair Display', serif;
   --font-body: 'Lato', sans-serif;
   --font-weight-display: 400;
   --font-weight-body: 400;
   --letter-spacing-display: 0.04em;
-
-  --bg: #fdfaf6;            /* warm near-white ground */
-  --bg2: #f6ecdf;          /* Warm Sand tint — secondary surfaces only */
-  --surface: #ffffff;
-  --border: #eed7cb;       /* blush-tinted border */
-  --border-light: #f6e7df;
-  --gold: #c56f5d;         /* Terracotta — strong moments (button, active nav, headings) */
-  --gold-light: #d99a88;
-  --gold-pale: #f7e2d8;    /* blush-pale soft fill */
-  --dark: #3a2c1e;
-  --text: #43352a;         /* deep umber type */
-  --muted: #8a7256;
-  --muted-light: #b9a88e;
-  --accent: #c56b5a;       /* readable deepened coral (accent doubles as text) */
-  --accent-light: #fbeee8; /* blush pale */
-  --sage: #6a8a4e;
-  --sage-light: #e6efd6;
-  --love: #b5544a;
-  --love-light: #f7e6e2;
-  --nav-bg: #fdfaf6;
-  --nav-text: #8a7256;
-  --nav-active: #c56f5d;
-  --card-shadow: 0 2px 14px rgba(58,44,30,0.06);
-  --header-gradient: linear-gradient(135deg, #ffffff 0%, #fdf3ef 100%);
 }
 
-/* 03 — ARENA · Light Neutral · Cabo
-   White ground, Deep Ink type, warm-grey structure, minimal colour. */
 [data-theme="editorial"] {
   --font-display: 'DM Serif Display', serif;
   --font-body: 'DM Sans', sans-serif;
   --font-weight-display: 400;
   --font-weight-body: 400;
   --letter-spacing-display: 0.02em;
-
-  --bg: #fbfbfa;
-  --bg2: #f2f2f0;
-  --surface: #ffffff;
-  --border: #dedcd6;       /* warm grey */
-  --border-light: #ececea;
-  --gold: #232b3d;         /* Deep Ink — type accent / brand */
-  --gold-light: #3a4256;
-  --gold-pale: #eef0f4;
-  --dark: #1a1f2b;
-  --text: #232b3d;         /* deep ink type */
-  --muted: #6a7180;
-  --muted-light: #a2a7b2;
-  --accent: #4a6fd4;       /* single restrained cornflower touch */
-  --accent-light: #eef2fb;
-  --sage: #3f8562;         /* light-theme semantic tints (flipped from dark) */
-  --sage-light: #dcefe6;
-  --love: #b04a41;
-  --love-light: #f8e6e4;
-  --nav-bg: #fbfbfa;
-  --nav-text: #6a7180;
-  --nav-active: #232b3d;
-  --card-shadow: 0 1px 10px rgba(20,25,40,0.06);
-  --header-gradient: linear-gradient(135deg, #ffffff 0%, #f6f6f4 100%);
 }
 
-/* 04 — DARK WARM (noite) · Cabo
-   Deep Ink ground, Terracotta hero, Warm Gold accent. */
 [data-theme="noite"] {
   --font-display: 'Cormorant Garamond', serif;
   --font-body: 'Montserrat', sans-serif;
   --font-weight-display: 300;
   --font-weight-body: 300;
   --letter-spacing-display: 0.15em;
-
-  --bg: #232b3d;
-  --bg2: #1c2331;
-  --surface: #2c3648;
-  --border: #3c4658;
-  --border-light: #333d4f;
-  --gold: #d68a62;
-  --gold-light: #e3a17e;
-  --gold-pale: #322a24;
-  --dark: #f3ece0;
-  --text: #e6ddcf;
-  --muted: #a99e8c;
-  --muted-light: #74695a;
-  --accent: #cfa552;
-  --accent-light: #2c2a1d;
-  --sage: #55a074;
-  --sage-light: #16251c;
-  --love: #d97066;
-  --love-light: #2b1613;
-  --nav-bg: #1a2130;
-  --nav-text: #d68a62;
-  --nav-active: #e3a17e;
-  --card-shadow: 0 4px 24px rgba(0,0,0,0.45);
-  --header-gradient: linear-gradient(135deg, #2c3648 0%, #232b3d 100%);
 }
 
 /* ── RESET & BASE ── */
@@ -207,7 +105,7 @@ body {
   font-size: 0.48rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.25);
+  color: var(--chrome-sub, var(--muted));
   margin-top: 0.1rem;
 }
 
@@ -404,7 +302,7 @@ body {
   transition: all 0.15s;
   text-decoration: none;
 }
-.btn-primary { background: var(--dark); color: var(--gold-light); }
+.btn-primary { background: var(--btn-bg, var(--dark)); color: var(--btn-text, var(--gold-light)); }
 .btn-primary:hover { opacity: 0.88; }
 .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
 .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
@@ -462,7 +360,7 @@ label {
    PAGE: DASHBOARD
 ─────────────────────────────────────────── */
 .dashboard-hero {
-  background: var(--nav-bg);
+  background: var(--hero-bg, var(--nav-bg));
   padding: 2rem 1.2rem 1.5rem;
   text-align: center;
 }
@@ -478,7 +376,7 @@ label {
   font-size: 0.68rem;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.35);
+  color: var(--chrome-sub, var(--muted-light));
   margin-top: 0.4rem;
 }
 .dashboard-divider {
@@ -494,7 +392,7 @@ label {
   margin-bottom: 0.8rem;
 }
 .stat-card {
-  background: var(--surface);
+  background: var(--stat-bg, var(--surface));
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.1rem 0.8rem;
@@ -1179,6 +1077,17 @@ label {
   --sage-light: #dcefe6;
   --love: #b04a41;
   --love-light: #f8e6e4;
+  /* chrome/surface fallbacks (the theme engine overrides all of these on :root at runtime) */
+  --nav-bg: #ffffff;
+  --nav-text: #5d6c88;
+  --nav-active: #4a6fd4;
+  --chrome-sub: #5d6c88;
+  --hero-bg: linear-gradient(180deg, #ffffff 0%, #f1f5fb 100%);
+  --btn-bg: linear-gradient(135deg, #4a6fd4 0%, #3a5cbf 100%);
+  --btn-text: #ffffff;
+  --stat-bg: linear-gradient(135deg, #ffffff 0%, #f1f5fb 100%);
+  --card-shadow: 0 2px 16px rgba(35,43,61,0.08);
+  --header-gradient: linear-gradient(135deg, #ffffff 0%, #f1f5fb 100%);
   --header-h: 56px;
   --tab-h: 44px;
 }
@@ -1431,7 +1340,7 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
 }
 .score-pip {
   width: 30px; height: 30px;
-  background: var(--dark); border-radius: 5px;
+  background: #1a2130; border-radius: 5px;
   color: #e8c98a;
   font-family: 'Cormorant Garamond', serif;
   font-size: 0.95rem;
@@ -1549,7 +1458,7 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
   transition: all 0.15s;
 }
 .cta-primary {
-  background: var(--dark); color: #e8c98a;
+  background: #1a2130; color: #e8c98a;
 }
 .cta-primary:hover { background: #3d3020; }
 .cta-secondary {
@@ -1571,7 +1480,7 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
 .venue-ctable { min-width: 560px; width: 100%; border-collapse: collapse; }
 .venue-ctable thead { position: sticky; top: 0; z-index: 5; }
 .venue-ctable th {
-  background: var(--dark); color: #e8c98a;
+  background: #1a2130; color: #e8c98a;
   padding: 0.7rem 0.85rem;
   font-family: 'Cormorant Garamond', serif;
   font-size: 0.9rem; font-weight: 400;
@@ -2087,7 +1996,7 @@ body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text
   position: fixed;
   inset: 0;
   z-index: 9998;
-  background: var(--nav-bg, #1e1608);
+  background: #1a2130;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2404,142 +2313,55 @@ input:focus, select:focus, textarea:focus {
 
 
 /* ── THEME-SPECIFIC VISUAL PERSONALITY ── */
+/* Colours are derived at runtime from {ground, hero, accent, is_dark} and set
+   on :root by the theme engine (see JS). Only non-colour, structural per-theme
+   rules remain in CSS. */
 
-/* MAR — Light Cool: white ground, cornflower accents */
-[data-theme="beira"] .page-header { background: var(--header-gradient); border-bottom: 1px solid var(--border); }
-[data-theme="beira"] .card { background: var(--surface); border-color: var(--border); }
-[data-theme="beira"] .card-title { color: var(--gold); border-bottom-color: var(--border-light); }
-[data-theme="beira"] #topbar { background: #ffffff; border-bottom: 1px solid var(--border); }
-[data-theme="beira"] .topbar-title { color: var(--gold); }
-[data-theme="beira"] .topbar-sub { color: var(--muted); }
-[data-theme="beira"] .dashboard-hero { background: linear-gradient(180deg, #ffffff 0%, #f4f7fc 100%); }
-[data-theme="beira"] .dashboard-title { color: var(--gold); }
-[data-theme="beira"] .dashboard-date { color: var(--muted); }
-[data-theme="beira"] .stat-card { background: linear-gradient(135deg, #ffffff 0%, #f4f7fc 100%); border-color: var(--border); }
-[data-theme="beira"] .stat-num { color: var(--gold); }
-[data-theme="beira"] .quick-link:hover { background: #f4f7fc; border-color: var(--gold); }
-[data-theme="beira"] .btn-primary { background: linear-gradient(135deg, #4a6fd4 0%, #3a5cbf 100%); color: #ffffff; }
-[data-theme="beira"] .nav-item.active { background: var(--gold-pale); color: var(--gold); border-bottom-color: var(--gold); }
-[data-theme="beira"] .pill-gold { background: #e9edfa; color: #2f4aa8; border-color: rgba(74,111,212,0.25); }
-[data-theme="beira"] .itin-dot { background: var(--gold); }
-[data-theme="beira"] .tl-dot.upcoming { background: var(--gold); border-color: var(--gold); }
-
-/* BLANCA — Light Warm: white ground, blush-forward, terracotta punctuation */
-[data-theme="jardim"] .page-header { background: var(--header-gradient); border-bottom: 1px solid var(--border); }
-[data-theme="jardim"] .card { background: var(--surface); border-color: var(--border); }
-[data-theme="jardim"] .card-title { color: var(--gold); border-bottom-color: var(--border-light); }
-[data-theme="jardim"] #topbar { background: #ffffff; border-bottom: 1px solid var(--border); }
-[data-theme="jardim"] .topbar-title { color: var(--gold); }
-[data-theme="jardim"] .topbar-sub { color: var(--muted); }
-[data-theme="jardim"] .dashboard-hero { background: linear-gradient(180deg, #ffffff 0%, #fdf2ec 100%); }
-[data-theme="jardim"] .dashboard-title { color: var(--gold); }
-[data-theme="jardim"] .dashboard-date { color: var(--muted); }
-[data-theme="jardim"] .stat-card { background: linear-gradient(135deg, #ffffff 0%, #fbeee8 100%); border-color: var(--border); }
-[data-theme="jardim"] .stat-num { color: var(--gold); }
-[data-theme="jardim"] .quick-link:hover { background: #fbeee8; border-color: #e9b7a6; }
-[data-theme="jardim"] .btn-primary { background: linear-gradient(135deg, #d08a76 0%, #bd6a58 100%); color: #ffffff; }
-[data-theme="jardim"] .nav-item.active { background: var(--gold-pale); color: var(--gold); border-bottom-color: var(--gold); }
-[data-theme="jardim"] .pill-gold { background: #f7ddd0; color: #b05846; border-color: rgba(233,183,166,0.7); }
-[data-theme="jardim"] .dashboard-divider { background: #c9a24b; }
-
-/* ARENA — Light Neutral: white ground, Deep Ink type, minimal colour */
-[data-theme="editorial"] .page-header { background: var(--surface); border-bottom: 2px solid var(--border); }
-[data-theme="editorial"] .card { background: var(--surface); border-color: var(--border); border-radius: 4px; }
-[data-theme="editorial"] .card-title { color: var(--gold); font-size: 0.6rem; letter-spacing: 0.3em; border-bottom: 2px solid var(--border); }
-[data-theme="editorial"] #topbar { background: #ffffff; border-bottom: 1px solid var(--border); }
-[data-theme="editorial"] .topbar-title { color: var(--gold); }
-[data-theme="editorial"] .topbar-sub { color: var(--muted); }
-[data-theme="editorial"] .dashboard-hero { background: linear-gradient(180deg, #ffffff 0%, #f6f6f4 100%); }
-[data-theme="editorial"] .dashboard-title { color: var(--gold); }
-[data-theme="editorial"] .dashboard-date { color: var(--muted); }
-[data-theme="editorial"] .stat-card { background: var(--surface); border: 2px solid var(--border); border-radius: 3px; }
-[data-theme="editorial"] .stat-num { color: var(--gold); font-size: 2.2rem; }
-[data-theme="editorial"] .stat-label { color: var(--muted); font-size: 0.55rem; letter-spacing: 0.3em; }
-[data-theme="editorial"] .quick-link { border-radius: 3px; border: 1px solid var(--border); }
-[data-theme="editorial"] .quick-link:hover { border: 2px solid var(--gold); background: #f2f2f0; }
-[data-theme="editorial"] .btn-primary { background: var(--gold); border-radius: 3px; letter-spacing: 0.2em; color: #ffffff; }
-[data-theme="editorial"] .btn-primary:hover { background: var(--gold-light); }
-[data-theme="editorial"] .nav-item.active { background: var(--gold-pale); color: var(--gold); border-bottom: 3px solid var(--gold); }
-[data-theme="editorial"] input, [data-theme="editorial"] select, [data-theme="editorial"] textarea { border-radius: 3px; border-color: var(--border); }
-[data-theme="editorial"] input:focus, [data-theme="editorial"] select:focus { border-color: var(--gold); border-width: 2px; }
-[data-theme="editorial"] .card-title { padding-bottom: 0.5rem; }
+/* ── ARENA (editorial) — magazine structure: widths / radii / spacing only ── */
+[data-theme="editorial"] .page-header { border-bottom: 2px solid var(--border); }
+[data-theme="editorial"] .card { border-radius: 4px; }
+[data-theme="editorial"] .card-title { font-size: 0.6rem; letter-spacing: 0.3em; border-bottom: 2px solid var(--border); }
+[data-theme="editorial"] .stat-card { border: 2px solid var(--border); border-radius: 3px; }
+[data-theme="editorial"] .stat-num { font-size: 2.2rem; }
+[data-theme="editorial"] .stat-label { font-size: 0.55rem; letter-spacing: 0.3em; }
+[data-theme="editorial"] .quick-link { border-radius: 3px; }
+[data-theme="editorial"] .quick-link:hover { border: 2px solid var(--gold); }
+[data-theme="editorial"] .btn-primary { border-radius: 3px; letter-spacing: 0.2em; }
+[data-theme="editorial"] .nav-item.active { border-bottom: 3px solid var(--gold); }
+[data-theme="editorial"] input, [data-theme="editorial"] select, [data-theme="editorial"] textarea { border-radius: 3px; }
+[data-theme="editorial"] input:focus, [data-theme="editorial"] select:focus { border-width: 2px; border-color: var(--gold); }
 [data-theme="editorial"] .profile-name, [data-theme="editorial"] .dashboard-title { font-weight: 400; }
 [data-theme="editorial"] .page-title { font-size: 2.2rem; font-weight: 400; letter-spacing: 0.02em; }
-[data-theme="editorial"] .dashboard-divider { background: var(--gold); opacity: 1; }
-
-/* NOITE — midnight dark, champagne gold */
-[data-theme="noite"] body { background: #232b3d; }
-[data-theme="noite"] .page-header { background: var(--header-gradient); border-bottom: 1px solid #3c4658; }
-[data-theme="noite"] .card { background: linear-gradient(135deg, #2c3648, #2c3648); border-color: #3c4658; }
-[data-theme="noite"] .card-title { color: #d68a62; border-bottom-color: #333d4f; }
-[data-theme="noite"] #topbar { background: linear-gradient(135deg, #1a2130, #232b3d); border-bottom: 1px solid #313a4d; }
-[data-theme="noite"] .dashboard-hero { background: linear-gradient(160deg, #1a2130 0%, #232b3d 60%, #1c2331 100%); }
-[data-theme="noite"] .stat-card { background: linear-gradient(135deg, #2c3648, #1c2331); border: 1px solid #3c4658; }
-[data-theme="noite"] .stat-num { color: #d68a62; }
-[data-theme="noite"] .stat-label { color: #a99e8c; }
-[data-theme="noite"] .quick-link { background: linear-gradient(135deg, #2c3648, #1c2331); border-color: #3c4658; }
-[data-theme="noite"] .quick-link:hover { background: linear-gradient(135deg, #34302a, #2a2620); border-color: #d68a62; }
-[data-theme="noite"] .ql-title { color: #e6ddcf; }
-[data-theme="noite"] .ql-sub { color: #a99e8c; }
-[data-theme="noite"] .btn-primary { background: linear-gradient(135deg, #d68a62, #c06744); color: #1c2331; font-weight: 500; }
-[data-theme="noite"] .btn-primary:hover { background: linear-gradient(135deg, #e3a17e, #d68a62); }
-[data-theme="noite"] .btn-secondary { background: #2c3648; border-color: #3c4658; color: #a99e8c; }
-[data-theme="noite"] .nav-item { color: #a99e8c; }
-[data-theme="noite"] .nav-item:hover { background: #34302a; color: #d68a62; }
-[data-theme="noite"] .nav-item.active { background: #34302a; color: #d68a62; border-bottom-color: #d68a62; }
-[data-theme="noite"] input, [data-theme="noite"] select, [data-theme="noite"] textarea { background: #1c2331; color: #e6ddcf; border-color: #3c4658; }
-[data-theme="noite"] input:focus, [data-theme="noite"] select:focus { border-color: #d68a62; }
-[data-theme="noite"] label { color: #a99e8c; }
-[data-theme="noite"] .guest-card, [data-theme="noite"] .vendor-card, [data-theme="noite"] .itin-item,
-[data-theme="noite"] .budget-total-card, [data-theme="noite"] .hotel-card, [data-theme="noite"] .archive-venue-card {
-  background: linear-gradient(135deg, #2c3648, #1c2331); border-color: #3c4658;
-}
-[data-theme="noite"] .guest-name, [data-theme="noite"] .vendor-name { color: #e6ddcf; }
-[data-theme="noite"] .psec { background: linear-gradient(135deg, #2c3648, #2c3648); border-color: #3c4658; }
-[data-theme="noite"] .psec-title { color: #d68a62; border-bottom-color: #333d4f; }
-[data-theme="noite"] .check-row { border-bottom-color: #333d4f; }
-[data-theme="noite"] .chk-label { color: #e6ddcf; }
-[data-theme="noite"] .tl-dot.upcoming { background: #d68a62; border-color: #d68a62; }
-[data-theme="noite"] .itin-dot { background: #d68a62; }
-[data-theme="noite"] .itin-time { color: #d68a62; }
-[data-theme="noite"] .info-card { background: #2c3648; border-color: #3c4658; }
-[data-theme="noite"] .info-label { color: #a99e8c; }
-[data-theme="noite"] .info-value { color: #e6ddcf; }
-[data-theme="noite"] .info-value.gold { color: #d68a62; }
-[data-theme="noite"] .profile-hero { background: #1c2331; }
-[data-theme="noite"] .profile-name { color: #f3ece0; }
-[data-theme="noite"] .profile-type { color: #d68a62; }
-[data-theme="noite"] .venue-ctable th { background: #1a2130; color: #d68a62; }
-[data-theme="noite"] .venue-ctable td { background: #2c3648; color: #e6ddcf; border-color: #333d4f; }
-[data-theme="noite"] .venue-ctable td:first-child { background: #232b3d; color: #a99e8c; border-color: #3c4658; }
-[data-theme="noite"] #page-dashboard, [data-theme="noite"] #page-guests, [data-theme="noite"] #page-budget,
-[data-theme="noite"] #page-timeline, [data-theme="noite"] #page-vendors, [data-theme="noite"] #page-moodboard,
-[data-theme="noite"] #page-itinerary, [data-theme="noite"] #page-venues { background: #232b3d; }
-[data-theme="noite"] #profile-view { background: #232b3d; }
-[data-theme="noite"] #compare-view { background: #232b3d; }
-[data-theme="noite"] .venue-subpage { background: #232b3d; }
-[data-theme="noite"] #venue-view-tabs { background: #2c3648; border-bottom-color: #3c4658; }
-[data-theme="noite"] .filter-sheet { background: #2c3648; }
-[data-theme="noite"] .filter-title { color: #e6ddcf; }
-[data-theme="noite"] .filter-q { color: #e6ddcf; }
-[data-theme="noite"] .filter-btn { background: #2c3648; border-color: #3c4658; color: #a99e8c; }
-[data-theme="noite"] .filter-btn.yes { background: #081408; color: #387048; border-color: #1a3020; }
-[data-theme="noite"] .filter-btn.no { background: #180404; color: #c83030; border-color: #301010; }
-[data-theme="noite"] .archive-sheet { background: #2c3648; }
-[data-theme="noite"] .archive-sheet-title { color: #e6ddcf; }
-[data-theme="noite"] .archive-reason-btn { background: #2c3648; border-color: #3c4658; color: #a99e8c; }
-[data-theme="noite"] .archive-reason-btn.selected { background: #34302a; color: #d68a62; border-color: #d68a62; }
-[data-theme="noite"] #sync-status { color: #a99e8c; }
-[data-theme="noite"] #login-lock { background: #1a2130; }
-[data-theme="noite"] #venue-nav { background: #2c3648; border-bottom-color: #333d4f; }
-[data-theme="noite"] .vnav-item { border-right-color: #333d4f; }
-[data-theme="noite"] .vnav-item.active { background: #34302a; border-bottom-color: #d68a62; }
-[data-theme="noite"] .vnav-name { color: #e6ddcf; }
-[data-theme="noite"] #nav { background: #2c3648; border-bottom-color: #333d4f; }
 
 /* ── PER-THEME TYPOGRAPHIC CHARACTER (spacing only, not colours) ── */
 [data-theme="editorial"] .dashboard-title { letter-spacing: 0.35em; }
 [data-theme="noite"] .page-title { letter-spacing: 0.18em; }
+
+/* ── THEME COLOUR EDITOR (overlay) ── */
+.theme-edit-btn { background: none; border: none; color: var(--nav-active); font-size: 0.8rem; cursor: pointer; padding: 2px 5px; margin-left: 3px; opacity: 0.7; line-height: 1; }
+.theme-edit-btn:hover { opacity: 1; }
+#theme-editor { position: fixed; inset: 0; z-index: 1300; background: rgba(0,0,0,0.5); display: none; align-items: stretch; justify-content: center; }
+#theme-editor.open { display: flex; }
+.te-sheet { background: var(--bg); width: 100%; max-width: 480px; display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: contain; }
+@media (min-width: 481px) { #theme-editor { align-items: center; } .te-sheet { max-height: 90vh; border-radius: 16px; } }
+.te-head { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.1rem; padding-top: max(1rem, env(safe-area-inset-top)); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.te-title { font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 1.3rem; color: var(--gold); }
+.te-close { background: none; border: none; font-size: 1.1rem; color: var(--muted); cursor: pointer; padding: 0.3rem; line-height: 1; }
+.te-note { font-size: 0.72rem; color: var(--muted); padding: 0.75rem 1.1rem; line-height: 1.55; border-bottom: 1px solid var(--border-light); }
+.te-note strong { color: var(--gold); font-weight: 600; }
+.te-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0.8rem 1.1rem; padding-bottom: max(1.4rem, env(safe-area-inset-bottom)); }
+.te-theme { border: 1px solid var(--border); border-radius: 12px; padding: 0.9rem 1rem; margin-bottom: 0.8rem; background: var(--surface); }
+.te-theme.te-active { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+.te-theme-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.65rem; }
+.te-name { font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 1.2rem; color: var(--dark); }
+.te-tag { font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted-light); }
+.te-rows { display: flex; flex-direction: column; gap: 0.5rem; }
+.te-row { display: flex; align-items: center; gap: 0.7rem; }
+.te-role { flex: 0 0 64px; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.te-row input[type="color"] { width: 46px; height: 30px; border: 1px solid var(--border); border-radius: 6px; background: none; cursor: pointer; padding: 2px; flex-shrink: 0; }
+.te-hex { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: 0.06em; }
+.te-reset { margin-top: 0.75rem; background: none; border: 1px solid var(--border); color: var(--muted); font-size: 0.6rem; letter-spacing: 0.13em; text-transform: uppercase; padding: 0.45rem 0.8rem; border-radius: 8px; cursor: pointer; font-family: 'Jost', sans-serif; }
+.te-reset:hover { border-color: var(--gold); color: var(--gold); }
 
 /* ── DASHBOARD HERO POSITIONING FIX ── */
 .dashboard-hero { position: relative; overflow: hidden; }
@@ -2575,7 +2397,7 @@ input:focus, select:focus, textarea:focus {
   justify-content: center;
 }
 .ccount-btn:hover { border-color: var(--gold); color: var(--gold); }
-.ccount-btn.active { background: var(--dark); color: var(--nav-active); border-color: var(--dark); }
+.ccount-btn.active { background: #1a2130; color: #e8c98a; border-color: #1a2130; }
 
 /* Slot selector inside column header */
 .compare-slot-select {
@@ -2721,6 +2543,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     <div class="theme-dot" data-t="jardim" onclick="setTheme('jardim')" title="Blanca"></div>
     <div class="theme-dot" data-t="editorial" onclick="setTheme('editorial')" title="Arena"></div>
     <div class="theme-dot" data-t="noite" onclick="setTheme('noite')" title="Noche"></div>
+    <button class="theme-edit-btn" onclick="openThemeEditor()" title="Edit colours" aria-label="Edit theme colours">✎</button>
   </div>
 </div>
 
@@ -4773,16 +4596,157 @@ function renderMoodTheme() {
 
 // Call renderMoodTheme when theme changes
 const _originalSetTheme = window.setTheme;
+// ══════════════════════════════════════════════════════════════════
+//  THEME ENGINE — derive the full CSS-variable set from three editable
+//  inputs {ground, hero, accent} + is_dark, and apply them on :root.
+//  Only ground/hero/accent are user-editable; --sage/--love stay semantic.
+// ══════════════════════════════════════════════════════════════════
+const THEME_DEFAULTS = {
+  beira:     { key:'beira',     name:'Mar',    is_dark:false, ground:'#f4f7fc', hero:'#4a6fd4', accent:'#e9b7a6', sort:0 },
+  jardim:    { key:'jardim',    name:'Blanca', is_dark:false, ground:'#fdfaf6', hero:'#c56f5d', accent:'#e9b7a6', sort:1 },
+  editorial: { key:'editorial', name:'Arena',  is_dark:false, ground:'#fbfbfa', hero:'#232b3d', accent:'#4a6fd4', sort:2 },
+  noite:     { key:'noite',     name:'Noche',  is_dark:true,  ground:'#232b3d', hero:'#d68a62', accent:'#c9a24b', sort:3 },
+};
+const THEME_ORDER = ['beira','jardim','editorial','noite'];
+// Live records: defaults overlaid by DB values and local edits.
+let THEMES = JSON.parse(JSON.stringify(THEME_DEFAULTS));
+
+// ── colour maths ──
+function _hx(h){ h=String(h||'').replace('#','').trim(); if(h.length===3)h=h.split('').map(c=>c+c).join(''); const n=parseInt(h||'0',16)||0; return [(n>>16)&255,(n>>8)&255,n&255]; }
+function _hex(r){ return '#'+r.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join(''); }
+function _mix(a,b,t){ const A=_hx(a),B=_hx(b); return _hex([0,1,2].map(i=>A[i]+(B[i]-A[i])*t)); }
+const _lighten=(c,t)=>_mix(c,'#ffffff',t);
+const _darken =(c,t)=>_mix(c,'#000000',t);
+function _lum(c){ const r=_hx(c).map(v=>{v/=255; return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);}); return 0.2126*r[0]+0.7152*r[1]+0.0722*r[2]; }
+function _contrast(a,b){ const L1=_lum(a),L2=_lum(b); return (Math.max(L1,L2)+0.05)/(Math.min(L1,L2)+0.05); }
+// white or deep-ink, whichever reads better on bg
+function _ink(bg){ return _contrast(bg,'#ffffff') >= _contrast(bg,'#1a2130') ? '#ffffff' : '#1a2130'; }
+// nudge `color` until it reads on `on`: darken on a light bg, lighten on a dark bg
+function _readable(color, on, isDark, min){ min=min||3.2; let c=color, i=0; while(_contrast(c,on)<min && i++<16){ c = isDark ? _lighten(c,0.06) : _darken(c,0.06); } return c; }
+
+function deriveThemeVars(t){
+  const D = !!t.is_dark, g = t.ground;
+  const hero   = _readable(t.hero,   g, D, 3.0);                 // brand, legible on ground
+  const accent = _readable(t.accent, D ? g : '#ffffff', D, 3.2); // accent doubles as text
+  const text  = D ? _lighten(g,0.82) : _darken(g,0.82);
+  const dark  = D ? _lighten(g,0.92) : _darken(g,0.88);
+  const surface = D ? _lighten(g,0.06) : '#ffffff';
+  const V = {
+    '--bg': g,
+    '--bg2': D ? _darken(g,0.22) : _darken(g,0.045),
+    '--surface': surface,
+    '--border':       D ? _lighten(g,0.14) : _mix(g, text, 0.18),
+    '--border-light': D ? _lighten(g,0.08) : _mix(g, text, 0.09),
+    '--gold': hero,
+    '--gold-light': D ? _lighten(hero,0.12) : _darken(hero,0.10),
+    '--gold-pale':  D ? _mix(g, hero, 0.16) : _mix('#ffffff', hero, 0.14),
+    '--dark': dark,
+    '--text': text,
+    '--muted':       _mix(text, g, 0.42),
+    '--muted-light': _mix(text, g, 0.62),
+    '--accent': accent,
+    '--accent-light': D ? _mix(g, t.accent, 0.16) : _mix('#ffffff', t.accent, 0.20),
+    // --sage / --love are SEMANTIC and fixed (never derived, never editable)
+    '--sage':       D ? '#55a074' : '#3f8562',
+    '--sage-light': D ? '#16251c' : '#dcefe6',
+    '--love':       D ? '#d97066' : '#b04a41',
+    '--love-light': D ? '#2b1613' : '#f8e6e4',
+    // chrome + composite surfaces (absorb what the old overrides hardcoded)
+    '--nav-bg':     D ? _darken(g,0.12) : '#ffffff',
+    '--nav-text':   _mix(text, g, 0.42),
+    '--nav-active': D ? _lighten(hero,0.12) : hero,
+    '--chrome-sub': _mix(text, g, 0.42),
+    '--hero-bg': D
+      ? `linear-gradient(160deg, ${_darken(g,0.10)} 0%, ${g} 60%, ${_darken(g,0.14)} 100%)`
+      : `linear-gradient(180deg, #ffffff 0%, ${_darken(g,0.03)} 100%)`,
+    '--btn-bg': `linear-gradient(135deg, ${hero} 0%, ${_darken(hero,0.12)} 100%)`,
+    '--btn-text': _ink(hero),
+    '--stat-bg': D
+      ? `linear-gradient(135deg, ${surface} 0%, ${g} 100%)`
+      : `linear-gradient(135deg, #ffffff 0%, ${_darken(g,0.03)} 100%)`,
+    '--header-gradient': D
+      ? `linear-gradient(135deg, ${surface} 0%, ${g} 100%)`
+      : `linear-gradient(135deg, #ffffff 0%, ${_darken(g,0.03)} 100%)`,
+    '--card-shadow': D ? '0 4px 24px rgba(0,0,0,0.45)' : '0 2px 16px rgba(35,43,61,0.08)',
+  };
+  return V;
+}
+function applyThemeVars(V){ const rs = document.documentElement.style; for(const k in V) rs.setProperty(k, V[k]); }
+
 function setTheme(t) {
+  if(!THEMES[t]) t = 'beira';
   document.body.setAttribute('data-theme', t);
+  applyThemeVars(deriveThemeVars(THEMES[t]));
   document.querySelectorAll('.theme-dot').forEach(d => d.classList.toggle('active', d.dataset.t === t));
   S.set('theme', t);
   renderMoodTheme();
   // Note: the mood board filter is independent of the app theme — no re-render here.
 }
-const savedTheme = S.get('theme');
-if (savedTheme) setTheme(savedTheme);
-else setTheme('beira');
+
+// ── persistence: DB is source of truth; localStorage caches for instant apply ──
+function cacheThemes(){ S.set('themes_custom', THEMES); }
+function loadCachedThemes(){
+  const c = S.get('themes_custom');
+  if(c && typeof c === 'object'){ THEME_ORDER.forEach(k => { if(c[k]) THEMES[k] = {...THEME_DEFAULTS[k], ...c[k], key:k}; }); }
+}
+async function loadThemesFromDB(){
+  try{
+    const rows = await dbLoad('themes');
+    if(Array.isArray(rows) && rows.length){
+      rows.forEach(r => { if(r && THEMES[r.key]) THEMES[r.key] = {...THEMES[r.key], ...r}; });
+    } else {
+      for(const k of THEME_ORDER){ await dbInsert('themes', THEME_DEFAULTS[k]); } // first-run seed
+    }
+    cacheThemes();
+    setTheme(S.get('theme') || 'beira'); // re-apply with authoritative values
+    if(document.getElementById('theme-editor').classList.contains('open')) renderThemeEditor();
+  }catch(e){ console.error('themes load', e); }
+}
+const _themeSaveTimer = {};
+async function saveTheme(key){
+  const t = THEMES[key]; cacheThemes();
+  try{ await sb.from('themes').upsert({ key:t.key, name:t.name, is_dark:t.is_dark, ground:t.ground, hero:t.hero, accent:t.accent, sort:t.sort }); }
+  catch(e){ console.error('save theme', e); }
+}
+
+// ── editor overlay ──
+function openThemeEditor(){ renderThemeEditor(); document.getElementById('theme-editor').classList.add('open'); lockBackgroundScroll(); document.addEventListener('keydown', themeEditorKey); }
+function closeThemeEditor(){ document.getElementById('theme-editor').classList.remove('open'); unlockBackgroundScroll(); document.removeEventListener('keydown', themeEditorKey); }
+function themeEditorKey(e){ if(e.key === 'Escape') closeThemeEditor(); }
+function renderThemeEditor(){
+  const active = document.body.getAttribute('data-theme');
+  document.getElementById('te-list').innerHTML = THEME_ORDER.map(k => {
+    const t = THEMES[k], on = (k === active);
+    const row = (role) => `<label class="te-row">
+        <span class="te-role">${role}</span>
+        <input type="color" value="${escapeHtml(t[role])}" oninput="onThemeColor('${k}','${role}',this.value)">
+        <span class="te-hex" id="te-hex-${k}-${role}">${escapeHtml(String(t[role]).toUpperCase())}</span>
+      </label>`;
+    return `<div class="te-theme${on?' te-active':''}">
+      <div class="te-theme-head"><span class="te-name">${escapeHtml(t.name)}</span><span class="te-tag">${t.is_dark?'Dark':'Light'}${on?' · active':''}</span></div>
+      <div class="te-rows">${row('ground')}${row('hero')}${row('accent')}</div>
+      <button class="te-reset" onclick="resetTheme('${k}')">Reset to default</button>
+    </div>`;
+  }).join('');
+}
+function onThemeColor(key, role, val){
+  THEMES[key][role] = val;
+  const hx = document.getElementById(`te-hex-${key}-${role}`); if(hx) hx.textContent = String(val).toUpperCase();
+  if(document.body.getAttribute('data-theme') === key) applyThemeVars(deriveThemeVars(THEMES[key]));
+  cacheThemes();
+  clearTimeout(_themeSaveTimer[key]); _themeSaveTimer[key] = setTimeout(() => saveTheme(key), 400);
+}
+function resetTheme(key){
+  THEMES[key] = {...THEME_DEFAULTS[key]};
+  if(document.body.getAttribute('data-theme') === key) applyThemeVars(deriveThemeVars(THEMES[key]));
+  cacheThemes(); saveTheme(key); renderThemeEditor();
+}
+window.openThemeEditor = openThemeEditor; window.closeThemeEditor = closeThemeEditor;
+window.onThemeColor = onThemeColor; window.resetTheme = resetTheme;
+
+// Boot: apply cached/default colours immediately; DB reconciles in loadThemesFromDB().
+loadCachedThemes();
+setTheme(S.get('theme') || 'beira');
 
 // ── NAV
 function showPage(id) {
@@ -6680,6 +6644,7 @@ window.scEdit = scEdit;
 // ── LOAD ALL DATA FROM SUPABASE
 async function loadAllData() {
   setSyncStatus('', 'Loading...');
+  loadThemesFromDB(); // reconcile theme colours with the DB (seeds the table on first run)
   try {
     const [g, b, t, v, a, m, itin, ven, wd, scn] = await Promise.all([
       dbLoad('guests'),
@@ -7377,6 +7342,18 @@ window.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- Wedding dates overlay -->
+<!-- Theme colour editor (overlay; mirrors the dates overlay conventions) -->
+<div id="theme-editor" onclick="if(event.target===this)closeThemeEditor()">
+  <div class="te-sheet">
+    <div class="te-head">
+      <span class="te-title">Theme Colours</span>
+      <button class="te-close" onclick="closeThemeEditor()" aria-label="Close">✕</button>
+    </div>
+    <div class="te-note">Set <strong>ground</strong>, <strong>hero</strong> and <strong>accent</strong> per theme — every other colour is derived from these. Green and red stay fixed.</div>
+    <div id="te-list" class="te-body"></div>
+  </div>
+</div>
+
 <div id="dates-overlay" onclick="if(event.target===this)closeDatesOverlay()">
   <div class="do-sheet">
     <div class="do-head">
