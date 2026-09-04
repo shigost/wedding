@@ -63,8 +63,8 @@
   --surface: #ffffff;
   --border: #eed7cb;       /* blush-tinted border */
   --border-light: #f6e7df;
-  --gold: #c06744;         /* Terracotta — strong moments (button, active nav, headings) */
-  --gold-light: #cf7d5c;
+  --gold: #c56f5d;         /* Terracotta — strong moments (button, active nav, headings) */
+  --gold-light: #d99a88;
   --gold-pale: #f7e2d8;    /* blush-pale soft fill */
   --dark: #3a2c1e;
   --text: #43352a;         /* deep umber type */
@@ -78,9 +78,9 @@
   --love-light: #f7e6e2;
   --nav-bg: #fdfaf6;
   --nav-text: #8a7256;
-  --nav-active: #c06744;
+  --nav-active: #c56f5d;
   --card-shadow: 0 2px 14px rgba(58,44,30,0.06);
-  --header-gradient: linear-gradient(135deg, #ffffff 0%, #fdf7f0 100%);
+  --header-gradient: linear-gradient(135deg, #ffffff 0%, #fdf3ef 100%);
 }
 
 /* 03 — ARENA · Light Neutral · Cabo
@@ -228,7 +228,7 @@ body {
 .theme-dot:hover { transform: scale(1.2); }
 .theme-dot.active { border-color: white; transform: scale(1.15); }
 .theme-dot[data-t="beira"]    { background: radial-gradient(circle at 35% 30%, #ffffff, #4a6fd4); }
-.theme-dot[data-t="jardim"]   { background: radial-gradient(circle at 35% 30%, #f7ddd0, #c77b58); }
+.theme-dot[data-t="jardim"]   { background: radial-gradient(circle at 35% 30%, #f7ddd0, #d08a76); }
 .theme-dot[data-t="editorial"]{ background: radial-gradient(circle at 35% 30%, #ffffff, #232b3d); }
 .theme-dot[data-t="noite"]    { background: radial-gradient(circle, #d68a62, #232b3d); }
 
@@ -2431,15 +2431,15 @@ input:focus, select:focus, textarea:focus {
 [data-theme="jardim"] #topbar { background: #ffffff; border-bottom: 1px solid var(--border); }
 [data-theme="jardim"] .topbar-title { color: var(--gold); }
 [data-theme="jardim"] .topbar-sub { color: var(--muted); }
-[data-theme="jardim"] .dashboard-hero { background: linear-gradient(180deg, #ffffff 0%, #fdf6ef 100%); }
+[data-theme="jardim"] .dashboard-hero { background: linear-gradient(180deg, #ffffff 0%, #fdf2ec 100%); }
 [data-theme="jardim"] .dashboard-title { color: var(--gold); }
 [data-theme="jardim"] .dashboard-date { color: var(--muted); }
-[data-theme="jardim"] .stat-card { background: linear-gradient(135deg, #ffffff 0%, #fbf1e9 100%); border-color: var(--border); }
+[data-theme="jardim"] .stat-card { background: linear-gradient(135deg, #ffffff 0%, #fbeee8 100%); border-color: var(--border); }
 [data-theme="jardim"] .stat-num { color: var(--gold); }
 [data-theme="jardim"] .quick-link:hover { background: #fbeee8; border-color: #e9b7a6; }
-[data-theme="jardim"] .btn-primary { background: linear-gradient(135deg, #c77b58 0%, #b0653f 100%); color: #ffffff; }
+[data-theme="jardim"] .btn-primary { background: linear-gradient(135deg, #d08a76 0%, #bd6a58 100%); color: #ffffff; }
 [data-theme="jardim"] .nav-item.active { background: var(--gold-pale); color: var(--gold); border-bottom-color: var(--gold); }
-[data-theme="jardim"] .pill-gold { background: #f7ddd0; color: #a9542f; border-color: rgba(233,183,166,0.7); }
+[data-theme="jardim"] .pill-gold { background: #f7ddd0; color: #b05846; border-color: rgba(233,183,166,0.7); }
 [data-theme="jardim"] .dashboard-divider { background: #c9a24b; }
 
 /* ARENA — Light Neutral: white ground, Deep Ink type, minimal colour */
@@ -4657,7 +4657,7 @@ const THEME_MOODS = {
     palette: [
       { hex: '#ffffff', label: 'White', pct: '52%' },
       { hex: '#e9b7a6', label: 'Blush Coral', pct: '22%' },
-      { hex: '#c77b58', label: 'Terracotta', pct: '14%' },
+      { hex: '#d08a76', label: 'Terracotta', pct: '14%' },
       { hex: '#e8dcc8', label: 'Warm Sand', pct: '8%' },
       { hex: '#c9a24b', label: 'Warm Gold', pct: '4%' },
     ],
