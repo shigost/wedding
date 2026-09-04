@@ -457,7 +457,7 @@ label {
   margin-top: 0.25rem;
 }
 /* Countdown flip tile: front = countdown, back = date editor */
-.flip-card { padding: 0; perspective: 800px; min-height: 96px; }
+.flip-card { padding: 0; perspective: 800px; min-height: 96px; overflow: hidden; border-radius: 12px; }
 .flip-inner {
   position: relative; width: 100%; height: 100%; min-height: 96px;
   transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
@@ -488,6 +488,27 @@ label {
 }
 .date-save { flex: 1; background: var(--gold); color: #fff; border-color: var(--gold); }
 .date-cancel { flex: 0 0 30px; background: var(--surface); color: var(--muted); }
+/* Candidate-dates manager (flip back) */
+.flip-back { justify-content: flex-start; }
+.dc-head { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.dc-title { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.dc-close { background: none; border: none; color: var(--muted); font-size: 0.9rem; cursor: pointer; padding: 0.1rem 0.3rem; line-height: 1; }
+.dc-add { display: flex; gap: 0.3rem; width: 100%; }
+.dc-add input { flex: 1; min-width: 0; box-sizing: border-box; font-size: 0.72rem; padding: 0.32rem 0.4rem; border: 1px solid var(--border); border-radius: 6px; color: var(--text); background: var(--surface); }
+.dc-add-btn { flex-shrink: 0; background: var(--gold); color: #fff; border: none; border-radius: 6px; font-size: 0.6rem; letter-spacing: 0.05em; padding: 0.32rem 0.7rem; cursor: pointer; }
+.dc-list { width: 100%; max-height: 152px; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 0.35rem; }
+.dc-empty { font-size: 0.68rem; color: var(--muted-light); text-align: center; padding: 0.7rem 0.4rem; }
+.dc-item { border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem 0.45rem; background: var(--surface); text-align: left; }
+.dc-item.chosen { border-color: var(--gold); background: var(--gold-pale); }
+.dc-item.ruled { opacity: 0.55; }
+.dc-item-top { display: flex; align-items: center; gap: 0.35rem; }
+.dc-date { flex: 1; min-width: 0; font-size: 0.78rem; color: var(--text); font-weight: 500; }
+.dc-status { flex-shrink: 0; font-size: 0.6rem; padding: 0.2rem 0.15rem; border: 1px solid var(--border); border-radius: 5px; background: var(--surface); color: var(--text); }
+.dc-remove { flex-shrink: 0; background: none; border: none; cursor: pointer; font-size: 0.72rem; padding: 0.1rem 0.15rem; }
+.dc-note { width: 100%; box-sizing: border-box; margin-top: 0.3rem; font-size: 0.68rem; padding: 0.26rem 0.35rem; border: 1px solid var(--border); border-radius: 5px; color: var(--text); background: var(--surface); }
+/* Expand to full width AFTER the flip (staged in JS), so grid-column never changes mid-rotation */
+#date-tile.expanded { grid-column: 1 / -1; z-index: 2; }
+#date-tile.expanded, #date-tile.expanded .flip-inner { min-height: 232px; }
 .quick-links {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2767,11 +2788,15 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
               <div class="stat-label" id="dash-days-label">Days Away</div>
             </div>
             <div class="flip-back">
-              <input type="date" id="wedding-date-input" class="date-input" onclick="event.stopPropagation()">
-              <div class="date-actions">
-                <button class="date-btn date-save" onclick="saveWeddingDate(event)">Save</button>
-                <button class="date-btn date-cancel" onclick="closeDateTile(event)" aria-label="Cancel">✕</button>
+              <div class="dc-head">
+                <span class="dc-title">Wedding dates</span>
+                <button class="dc-close" onclick="closeDateTile(event)" aria-label="Close">✕</button>
               </div>
+              <div class="dc-add">
+                <input type="date" id="dc-new-date" onclick="event.stopPropagation()">
+                <button class="dc-add-btn" onclick="addCandidateDate(event)">Add</button>
+              </div>
+              <div id="date-candidates" class="dc-list"></div>
             </div>
           </div>
         </div>
@@ -3332,7 +3357,8 @@ let itinItems = [];
 let timelineTasks = [];
 let moodImages = [];
 let archivedVenues = [];
-let weddingDate = null; // 'YYYY-MM-DD' from app_config, or null
+let weddingDate = null;   // derived: the 'chosen' candidate's date (or null)
+let weddingDates = [];    // all rows from wedding_dates (candidates)
 
 
 
@@ -5949,49 +5975,114 @@ function updateDashboard() {
 setInterval(updateDashboard, 60000);
 
 // ── WEDDING DATE (flip tile → edit → persist to app_config) ──
-// Card-level tap flips front → back (editor). Back controls stop propagation,
-// so tapping the input/Save/✕ doesn't re-trigger this.
+// Card-level tap flips front → back (candidate manager). Back controls stop
+// propagation so tapping inside doesn't re-trigger this.
+// Expansion (full width) is staged AFTER the flip finishes and collapsed BEFORE
+// flipping back — so grid-column never changes mid-3D-rotation (iOS-safe).
+let dateExpandTimer = null;
 function flipDateTile(e) {
   const card = document.getElementById('date-tile');
   if (!card) return;
-  if (card.classList.contains('flipped')) return; // already showing the editor
+  if (card.classList.contains('flipped')) return; // already open
+  renderDateCandidates();
   card.classList.add('flipped');
-  const input = document.getElementById('wedding-date-input');
-  if (input) input.value = weddingDate || ''; // prefill current date on the back
+  clearTimeout(dateExpandTimer);
+  dateExpandTimer = setTimeout(() => { if (card.classList.contains('flipped')) card.classList.add('expanded'); }, 580);
 }
 function closeDateTile(e) {
   if (e) e.stopPropagation();
   const card = document.getElementById('date-tile');
-  if (card) card.classList.remove('flipped');
+  if (!card) return;
+  clearTimeout(dateExpandTimer);
+  card.classList.remove('expanded');                       // collapse width first (back still facing)
+  setTimeout(() => card.classList.remove('flipped'), 60);  // then rotate back at 1-col size
 }
 
-async function saveWeddingDate(e) {
-  if (e) e.stopPropagation();
-  const input = document.getElementById('wedding-date-input');
-  const val = input ? input.value.trim() : ''; // 'YYYY-MM-DD' or ''
-  weddingDate = val || null;                    // empty clears it (front shows the set-date prompt)
-  await saveConfig('wedding_date', { date: weddingDate });
+// Set the in-memory candidates and derive the chosen date for the countdown.
+function setWeddingDates(rows) {
+  weddingDates = Array.isArray(rows) ? rows : [];
+  const chosen = weddingDates.find(d => d && d.status === 'chosen');
+  weddingDate = chosen ? chosen.date : null;
+}
+async function reloadWeddingDates() {
+  setWeddingDates(await dbLoad('wedding_dates'));
   updateDashboard();
-  const card = document.getElementById('date-tile');
-  if (card) card.classList.remove('flipped');   // flip back to the updated countdown
+  renderDateCandidates();
 }
 
-// Upsert a single app_config key (extensible; add more keys / a couple_id later).
-async function saveConfig(key, value) {
-  setSyncStatus('', 'Saving...');
-  try {
-    const { error } = await sb.from('app_config').upsert({ key, value, updated_at: new Date().toISOString() });
-    if (error) throw error;
-    setSyncStatus('ok', 'Saved');
-    setTimeout(() => setSyncStatus('ok', 'Live'), 1200);
-  } catch(err) {
-    setSyncStatus('error', 'Error saving');
-    console.error('saveConfig error', JSON.stringify(err), err.message || err);
-  }
+function fmtDateLong(iso) {
+  if (!iso) return '—';
+  const p = String(iso).split('-');
+  if (p.length < 3) return iso;
+  const dt = new Date(+p[0], (+p[1]) - 1, +p[2]);
+  return isNaN(dt) ? iso : dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
+
+const DC_STATUSES = [['considering', 'Considering'], ['ruled_out', 'Ruled out'], ['chosen', 'Chosen']];
+function renderDateCandidates() {
+  const el = document.getElementById('date-candidates');
+  if (!el) return;
+  const list = [...weddingDates].sort((a, b) => String(a.date || '').localeCompare(String(b.date || ''))); // date ascending
+  if (!list.length) {
+    el.innerHTML = `<div class="dc-empty">No dates yet — add one above.</div>`;
+    return;
+  }
+  el.innerHTML = list.map(d => `
+    <div class="dc-item ${d.status === 'chosen' ? 'chosen' : ''} ${d.status === 'ruled_out' ? 'ruled' : ''}" onclick="event.stopPropagation()">
+      <div class="dc-item-top">
+        <span class="dc-date">${escapeHtml(fmtDateLong(d.date))}</span>
+        <select class="dc-status" onchange="setCandidateStatus('${d.id}', this.value)">
+          ${DC_STATUSES.map(([v, l]) => `<option value="${v}"${d.status === v ? ' selected' : ''}>${l}</option>`).join('')}
+        </select>
+        <button class="dc-remove" onclick="removeCandidate('${d.id}')" aria-label="Remove">🗑</button>
+      </div>
+      <input class="dc-note" type="text" placeholder="Note (optional)" value="${escapeHtml(d.note || '')}" onchange="setCandidateNote('${d.id}', this.value)">
+    </div>`).join('');
+}
+
+async function addCandidateDate(e) {
+  if (e) e.stopPropagation();
+  const input = document.getElementById('dc-new-date');
+  const val = input ? input.value.trim() : '';
+  if (!val) return;
+  const row = await dbInsert('wedding_dates', { date: val, status: 'considering' });
+  if (row && input) input.value = '';
+  await reloadWeddingDates();
+}
+
+// Choosing a date goes through the atomic set_chosen_date() RPC (demote + promote
+// in one transaction). Other statuses are a plain update.
+async function setCandidateStatus(id, status) {
+  if (status === 'chosen') {
+    setSyncStatus('', 'Saving...');
+    const { error } = await sb.rpc('set_chosen_date', { p_id: id });
+    if (error) { setSyncStatus('error', 'Error saving'); console.error('set_chosen_date rpc error', JSON.stringify(error), error.message || error); }
+    else { setSyncStatus('ok', 'Saved'); setTimeout(() => setSyncStatus('ok', 'Live'), 1200); }
+  } else {
+    await dbUpdate('wedding_dates', id, { status });
+  }
+  await reloadWeddingDates();
+}
+
+async function setCandidateNote(id, note) {
+  const val = (note || '').trim() || null;
+  await dbUpdate('wedding_dates', id, { note: val });
+  const d = weddingDates.find(x => x.id === id); // update locally without a re-render (keep focus)
+  if (d) d.note = val;
+}
+
+async function removeCandidate(id) {
+  if (!confirm('Remove this date?')) return;
+  await dbDelete('wedding_dates', id);
+  await reloadWeddingDates();
+}
+
 window.flipDateTile = flipDateTile;
 window.closeDateTile = closeDateTile;
-window.saveWeddingDate = saveWeddingDate;
+window.addCandidateDate = addCandidateDate;
+window.setCandidateStatus = setCandidateStatus;
+window.setCandidateNote = setCandidateNote;
+window.removeCandidate = removeCandidate;
 
 // ── CSV EXPORT
 function downloadCSV(content, filename) {
@@ -6390,7 +6481,7 @@ window.exportItinerary = exportItinerary;
 async function loadAllData() {
   setSyncStatus('', 'Loading...');
   try {
-    const [g, b, t, v, a, m, itin, ven, cfg] = await Promise.all([
+    const [g, b, t, v, a, m, itin, ven, wd] = await Promise.all([
       dbLoad('guests'),
       dbLoad('budget_items'),
       dbLoad('timeline_tasks'),
@@ -6399,11 +6490,10 @@ async function loadAllData() {
       dbLoad('mood_images'),
       dbLoad('itinerary_items'),
       dbLoad('venues'),
-      dbLoad('app_config'),
+      dbLoad('wedding_dates'),
     ]);
-    // Wedding date from config (drives the countdown tile); null if unset.
-    const wc = Array.isArray(cfg) ? cfg.find(r => r && r.key === 'wedding_date') : null;
-    weddingDate = (wc && wc.value && wc.value.date) ? wc.value.date : null;
+    // Candidate wedding dates; the 'chosen' row drives the countdown.
+    setWeddingDates(wd);
     guests = g;
     budgetItems = b;
     // Timeline: show defaults immediately, seed to DB if empty
@@ -6463,7 +6553,7 @@ async function loadAllData() {
     subscribeRealtime('vendors', () => { dbLoad('vendors').then(d => { vendors = d; renderVendors(); }); });
     subscribeRealtime('itinerary_items', () => { dbLoad('itinerary_items').then(d => { itinItems = d; renderItinerary(); }); });
     subscribeRealtime('venues', () => { dbLoad('venues').then(d => { if (applyVenueRows(d)) { buildNav(); if (venueMode === 'grid') renderVenueGrid(); else if (venueMode === 'archived') renderArchivedGrid(); else venueRenderProfile(currentIdx); } }); });
-    subscribeRealtime('app_config', () => { dbLoad('app_config').then(d => { const wc = Array.isArray(d) ? d.find(r => r && r.key === 'wedding_date') : null; weddingDate = (wc && wc.value && wc.value.date) ? wc.value.date : null; updateDashboard(); }); });
+    subscribeRealtime('wedding_dates', () => { dbLoad('wedding_dates').then(d => { setWeddingDates(d); updateDashboard(); renderDateCandidates(); }); });
   } catch(e) {
     setSyncStatus('error', 'Connection error');
     console.error('loadAllData error', e);
