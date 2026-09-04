@@ -49,8 +49,8 @@
   --header-gradient: linear-gradient(135deg, #f4f7fc 0%, #e4ebf7 100%);
 }
 
-/* 02 — LIGHT WARM (jardim) · Cabo
-   Warm Sand ground, Terracotta hero, Warm Gold accent. */
+/* 02 — BLANCA · Light Warm · Cabo
+   White ground, blush-forward, Terracotta as punctuation. */
 [data-theme="jardim"] {
   --font-display: 'Playfair Display', serif;
   --font-body: 'Lato', sans-serif;
@@ -58,33 +58,33 @@
   --font-weight-body: 400;
   --letter-spacing-display: 0.04em;
 
-  --bg: #e8dcc8;
-  --bg2: #ddccb0;
-  --surface: #fbf7f0;
-  --border: #d7c6a8;
-  --border-light: #e5d8c0;
-  --gold: #c06744;
-  --gold-light: #c77b58;
-  --gold-pale: #f6e7dc;
+  --bg: #fdfaf6;            /* warm near-white ground */
+  --bg2: #f6ecdf;          /* Warm Sand tint — secondary surfaces only */
+  --surface: #ffffff;
+  --border: #eed7cb;       /* blush-tinted border */
+  --border-light: #f6e7df;
+  --gold: #c06744;         /* Terracotta — strong moments (button, active nav, headings) */
+  --gold-light: #cf7d5c;
+  --gold-pale: #f7e2d8;    /* blush-pale soft fill */
   --dark: #3a2c1e;
-  --text: #443528;
-  --muted: #7c6a52;
-  --muted-light: #b0a084;
-  --accent: #a9842f;
-  --accent-light: #f5ecd2;
+  --text: #43352a;         /* deep umber type */
+  --muted: #8a7256;
+  --muted-light: #b9a88e;
+  --accent: #c56b5a;       /* readable deepened coral (accent doubles as text) */
+  --accent-light: #fbeee8; /* blush pale */
   --sage: #6a8a4e;
   --sage-light: #e6efd6;
   --love: #b5544a;
   --love-light: #f7e6e2;
-  --nav-bg: #3a2c1e;
-  --nav-text: #f0e3ce;
-  --nav-active: #d99a56;
-  --card-shadow: 0 2px 16px rgba(58,44,30,0.08);
-  --header-gradient: linear-gradient(135deg, #fbf7f0 0%, #ece0cc 100%);
+  --nav-bg: #fdfaf6;
+  --nav-text: #8a7256;
+  --nav-active: #c06744;
+  --card-shadow: 0 2px 14px rgba(58,44,30,0.06);
+  --header-gradient: linear-gradient(135deg, #ffffff 0%, #fdf7f0 100%);
 }
 
-/* 03 — DARK COOL (editorial) · Cabo
-   Deep Ink ground, Cornflower hero, Blush Coral accent. */
+/* 03 — ARENA · Light Neutral · Cabo
+   White ground, Deep Ink type, warm-grey structure, minimal colour. */
 [data-theme="editorial"] {
   --font-display: 'DM Serif Display', serif;
   --font-body: 'DM Sans', sans-serif;
@@ -92,29 +92,29 @@
   --font-weight-body: 400;
   --letter-spacing-display: 0.02em;
 
-  --bg: #232b3d;
-  --bg2: #1c2331;
-  --surface: #2c3648;
-  --border: #3c4658;
-  --border-light: #333d4f;
-  --gold: #6f8ce6;
-  --gold-light: #8ea6ee;
-  --gold-pale: #222c46;
-  --dark: #eef1f8;
-  --text: #dfe4ee;
-  --muted: #9aa4ba;
-  --muted-light: #66708a;
-  --accent: #e2a48f;
-  --accent-light: #2c231f;
-  --sage: #55a074;
-  --sage-light: #16251c;
-  --love: #d97066;
-  --love-light: #2b1613;
-  --nav-bg: #1a2130;
-  --nav-text: #8ea6ee;
-  --nav-active: #a9bcf2;
-  --card-shadow: 0 4px 24px rgba(0,0,0,0.45);
-  --header-gradient: linear-gradient(135deg, #2c3648 0%, #232b3d 100%);
+  --bg: #fbfbfa;
+  --bg2: #f2f2f0;
+  --surface: #ffffff;
+  --border: #dedcd6;       /* warm grey */
+  --border-light: #ececea;
+  --gold: #232b3d;         /* Deep Ink — type accent / brand */
+  --gold-light: #3a4256;
+  --gold-pale: #eef0f4;
+  --dark: #1a1f2b;
+  --text: #232b3d;         /* deep ink type */
+  --muted: #6a7180;
+  --muted-light: #a2a7b2;
+  --accent: #4a6fd4;       /* single restrained cornflower touch */
+  --accent-light: #eef2fb;
+  --sage: #3f8562;         /* light-theme semantic tints (flipped from dark) */
+  --sage-light: #dcefe6;
+  --love: #b04a41;
+  --love-light: #f8e6e4;
+  --nav-bg: #fbfbfa;
+  --nav-text: #6a7180;
+  --nav-active: #232b3d;
+  --card-shadow: 0 1px 10px rgba(20,25,40,0.06);
+  --header-gradient: linear-gradient(135deg, #ffffff 0%, #f6f6f4 100%);
 }
 
 /* 04 — DARK WARM (noite) · Cabo
@@ -227,9 +227,9 @@ body {
 }
 .theme-dot:hover { transform: scale(1.2); }
 .theme-dot.active { border-color: white; transform: scale(1.15); }
-.theme-dot[data-t="beira"]    { background: radial-gradient(circle, #6b8ae0, #4a6fd4); }
-.theme-dot[data-t="jardim"]   { background: radial-gradient(circle, #e0b98a, #c06744); }
-.theme-dot[data-t="editorial"]{ background: radial-gradient(circle, #6f8ce6, #232b3d); }
+.theme-dot[data-t="beira"]    { background: radial-gradient(circle at 35% 30%, #ffffff, #4a6fd4); }
+.theme-dot[data-t="jardim"]   { background: radial-gradient(circle at 35% 30%, #f7ddd0, #c77b58); }
+.theme-dot[data-t="editorial"]{ background: radial-gradient(circle at 35% 30%, #ffffff, #232b3d); }
 .theme-dot[data-t="noite"]    { background: radial-gradient(circle, #d68a62, #232b3d); }
 
 /* ── NAV ── */
@@ -2405,49 +2405,61 @@ input:focus, select:focus, textarea:focus {
 
 /* ── THEME-SPECIFIC VISUAL PERSONALITY ── */
 
-/* LIGHT COOL (beira) — off-white ground, cornflower */
+/* MAR — Light Cool: white ground, cornflower accents */
 [data-theme="beira"] .page-header { background: var(--header-gradient); border-bottom: 1px solid var(--border); }
 [data-theme="beira"] .card { background: var(--surface); border-color: var(--border); }
 [data-theme="beira"] .card-title { color: var(--gold); border-bottom-color: var(--border-light); }
-[data-theme="beira"] #topbar { background: linear-gradient(135deg, #232b3d 0%, #2c3648 100%); }
-[data-theme="beira"] .dashboard-hero { background: linear-gradient(160deg, #232b3d 0%, #2c3648 60%, #202838 100%); }
-[data-theme="beira"] .topbar-title { color: #8aa4ec; }
-[data-theme="beira"] .stat-card { background: linear-gradient(135deg, #ffffff 0%, #eef2fb 100%); border-color: var(--border); }
+[data-theme="beira"] #topbar { background: #ffffff; border-bottom: 1px solid var(--border); }
+[data-theme="beira"] .topbar-title { color: var(--gold); }
+[data-theme="beira"] .topbar-sub { color: var(--muted); }
+[data-theme="beira"] .dashboard-hero { background: linear-gradient(180deg, #ffffff 0%, #f4f7fc 100%); }
+[data-theme="beira"] .dashboard-title { color: var(--gold); }
+[data-theme="beira"] .dashboard-date { color: var(--muted); }
+[data-theme="beira"] .stat-card { background: linear-gradient(135deg, #ffffff 0%, #f4f7fc 100%); border-color: var(--border); }
 [data-theme="beira"] .stat-num { color: var(--gold); }
-[data-theme="beira"] .quick-link:hover { background: linear-gradient(135deg, #eef2fb 0%, #dde5f5 100%); border-color: var(--gold); }
+[data-theme="beira"] .quick-link:hover { background: #f4f7fc; border-color: var(--gold); }
 [data-theme="beira"] .btn-primary { background: linear-gradient(135deg, #4a6fd4 0%, #3a5cbf 100%); color: #ffffff; }
 [data-theme="beira"] .nav-item.active { background: var(--gold-pale); color: var(--gold); border-bottom-color: var(--gold); }
 [data-theme="beira"] .pill-gold { background: #e9edfa; color: #2f4aa8; border-color: rgba(74,111,212,0.25); }
 [data-theme="beira"] .itin-dot { background: var(--gold); }
 [data-theme="beira"] .tl-dot.upcoming { background: var(--gold); border-color: var(--gold); }
 
-/* LIGHT WARM (jardim) — warm sand, terracotta */
+/* BLANCA — Light Warm: white ground, blush-forward, terracotta punctuation */
 [data-theme="jardim"] .page-header { background: var(--header-gradient); border-bottom: 1px solid var(--border); }
 [data-theme="jardim"] .card { background: var(--surface); border-color: var(--border); }
 [data-theme="jardim"] .card-title { color: var(--gold); border-bottom-color: var(--border-light); }
-[data-theme="jardim"] #topbar { background: linear-gradient(135deg, #3a2c1e 0%, #4a3626 100%); }
-[data-theme="jardim"] .dashboard-hero { background: linear-gradient(160deg, #3a2c1e 0%, #4a3626 60%, #33251a 100%); }
-[data-theme="jardim"] .stat-card { background: linear-gradient(135deg, #fbf7f0 0%, #f0e5d2 100%); border-color: var(--border); }
+[data-theme="jardim"] #topbar { background: #ffffff; border-bottom: 1px solid var(--border); }
+[data-theme="jardim"] .topbar-title { color: var(--gold); }
+[data-theme="jardim"] .topbar-sub { color: var(--muted); }
+[data-theme="jardim"] .dashboard-hero { background: linear-gradient(180deg, #ffffff 0%, #fdf6ef 100%); }
+[data-theme="jardim"] .dashboard-title { color: var(--gold); }
+[data-theme="jardim"] .dashboard-date { color: var(--muted); }
+[data-theme="jardim"] .stat-card { background: linear-gradient(135deg, #ffffff 0%, #fbf1e9 100%); border-color: var(--border); }
 [data-theme="jardim"] .stat-num { color: var(--gold); }
-[data-theme="jardim"] .quick-link:hover { background: linear-gradient(135deg, #fbf6ee 0%, #f0e5d2 100%); border-color: var(--gold); }
+[data-theme="jardim"] .quick-link:hover { background: #fbeee8; border-color: #e9b7a6; }
 [data-theme="jardim"] .btn-primary { background: linear-gradient(135deg, #c77b58 0%, #b0653f 100%); color: #ffffff; }
 [data-theme="jardim"] .nav-item.active { background: var(--gold-pale); color: var(--gold); border-bottom-color: var(--gold); }
+[data-theme="jardim"] .pill-gold { background: #f7ddd0; color: #a9542f; border-color: rgba(233,183,166,0.7); }
 [data-theme="jardim"] .dashboard-divider { background: #c9a24b; }
 
-/* DARK COOL (editorial) — deep ink, cornflower */
+/* ARENA — Light Neutral: white ground, Deep Ink type, minimal colour */
 [data-theme="editorial"] .page-header { background: var(--surface); border-bottom: 2px solid var(--border); }
 [data-theme="editorial"] .card { background: var(--surface); border-color: var(--border); border-radius: 4px; }
 [data-theme="editorial"] .card-title { color: var(--gold); font-size: 0.6rem; letter-spacing: 0.3em; border-bottom: 2px solid var(--border); }
-[data-theme="editorial"] #topbar { background: #1a2130; border-bottom: none; }
-[data-theme="editorial"] .dashboard-hero { background: linear-gradient(160deg, #1a2130 0%, #232b3d 60%, #171d2a 100%); }
+[data-theme="editorial"] #topbar { background: #ffffff; border-bottom: 1px solid var(--border); }
+[data-theme="editorial"] .topbar-title { color: var(--gold); }
+[data-theme="editorial"] .topbar-sub { color: var(--muted); }
+[data-theme="editorial"] .dashboard-hero { background: linear-gradient(180deg, #ffffff 0%, #f6f6f4 100%); }
+[data-theme="editorial"] .dashboard-title { color: var(--gold); }
+[data-theme="editorial"] .dashboard-date { color: var(--muted); }
 [data-theme="editorial"] .stat-card { background: var(--surface); border: 2px solid var(--border); border-radius: 3px; }
 [data-theme="editorial"] .stat-num { color: var(--gold); font-size: 2.2rem; }
 [data-theme="editorial"] .stat-label { color: var(--muted); font-size: 0.55rem; letter-spacing: 0.3em; }
 [data-theme="editorial"] .quick-link { border-radius: 3px; border: 1px solid var(--border); }
-[data-theme="editorial"] .quick-link:hover { border: 2px solid var(--gold); background: #2c3648; }
-[data-theme="editorial"] .btn-primary { background: var(--gold); border-radius: 3px; letter-spacing: 0.2em; color: #1a2130; }
+[data-theme="editorial"] .quick-link:hover { border: 2px solid var(--gold); background: #f2f2f0; }
+[data-theme="editorial"] .btn-primary { background: var(--gold); border-radius: 3px; letter-spacing: 0.2em; color: #ffffff; }
 [data-theme="editorial"] .btn-primary:hover { background: var(--gold-light); }
-[data-theme="editorial"] .nav-item.active { background: #2c3648; color: var(--gold); border-bottom: 3px solid var(--gold); }
+[data-theme="editorial"] .nav-item.active { background: var(--gold-pale); color: var(--gold); border-bottom: 3px solid var(--gold); }
 [data-theme="editorial"] input, [data-theme="editorial"] select, [data-theme="editorial"] textarea { border-radius: 3px; border-color: var(--border); }
 [data-theme="editorial"] input:focus, [data-theme="editorial"] select:focus { border-color: var(--gold); border-width: 2px; }
 [data-theme="editorial"] .card-title { padding-bottom: 0.5rem; }
@@ -2705,10 +2717,10 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     <div class="topbar-sub">The Wedding</div>
   </div>
   <div class="theme-picker">
-    <div class="theme-dot active" data-t="beira" onclick="setTheme('beira')" title="Light Cool"></div>
-    <div class="theme-dot" data-t="jardim" onclick="setTheme('jardim')" title="Light Warm"></div>
-    <div class="theme-dot" data-t="editorial" onclick="setTheme('editorial')" title="Dark Cool"></div>
-    <div class="theme-dot" data-t="noite" onclick="setTheme('noite')" title="Dark Warm"></div>
+    <div class="theme-dot active" data-t="beira" onclick="setTheme('beira')" title="Mar"></div>
+    <div class="theme-dot" data-t="jardim" onclick="setTheme('jardim')" title="Blanca"></div>
+    <div class="theme-dot" data-t="editorial" onclick="setTheme('editorial')" title="Arena"></div>
+    <div class="theme-dot" data-t="noite" onclick="setTheme('noite')" title="Noche"></div>
   </div>
 </div>
 
@@ -4614,14 +4626,14 @@ function stopHeroAuto() { clearInterval(heroAutoTimer); }
 // ── THEME MOOD BOARD DATA
 const THEME_MOODS = {
   beira: {
-    name: 'Light Cool',
-    desc: 'Cabo by day with the ocean in view — off-white walls, cornflower blue, a wash of blush coral. Bright, breezy, and clean. The Sea of Cortez under an open sky, without a single cliché.',
+    name: 'Mar',
+    desc: 'Cabo by day, sea in view — white walls, cornflower blue, a wash of blush coral. Bright, breezy, clean. The Sea of Cortez under an open sky, colour used as accent on white.',
     palette: [
-      { hex: '#f4f7fc', label: 'Off-White', pct: '45%' },
-      { hex: '#4a6fd4', label: 'Cornflower', pct: '25%' },
-      { hex: '#e9b7a6', label: 'Blush Coral', pct: '15%' },
-      { hex: '#232b3d', label: 'Deep Ink', pct: '10%' },
-      { hex: '#c9a24b', label: 'Warm Gold', pct: '5%' },
+      { hex: '#ffffff', label: 'White', pct: '55%' },
+      { hex: '#4a6fd4', label: 'Cornflower', pct: '22%' },
+      { hex: '#e9b7a6', label: 'Blush Coral', pct: '12%' },
+      { hex: '#232b3d', label: 'Deep Ink', pct: '7%' },
+      { hex: '#c9a24b', label: 'Warm Gold', pct: '4%' },
     ],
     vibes: [
       { label: 'Coastal', type: 'gold' },
@@ -4640,51 +4652,51 @@ const THEME_MOODS = {
     ],
   },
   jardim: {
-    name: 'Light Warm',
-    desc: 'Golden-hour Baja — warm sand underfoot, terracotta light, sun-baked gold. Earthy and romantic, the desert meeting the sea. Warmth in every surface, nothing precious about it.',
+    name: 'Blanca',
+    desc: 'Soft and romantic — white ground warmed by blush coral and tan, with terracotta as the punctuation. Baja light at its gentlest: airy, feminine, sun-warmed but never heavy.',
     palette: [
-      { hex: '#e8dcc8', label: 'Warm Sand', pct: '45%' },
-      { hex: '#c77b58', label: 'Terracotta', pct: '25%' },
-      { hex: '#c9a24b', label: 'Warm Gold', pct: '15%' },
-      { hex: '#3a2c1e', label: 'Deep Umber', pct: '10%' },
-      { hex: '#e9b7a6', label: 'Blush Coral', pct: '5%' },
+      { hex: '#ffffff', label: 'White', pct: '52%' },
+      { hex: '#e9b7a6', label: 'Blush Coral', pct: '22%' },
+      { hex: '#c77b58', label: 'Terracotta', pct: '14%' },
+      { hex: '#e8dcc8', label: 'Warm Sand', pct: '8%' },
+      { hex: '#c9a24b', label: 'Warm Gold', pct: '4%' },
     ],
     vibes: [
-      { label: 'Desert warmth', type: 'gold' },
-      { label: 'Golden hour', type: 'gold' },
-      { label: 'Sun-baked gold', type: 'gold' },
-      { label: 'Earthy & romantic', type: 'gold' },
-      { label: 'Terracotta & clay', type: 'sage' },
+      { label: 'Soft & romantic', type: 'gold' },
+      { label: 'Blush & tan', type: 'gold' },
+      { label: 'Airy & light', type: 'gold' },
+      { label: 'Sun-warmed', type: 'gold' },
+      { label: 'Coral & desert blooms', type: 'sage' },
       { label: 'Agave & palm', type: 'sage' },
       { label: 'Candlelit warmth', type: 'sage' },
-      { label: 'Organic textures', type: 'accent' },
-      { label: 'Coral accents', type: 'accent' },
-      { label: 'Warm golden hour', type: 'accent' },
-      { label: 'Not stiff or formal', type: 'muted' },
+      { label: 'Terracotta accents', type: 'accent' },
+      { label: 'Warm neutrals', type: 'accent' },
+      { label: 'Golden hour', type: 'accent' },
+      { label: 'Not earthy or heavy', type: 'muted' },
       { label: 'Not tropical kitsch', type: 'muted' },
       { label: 'Not bright primary colors', type: 'muted' },
     ],
   },
   editorial: {
-    name: 'Dark Cool',
-    desc: 'Cabo after dark, cool and composed — deep ink night, cornflower blue, a flush of blush coral. The desert sky at midnight, moonlight on water. Restrained, modern, quietly dramatic.',
+    name: 'Arena',
+    desc: 'The most restrained of the light themes — white ground, Deep Ink type, warm-grey structure, almost no colour. Architectural and quiet. When everything is stripped back, what remains is enough.',
     palette: [
-      { hex: '#232b3d', label: 'Deep Ink', pct: '50%' },
-      { hex: '#4a6fd4', label: 'Cornflower', pct: '22%' },
-      { hex: '#e9b7a6', label: 'Blush Coral', pct: '15%' },
-      { hex: '#e8dcc8', label: 'Warm Sand', pct: '8%' },
-      { hex: '#c9a24b', label: 'Warm Gold', pct: '5%' },
+      { hex: '#ffffff', label: 'White', pct: '60%' },
+      { hex: '#232b3d', label: 'Deep Ink', pct: '24%' },
+      { hex: '#dedcd6', label: 'Warm Grey', pct: '10%' },
+      { hex: '#4a6fd4', label: 'Cornflower', pct: '4%' },
+      { hex: '#c9a24b', label: 'Warm Gold', pct: '2%' },
     ],
     vibes: [
-      { label: 'Cool & composed', type: 'gold' },
-      { label: 'Midnight blue', type: 'gold' },
-      { label: 'Moonlit water', type: 'gold' },
-      { label: 'Restrained luxury', type: 'gold' },
+      { label: 'Restrained', type: 'gold' },
+      { label: 'Architectural', type: 'gold' },
+      { label: 'Deep ink on white', type: 'gold' },
+      { label: 'Quiet luxury', type: 'gold' },
       { label: 'Negative space', type: 'sage' },
       { label: 'Structural florals', type: 'sage' },
-      { label: 'Cool-toned moments', type: 'sage' },
-      { label: 'Sleek & modern', type: 'accent' },
+      { label: 'Monochrome moments', type: 'sage' },
       { label: 'Sharp typography', type: 'accent' },
+      { label: 'Minimal colour', type: 'accent' },
       { label: 'Nothing superfluous', type: 'accent' },
       { label: 'Not maximalist', type: 'muted' },
       { label: 'Not fussy', type: 'muted' },
@@ -4692,7 +4704,7 @@ const THEME_MOODS = {
     ],
   },
   noite: {
-    name: 'Dark Warm',
+    name: 'Noche',
     desc: 'A Cabo night with a fire lit — deep ink dark warmed by terracotta and gold. Candlelight on adobe, the desert after sundown, drama in every shadow. For late-night planning and the moments that live forever.',
     palette: [
       { hex: '#232b3d', label: 'Deep Ink', pct: '48%' },
@@ -5548,10 +5560,10 @@ function renderVendors() {
 
 const MOOD_BUCKET = 'mood-images';
 const MOOD_PUBLIC_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/${MOOD_BUCKET}/`;
-const MOOD_THEMES = [['beira','Light Cool'],['jardim','Light Warm'],['editorial','Dark Cool'],['noite','Dark Warm']];
+const MOOD_THEMES = [['beira','Mar'],['jardim','Blanca'],['editorial','Arena'],['noite','Noche']];
 // Independent, combinable mood-board filter (decoupled from the app theme skin).
 const MOOD_FILTER_KEYS = ['beira','jardim','editorial','noite','untagged'];
-const MOOD_FILTER_LABELS = { beira:'Light Cool', jardim:'Light Warm', editorial:'Dark Cool', noite:'Dark Warm', untagged:'Untagged' };
+const MOOD_FILTER_LABELS = { beira:'Mar', jardim:'Blanca', editorial:'Arena', noite:'Noche', untagged:'Untagged' };
 function loadMoodFilter() {
   const saved = S.get('moodFilters');
   if (Array.isArray(saved)) return new Set(saved.filter(k => MOOD_FILTER_KEYS.includes(k)));
