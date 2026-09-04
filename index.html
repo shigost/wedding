@@ -529,6 +529,25 @@ label {
   background: none; border: none; color: var(--love); font-size: 1rem; cursor: pointer; border-radius: 8px;
 }
 .dc-note { width: 100%; box-sizing: border-box; margin-top: 0.5rem; font-size: 0.8rem; padding: 0.45rem 0.5rem; border: 1px solid var(--border); border-radius: 7px; color: var(--text); background: var(--surface); }
+
+/* ── SCENARIOS (costed venue estimates) ── */
+#sc-list { margin-top: 0.2rem; }
+.sc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.8rem; margin-bottom: 0.8rem; }
+.sc-card-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.4rem; }
+.sc-name { flex: 1 1 auto; min-width: 0; font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 1.15rem; color: var(--dark); cursor: pointer; word-break: break-word; }
+.sc-name-empty { color: var(--muted-light); font-style: italic; }
+.sc-del { flex: 0 0 auto; min-width: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--love); font-size: 0.95rem; cursor: pointer; border-radius: 8px; }
+.sc-group { margin-top: 0.4rem; }
+.sc-group-title { font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin: 0.55rem 0 0.15rem; }
+.sc-field { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; padding: 0.45rem 0; border-bottom: 1px solid var(--border-light); min-width: 0; }
+.sc-field-block { flex-direction: column; align-items: stretch; }
+.sc-flabel { flex: 0 0 auto; font-size: 0.72rem; color: var(--muted); }
+.sc-fval { flex: 1 1 auto; min-width: 0; text-align: right; font-size: 0.88rem; color: var(--text); cursor: pointer; word-break: break-word; }
+.sc-fval.empty { color: var(--muted-light); }
+.sc-fval-block { text-align: left; white-space: pre-wrap; margin-top: 0.25rem; }
+.sc-input { width: 100%; box-sizing: border-box; font-family: var(--font-body, 'Jost', sans-serif); font-size: 16px; padding: 0.4rem 0.5rem; border: 1px solid var(--gold); border-radius: 7px; color: var(--text); background: var(--surface); outline: none; }
+.sc-textarea { min-height: 72px; resize: vertical; }
+.sc-foot { margin-top: 0.6rem; font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted-light); }
 .quick-links {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2787,6 +2806,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   <div class="nav-item" data-page="vendors" onclick="showPage('vendors')"><span class="nav-icon">✧</span> Vendors</div>
   <div class="nav-item" data-page="itinerary" onclick="showPage('itinerary')"><span class="nav-icon">📅</span> Itinerary</div>
   <div class="nav-item" data-page="moodboard" onclick="showPage('moodboard')"><span class="nav-icon">◉</span> Mood Board</div>
+  <div class="nav-item" data-page="scenarios" onclick="showPage('scenarios')"><span class="nav-icon">◇</span> Scenarios</div>
 </div>
 
 <!-- PAGES -->
@@ -3267,6 +3287,24 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   </div>
 
   <!-- MOOD BOARD -->
+  <!-- SCENARIOS -->
+  <div class="page" id="page-scenarios">
+    <div class="page-header">
+      <div class="page-title">Scenarios</div>
+      <div class="page-sub" id="sc-sub">Costed venue estimates</div>
+    </div>
+    <div class="page-body">
+      <div class="card">
+        <div class="card-title">Add scenario</div>
+        <div class="form-row"><input type="text" id="sc-new-name" placeholder="Name (e.g. Chileno Bay — standard)"></div>
+        <div class="form-row"><select id="sc-new-venue"><option value="">— Venue (optional) —</option></select></div>
+        <button class="btn btn-primary" onclick="addScenario()">+ Add scenario</button>
+      </div>
+      <div id="sc-list"></div>
+    </div>
+  </div>
+
+  <!-- MOOD BOARD -->
   <div class="page" id="page-moodboard">
     <div class="page-header">
       <div class="page-title">Mood Board</div>
@@ -3364,6 +3402,7 @@ let moodImages = [];
 let archivedVenues = [];
 let weddingDate = null;   // derived: the 'chosen' candidate's date (or null)
 let weddingDates = [];    // all rows from wedding_dates (candidates)
+let scenarios = [];       // costed venue estimate rows
 
 
 
@@ -4806,6 +4845,7 @@ function showPage(id) {
   if (id === 'vendors') renderVendors();
   if (id === 'itinerary') renderItinerary();
   if (id === 'moodboard') renderMoodTheme();
+  if (id === 'scenarios') renderScenarios();
   if (id === 'venues') enterVenues();
 }
 
@@ -6495,11 +6535,163 @@ window.exportItinerary = exportItinerary;
 
 
 
+// ── SCENARIOS (costed venue estimates) ─────────────────────────────
+// USD-only; every field renders even when null (shows "—"), tap to edit inline.
+const SCENARIO_GROUPS = [
+  { title: 'Overview', fields: [['venue_id', 'Venue', 'venue'], ['guest_count', 'Guest count', 'int']] },
+  { title: 'Food & Beverage', fields: [['fb_total', 'F&B total', 'money'], ['fb_minimum', 'F&B minimum', 'money']] },
+  { title: 'Fees', fields: [['venue_fees', 'Venue fees', 'money'], ['tax_pct', 'Tax %', 'pct'], ['service_pct', 'Service %', 'pct'], ['admin_pct', 'Admin %', 'pct']] },
+  { title: 'Room block', fields: [['room_block_rooms', 'Rooms', 'int'], ['room_block_nights', 'Nights', 'int'], ['room_rate', 'Room rate', 'money'], ['room_payer', 'Room payer', 'text']] },
+  { title: 'Details', fields: [['season_note', 'Season note', 'text'], ['curfew', 'Curfew', 'text'], ['deposit_terms', 'Deposit terms', 'text'], ['quote_date', 'Quote date', 'date'], ['source', 'Source', 'text']] },
+  { title: 'Notes', fields: [['notes', 'Notes', 'textarea']] },
+];
+
+function scVenueList() {
+  const rows = (Array.isArray(venueRowsAll) && venueRowsAll.length) ? venueRowsAll : [];
+  return rows.map(r => ({ id: r.id, name: r.name || 'Unnamed venue' }));
+}
+function scVenueOptions(selectedId) {
+  return `<option value="">— none —</option>` + scVenueList().map(v =>
+    `<option value="${escapeHtml(String(v.id))}"${String(v.id) === String(selectedId) ? ' selected' : ''}>${escapeHtml(v.name)}</option>`).join('');
+}
+function scenarioVenueName(venueId) {
+  if (venueId == null) return '—';
+  const v = scVenueList().find(x => String(x.id) === String(venueId));
+  return v ? escapeHtml(v.name) : '—';
+}
+function populateVenueSelect(selectId) {
+  const sel = document.getElementById(selectId);
+  if (sel) sel.innerHTML = scVenueOptions(sel.value);
+}
+
+// Display formatting — null/blank always renders "—" (never a blank or a 0).
+function scDisplay(s, key, type) {
+  const v = s[key];
+  if (type === 'venue') return scenarioVenueName(v);
+  if (v == null || v === '') return '—';
+  if (type === 'money') { const n = Number(v); return isNaN(n) ? '—' : '$' + n.toLocaleString(); }
+  if (type === 'pct') return escapeHtml(String(v)) + '%';
+  if (type === 'int') return escapeHtml(String(v));
+  if (type === 'date') return fmtDateLong(v);
+  return escapeHtml(String(v)); // text / textarea
+}
+function scFieldHtml(s, key, label, type) {
+  const disp = scDisplay(s, key, type);
+  const empty = disp === '—' ? ' empty' : '';
+  if (type === 'textarea') {
+    return `<div class="sc-field sc-field-block" data-field="${key}">
+      <span class="sc-flabel">${label}</span>
+      <div class="sc-fval sc-fval-block${empty}" onclick="scEdit('${s.id}','${key}','${type}')">${disp}</div>
+    </div>`;
+  }
+  return `<div class="sc-field" data-field="${key}">
+    <span class="sc-flabel">${label}</span>
+    <span class="sc-fval${empty}" onclick="scEdit('${s.id}','${key}','${type}')">${disp}</span>
+  </div>`;
+}
+function scCardHtml(s) {
+  const nameDisp = (s.name == null || s.name === '')
+    ? '<span class="sc-name-empty">Untitled scenario</span>' : escapeHtml(s.name);
+  return `<div class="sc-card" id="sc-card-${s.id}">
+    <div class="sc-card-head">
+      <div class="sc-name" onclick="scEdit('${s.id}','name','text')">${nameDisp}</div>
+      <button class="sc-del" onclick="deleteScenario('${s.id}')" aria-label="Delete scenario">🗑</button>
+    </div>
+    ${SCENARIO_GROUPS.map(g => `
+      <div class="sc-group">
+        <div class="sc-group-title">${g.title}</div>
+        ${g.fields.map(([key, label, type]) => scFieldHtml(s, key, label, type)).join('')}
+      </div>`).join('')}
+    <div class="sc-foot">Currency: ${escapeHtml(s.currency || 'USD')}</div>
+  </div>`;
+}
+function renderScenarios() {
+  populateVenueSelect('sc-new-venue');
+  const el = document.getElementById('sc-list');
+  if (!el) return;
+  const sub = document.getElementById('sc-sub');
+  if (sub) sub.textContent = scenarios.length + (scenarios.length === 1 ? ' scenario' : ' scenarios');
+  if (!scenarios.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">◇</div><div class="empty-text">No scenarios yet. Add one above.</div></div>`;
+    return;
+  }
+  const list = [...scenarios].sort((a, b) => String(a.created_at || '').localeCompare(String(b.created_at || '')));
+  el.innerHTML = list.map(scCardHtml).join('');
+}
+
+// Tap a field's value → swap in the right input; commit on blur/Enter, Esc cancels.
+function scEdit(id, key, type) {
+  const s = scenarios.find(x => x.id === id);
+  if (!s) return;
+  const card = document.getElementById('sc-card-' + id);
+  const cell = card && (key === 'name'
+    ? card.querySelector('.sc-name')
+    : card.querySelector(`.sc-field[data-field="${key}"] .sc-fval`));
+  if (!cell || cell.querySelector('input,select,textarea')) return; // already editing
+  const cur = s[key];
+  let html;
+  if (type === 'venue') html = `<select class="sc-input">${scVenueOptions(cur)}</select>`;
+  else if (type === 'textarea') html = `<textarea class="sc-input sc-textarea" rows="3"></textarea>`;
+  else if (type === 'date') html = `<input class="sc-input" type="date">`;
+  else if (type === 'money' || type === 'pct' || type === 'int') html = `<input class="sc-input" type="number" step="${type === 'int' ? '1' : 'any'}" inputmode="decimal">`;
+  else html = `<input class="sc-input" type="text">`;
+  const prev = cell.innerHTML;
+  cell.innerHTML = html;
+  const inp = cell.querySelector('.sc-input');
+  if (type === 'venue') inp.value = cur == null ? '' : String(cur);
+  else if (cur != null) inp.value = cur;
+  inp.focus();
+  let done = false;
+  const commit = () => { if (done) return; done = true; scSave(id, key, type, inp.value); };
+  const cancel = () => { if (done) return; done = true; cell.innerHTML = prev; };
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && type !== 'textarea') { e.preventDefault(); inp.blur(); }
+    else if (e.key === 'Escape') { inp.removeEventListener('blur', commit); cancel(); }
+  });
+}
+async function scSave(id, key, type, raw) {
+  const s = scenarios.find(x => x.id === id);
+  if (!s) return;
+  const t = (raw == null ? '' : String(raw)).trim();
+  let val;
+  if (type === 'money' || type === 'pct') { val = t === '' ? null : Number(t); if (val != null && isNaN(val)) val = null; }
+  else if (type === 'int' || type === 'venue') { val = t === '' ? null : parseInt(t, 10); if (val != null && isNaN(val)) val = null; }
+  else { val = t === '' ? null : t; }
+  s[key] = val;
+  await dbUpdate('scenarios', id, { [key]: val });
+  const card = document.getElementById('sc-card-' + id);
+  if (card) card.outerHTML = scCardHtml(s); // re-render just this card
+}
+async function addScenario() {
+  const nameEl = document.getElementById('sc-new-name');
+  const venueEl = document.getElementById('sc-new-venue');
+  const name = nameEl ? nameEl.value.trim() : '';
+  const venue_id = (venueEl && venueEl.value) ? parseInt(venueEl.value, 10) : null;
+  const row = await dbInsert('scenarios', { name: name || null, venue_id, currency: 'USD' });
+  if (row) {
+    scenarios.push(row);
+    if (nameEl) nameEl.value = '';
+    if (venueEl) venueEl.value = '';
+    renderScenarios();
+  }
+}
+async function deleteScenario(id) {
+  if (!confirm('Delete this scenario?')) return;
+  await dbDelete('scenarios', id);
+  scenarios = scenarios.filter(x => x.id !== id);
+  renderScenarios();
+}
+window.addScenario = addScenario;
+window.deleteScenario = deleteScenario;
+window.scEdit = scEdit;
+
+
 // ── LOAD ALL DATA FROM SUPABASE
 async function loadAllData() {
   setSyncStatus('', 'Loading...');
   try {
-    const [g, b, t, v, a, m, itin, ven, wd] = await Promise.all([
+    const [g, b, t, v, a, m, itin, ven, wd, scn] = await Promise.all([
       dbLoad('guests'),
       dbLoad('budget_items'),
       dbLoad('timeline_tasks'),
@@ -6509,9 +6701,11 @@ async function loadAllData() {
       dbLoad('itinerary_items'),
       dbLoad('venues'),
       dbLoad('wedding_dates'),
+      dbLoad('scenarios'),
     ]);
     // Candidate wedding dates; the 'chosen' row drives the countdown.
     setWeddingDates(wd);
+    scenarios = Array.isArray(scn) ? scn : [];
     guests = g;
     budgetItems = b;
     // Timeline: show defaults immediately, seed to DB if empty
@@ -6563,6 +6757,7 @@ async function loadAllData() {
     // Venues: drive the rich template from the DB (keeps hardcoded fallback if empty).
     // Photos are bridged from the hardcoded array by slug until the Storage stage.
     if (applyVenueRows(ven)) { buildNav(); venueRenderProfile(0); }
+    renderScenarios();
 
     // Subscribe to real-time changes
     subscribeRealtime('guests', () => { dbLoad('guests').then(d => { guests = d; renderGuests(); updateDashboard(); }); });
@@ -6572,6 +6767,7 @@ async function loadAllData() {
     subscribeRealtime('itinerary_items', () => { dbLoad('itinerary_items').then(d => { itinItems = d; renderItinerary(); }); });
     subscribeRealtime('venues', () => { dbLoad('venues').then(d => { if (applyVenueRows(d)) { buildNav(); if (venueMode === 'grid') renderVenueGrid(); else if (venueMode === 'archived') renderArchivedGrid(); else venueRenderProfile(currentIdx); } }); });
     subscribeRealtime('wedding_dates', () => { dbLoad('wedding_dates').then(d => { setWeddingDates(d); updateDashboard(); renderDateCandidates(); }); });
+    subscribeRealtime('scenarios', () => { dbLoad('scenarios').then(d => { scenarios = Array.isArray(d) ? d : []; if (!document.querySelector('#sc-list .sc-input')) renderScenarios(); }); }); // don't clobber an open inline edit
   } catch(e) {
     setSyncStatus('error', 'Connection error');
     console.error('loadAllData error', e);
