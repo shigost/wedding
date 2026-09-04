@@ -456,59 +456,79 @@ label {
   color: var(--muted-light);
   margin-top: 0.25rem;
 }
-/* Countdown flip tile: front = countdown, back = date editor */
-.flip-card { padding: 0; perspective: 800px; min-height: 96px; overflow: hidden; border-radius: 12px; }
-.flip-inner {
-  position: relative; width: 100%; height: 100%; min-height: 96px;
-  transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
-  transform-style: preserve-3d;
+/* Countdown tile is a plain tappable tile that opens the dates overlay */
+#date-tile { cursor: pointer; }
+
+/* ── WEDDING DATES OVERLAY (full-screen sheet, mirrors the mood lightbox) ── */
+#dates-overlay {
+  position: fixed; inset: 0; z-index: 1200;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: stretch; justify-content: center;
 }
-.flip-card.flipped .flip-inner { transform: rotateY(180deg); }
-.flip-front, .flip-back {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 0.4rem; padding: 0.55rem 0.6rem;
-  -webkit-backface-visibility: hidden; backface-visibility: hidden;
+#dates-overlay.open { display: flex; }
+.do-sheet {
+  background: var(--bg);
+  width: 100%; max-width: 560px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
-.flip-front { cursor: pointer; }
-.flip-back { transform: rotateY(180deg); }
-/* Only the visible face is interactive */
-.flip-card:not(.flipped) .flip-back { pointer-events: none; }
-.flip-card.flipped .flip-front { pointer-events: none; }
-.date-input {
-  width: 100%; box-sizing: border-box;
-  font-family: var(--font-body, 'Jost', sans-serif); font-size: 0.72rem;
-  padding: 0.35rem 0.4rem; border: 1px solid var(--border); border-radius: 6px;
-  color: var(--text); background: var(--surface); outline: none;
+@media (min-width: 561px) {
+  #dates-overlay { align-items: center; }
+  .do-sheet { max-height: 90vh; border-radius: 16px; }
 }
-.date-actions { display: flex; gap: 0.3rem; width: 100%; }
-.date-btn {
-  padding: 0.32rem 0.4rem; font-size: 0.6rem; letter-spacing: 0.05em;
-  border-radius: 6px; cursor: pointer; border: 1px solid var(--border);
+.do-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.1rem;
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-left: max(1.1rem, env(safe-area-inset-left));
+  padding-right: max(1.1rem, env(safe-area-inset-right));
+  border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0;
 }
-.date-save { flex: 1; background: var(--gold); color: #fff; border-color: var(--gold); }
-.date-cancel { flex: 0 0 30px; background: var(--surface); color: var(--muted); }
-/* Candidate-dates manager (flip back) */
-.flip-back { justify-content: flex-start; }
-.dc-head { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-.dc-title { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-.dc-close { background: none; border: none; color: var(--muted); font-size: 0.9rem; cursor: pointer; padding: 0.1rem 0.3rem; line-height: 1; }
-.dc-add { display: flex; gap: 0.3rem; width: 100%; }
-.dc-add input { flex: 1; min-width: 0; box-sizing: border-box; font-size: 0.72rem; padding: 0.32rem 0.4rem; border: 1px solid var(--border); border-radius: 6px; color: var(--text); background: var(--surface); }
-.dc-add-btn { flex-shrink: 0; background: var(--gold); color: #fff; border: none; border-radius: 6px; font-size: 0.6rem; letter-spacing: 0.05em; padding: 0.32rem 0.7rem; cursor: pointer; }
-.dc-list { width: 100%; max-height: 152px; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 0.35rem; }
-.dc-empty { font-size: 0.68rem; color: var(--muted-light); text-align: center; padding: 0.7rem 0.4rem; }
-.dc-item { border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem 0.45rem; background: var(--surface); text-align: left; }
+.do-title { font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 1.4rem; color: var(--dark); letter-spacing: 0.02em; }
+.do-close {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+  font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.do-add {
+  display: flex; gap: 0.5rem;
+  padding: 0.8rem 1.1rem;
+  padding-left: max(1.1rem, env(safe-area-inset-left));
+  padding-right: max(1.1rem, env(safe-area-inset-right));
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.do-add input {
+  flex: 1; min-width: 0; box-sizing: border-box;
+  font-size: 0.85rem; padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border); border-radius: 8px; color: var(--text); background: var(--surface);
+}
+.do-add-btn {
+  flex-shrink: 0; background: var(--gold); color: #fff; border: none; border-radius: 8px;
+  font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.5rem 1rem; cursor: pointer;
+}
+.do-list {
+  flex: 1; min-width: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 0.5rem;
+  padding: 0.9rem 1.1rem;
+  padding-left: max(1.1rem, env(safe-area-inset-left));
+  padding-right: max(1.1rem, env(safe-area-inset-right));
+  padding-bottom: max(0.9rem, env(safe-area-inset-bottom));
+}
+.dc-empty { font-size: 0.82rem; color: var(--muted-light); text-align: center; padding: 1.6rem 0.6rem; }
+.dc-item { border: 1px solid var(--border); border-radius: 10px; padding: 0.55rem 0.6rem; background: var(--surface); text-align: left; min-width: 0; }
 .dc-item.chosen { border-color: var(--gold); background: var(--gold-pale); }
 .dc-item.ruled { opacity: 0.55; }
-.dc-item-top { display: flex; align-items: center; gap: 0.35rem; }
-.dc-date { flex: 1; min-width: 0; font-size: 0.78rem; color: var(--text); font-weight: 500; }
-.dc-status { flex-shrink: 0; font-size: 0.6rem; padding: 0.2rem 0.15rem; border: 1px solid var(--border); border-radius: 5px; background: var(--surface); color: var(--text); }
-.dc-remove { flex-shrink: 0; background: none; border: none; cursor: pointer; font-size: 0.72rem; padding: 0.1rem 0.15rem; }
-.dc-note { width: 100%; box-sizing: border-box; margin-top: 0.3rem; font-size: 0.68rem; padding: 0.26rem 0.35rem; border: 1px solid var(--border); border-radius: 5px; color: var(--text); background: var(--surface); }
-/* Expand to full width AFTER the flip (staged in JS), so grid-column never changes mid-rotation */
-#date-tile.expanded { grid-column: 1 / -1; z-index: 2; }
-#date-tile.expanded, #date-tile.expanded .flip-inner { min-height: 232px; }
+.dc-item-top { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+.dc-date { flex: 0 0 auto; white-space: nowrap; font-size: 0.9rem; color: var(--text); font-weight: 600; }
+.dc-status { flex: 1 1 auto; min-width: 0; font-size: 0.75rem; padding: 0.45rem 0.4rem; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--text); }
+.dc-remove {
+  flex: 0 0 auto; min-width: 44px; min-height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; color: var(--love); font-size: 1rem; cursor: pointer; border-radius: 8px;
+}
+.dc-note { width: 100%; box-sizing: border-box; margin-top: 0.5rem; font-size: 0.8rem; padding: 0.45rem 0.5rem; border: 1px solid var(--border); border-radius: 7px; color: var(--text); background: var(--surface); }
 .quick-links {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2781,24 +2801,9 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     </div>
     <div class="page-body">
       <div class="stat-grid" id="dash-stats">
-        <div class="stat-card flip-card" id="date-tile" onclick="flipDateTile(event)">
-          <div class="flip-inner">
-            <div class="flip-front">
-              <div class="stat-num" id="dash-days">—</div>
-              <div class="stat-label" id="dash-days-label">Days Away</div>
-            </div>
-            <div class="flip-back">
-              <div class="dc-head">
-                <span class="dc-title">Wedding dates</span>
-                <button class="dc-close" onclick="closeDateTile(event)" aria-label="Close">✕</button>
-              </div>
-              <div class="dc-add">
-                <input type="date" id="dc-new-date" onclick="event.stopPropagation()">
-                <button class="dc-add-btn" onclick="addCandidateDate(event)">Add</button>
-              </div>
-              <div id="date-candidates" class="dc-list"></div>
-            </div>
-          </div>
+        <div class="stat-card" id="date-tile" onclick="openDatesOverlay()">
+          <div class="stat-num" id="dash-days">—</div>
+          <div class="stat-label" id="dash-days-label">Days Away</div>
         </div>
         <div class="stat-card">
           <div class="stat-num" id="dash-guests">0</div>
@@ -5974,29 +5979,37 @@ function updateDashboard() {
 // Keep countdown live — refresh every minute
 setInterval(updateDashboard, 60000);
 
-// ── WEDDING DATE (flip tile → edit → persist to app_config) ──
-// Card-level tap flips front → back (candidate manager). Back controls stop
-// propagation so tapping inside doesn't re-trigger this.
-// Expansion (full width) is staged AFTER the flip finishes and collapsed BEFORE
-// flipping back — so grid-column never changes mid-3D-rotation (iOS-safe).
-let dateExpandTimer = null;
-function flipDateTile(e) {
-  const card = document.getElementById('date-tile');
-  if (!card) return;
-  if (card.classList.contains('flipped')) return; // already open
+// ── WEDDING DATES OVERLAY (full-screen sheet) ──
+// Background scroll lock: this app's <body> never scrolls (height:100%;overflow:hidden),
+// the active .page is the scroller — so we lock/restore that element (iOS-safe equivalent
+// of the body position-fixed trick), plus overscroll-behavior:contain on the sheet.
+let datesLockedPage = null;
+let datesLockedScrollY = 0;
+function lockBackgroundScroll() {
+  const page = document.querySelector('.page.active');
+  datesLockedPage = page || null;
+  datesLockedScrollY = page ? page.scrollTop : 0;
+  if (page) page.style.overflow = 'hidden';
+}
+function unlockBackgroundScroll() {
+  if (datesLockedPage) {
+    datesLockedPage.style.overflow = '';
+    datesLockedPage.scrollTop = datesLockedScrollY; // return to the same position
+  }
+  datesLockedPage = null;
+}
+function openDatesOverlay() {
   renderDateCandidates();
-  card.classList.add('flipped');
-  clearTimeout(dateExpandTimer);
-  dateExpandTimer = setTimeout(() => { if (card.classList.contains('flipped')) card.classList.add('expanded'); }, 580);
+  document.getElementById('dates-overlay').classList.add('open');
+  lockBackgroundScroll();
+  document.addEventListener('keydown', datesOverlayKey);
 }
-function closeDateTile(e) {
-  if (e) e.stopPropagation();
-  const card = document.getElementById('date-tile');
-  if (!card) return;
-  clearTimeout(dateExpandTimer);
-  card.classList.remove('expanded');                       // collapse width first (back still facing)
-  setTimeout(() => card.classList.remove('flipped'), 60);  // then rotate back at 1-col size
+function closeDatesOverlay() {
+  document.getElementById('dates-overlay').classList.remove('open');
+  unlockBackgroundScroll();
+  document.removeEventListener('keydown', datesOverlayKey);
 }
+function datesOverlayKey(e) { if (e.key === 'Escape') closeDatesOverlay(); }
 
 // Set the in-memory candidates and derive the chosen date for the countdown.
 function setWeddingDates(rows) {
@@ -6028,21 +6041,26 @@ function renderDateCandidates() {
     return;
   }
   el.innerHTML = list.map(d => `
-    <div class="dc-item ${d.status === 'chosen' ? 'chosen' : ''} ${d.status === 'ruled_out' ? 'ruled' : ''}" onclick="event.stopPropagation()">
+    <div class="dc-item ${d.status === 'chosen' ? 'chosen' : ''} ${d.status === 'ruled_out' ? 'ruled' : ''}">
       <div class="dc-item-top">
         <span class="dc-date">${escapeHtml(fmtDateLong(d.date))}</span>
-        <select class="dc-status" onchange="setCandidateStatus('${d.id}', this.value)">
-          ${DC_STATUSES.map(([v, l]) => `<option value="${v}"${d.status === v ? ' selected' : ''}>${l}</option>`).join('')}
+        <select class="dc-status" data-id="${escapeHtml(d.id)}" onchange="setCandidateStatus('${d.id}', this.value)">
+          ${DC_STATUSES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
         </select>
-        <button class="dc-remove" onclick="removeCandidate('${d.id}')" aria-label="Remove">🗑</button>
+        <button class="dc-remove" onclick="removeCandidate('${d.id}')" aria-label="Remove date">🗑</button>
       </div>
       <input class="dc-note" type="text" placeholder="Note (optional)" value="${escapeHtml(d.note || '')}" onchange="setCandidateNote('${d.id}', this.value)">
     </div>`).join('');
+  // Reflect each row's real status imperatively (don't rely on the selected attribute).
+  list.forEach(d => {
+    const sel = el.querySelector(`.dc-status[data-id="${window.CSS && CSS.escape ? CSS.escape(d.id) : d.id}"]`);
+    if (sel) sel.value = d.status || 'considering';
+  });
 }
 
 async function addCandidateDate(e) {
   if (e) e.stopPropagation();
-  const input = document.getElementById('dc-new-date');
+  const input = document.getElementById('do-new-date');
   const val = input ? input.value.trim() : '';
   if (!val) return;
   const row = await dbInsert('wedding_dates', { date: val, status: 'considering' });
@@ -6077,8 +6095,8 @@ async function removeCandidate(id) {
   await reloadWeddingDates();
 }
 
-window.flipDateTile = flipDateTile;
-window.closeDateTile = closeDateTile;
+window.openDatesOverlay = openDatesOverlay;
+window.closeDatesOverlay = closeDatesOverlay;
 window.addCandidateDate = addCandidateDate;
 window.setCandidateStatus = setCandidateStatus;
 window.setCandidateNote = setCandidateNote;
@@ -7170,6 +7188,21 @@ window.addEventListener('DOMContentLoaded', () => {
   <button id="lightbox-next" onclick="lightboxNav(1)">›</button>
   <div id="lightbox-dots"></div>
   <div id="lightbox-counter"></div>
+</div>
+
+<!-- Wedding dates overlay -->
+<div id="dates-overlay" onclick="if(event.target===this)closeDatesOverlay()">
+  <div class="do-sheet">
+    <div class="do-head">
+      <span class="do-title">Wedding Dates</span>
+      <button class="do-close" onclick="closeDatesOverlay()" aria-label="Close">✕</button>
+    </div>
+    <div class="do-add">
+      <input type="date" id="do-new-date">
+      <button class="do-add-btn" onclick="addCandidateDate(event)">Add</button>
+    </div>
+    <div id="date-candidates" class="do-list"></div>
+  </div>
 </div>
 
 <!-- Mood image viewer -->
