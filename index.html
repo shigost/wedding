@@ -505,6 +505,48 @@ label {
 .sc-input { width: 100%; box-sizing: border-box; font-family: var(--font-body, 'Jost', sans-serif); font-size: 16px; padding: 0.4rem 0.5rem; border: 1px solid var(--gold); border-radius: 7px; color: var(--text); background: var(--surface); outline: none; }
 .sc-textarea { min-height: 72px; resize: vertical; }
 .sc-foot { margin-top: 0.6rem; font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted-light); }
+
+/* ── Scenario line items & live guest-scaled estimate ── */
+.sc-est { margin-top: 0.7rem; border-top: 1px solid var(--border); padding-top: 0.4rem; }
+.sc-est-head { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 0.35rem 0; }
+.sc-est-caption { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+.sc-est-caret { color: var(--muted-light); margin-left: 0.35rem; }
+.sc-est-total { font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 1.15rem; color: var(--dark); font-variant-numeric: tabular-nums; }
+.sc-est-body { margin-top: 0.4rem; }
+.sc-guests { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.6rem; background: var(--bg2); border-radius: 10px; margin-bottom: 0.5rem; }
+.sc-guests label { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); flex: 0 0 auto; }
+.sc-guests input[type="range"] { flex: 1 1 auto; min-width: 0; accent-color: var(--gold); }
+.sc-guests input[type="number"] { flex: 0 0 60px; width: 60px; box-sizing: border-box; font-size: 16px; padding: 0.35rem 0.35rem; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--text); text-align: center; }
+.sci-group { margin-top: 0.15rem; }
+.sci-group-title { font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin: 0.55rem 0 0.1rem; }
+.sci-ev { cursor: pointer; }
+.sci-row { padding: 0.4rem 0; border-bottom: 1px solid var(--border-light); }
+.sci-line1 { display: flex; align-items: baseline; gap: 0.5rem; }
+.sci-label { flex: 1 1 auto; min-width: 0; font-size: 0.84rem; color: var(--text); cursor: pointer; word-break: break-word; }
+.sci-label.empty { color: var(--muted-light); font-style: italic; }
+.sci-sub { flex: 0 0 auto; font-size: 0.84rem; color: var(--text); font-variant-numeric: tabular-nums; }
+.sci-del { flex: 0 0 auto; background: none; border: none; color: var(--love); font-size: 0.8rem; cursor: pointer; padding: 0 0.15rem; min-width: 26px; }
+.sci-line2 { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.3rem; }
+.sci-badge { font-size: 0.55rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.16rem 0.45rem; border-radius: 20px; border: 1px solid var(--border); color: var(--muted); background: var(--bg2); cursor: pointer; user-select: none; }
+.sci-badge.on { background: var(--foliage-light); color: var(--foliage); border-color: var(--foliage); }
+.sci-scaling { background: var(--gold-pale); color: var(--gold); border-color: transparent; }
+.sci-price, .sci-qty { font-size: 0.72rem; color: var(--muted); cursor: pointer; font-variant-numeric: tabular-nums; }
+.sci-qty.derived { cursor: default; color: var(--muted-light); }
+.sci-inp { font-size: 16px; padding: 0.25rem 0.4rem; border: 1px solid var(--gold); border-radius: 6px; background: var(--surface); color: var(--text); outline: none; box-sizing: border-box; }
+.sci-inp-sm { width: 96px; }
+.sci-add { margin-top: 0.5rem; background: none; border: 1px dashed var(--border); color: var(--muted); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.45rem 0.8rem; border-radius: 8px; cursor: pointer; font-family: 'Jost', sans-serif; }
+.sci-add:hover { border-color: var(--gold); color: var(--gold); }
+.sci-empty { font-size: 0.75rem; color: var(--muted-light); padding: 0.4rem 0; }
+.sc-wf { margin-top: 0.6rem; border-top: 1px solid var(--border); padding-top: 0.4rem; }
+.sc-wf-row { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.78rem; color: var(--muted); padding: 0.16rem 0; }
+.sc-wf-v { color: var(--text); font-variant-numeric: tabular-nums; }
+.sc-wf-total { margin-top: 0.25rem; padding-top: 0.35rem; border-top: 1px solid var(--border); font-size: 1rem; color: var(--dark); font-weight: 600; }
+.sc-wf-total .sc-wf-v { color: var(--dark); }
+.sc-flag { display: flex; gap: 0.45rem; align-items: flex-start; padding: 0.5rem 0.6rem; border-radius: 8px; font-size: 0.72rem; line-height: 1.45; margin-top: 0.55rem; }
+.sc-flag-bind, .sc-flag-warn { background: var(--love-light); color: var(--love); border: 1px solid var(--love); }
+.sc-flag-room { background: var(--gold-pale); color: var(--gold); border: 1px solid var(--gold); }
+.sc-rooms { margin-top: 0.6rem; font-size: 0.74rem; color: var(--muted); }
+.sc-rooms strong { color: var(--text); }
 .quick-links {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3196,6 +3238,7 @@ let archivedVenues = [];
 let weddingDate = null;   // derived: the 'chosen' candidate's date (or null)
 let weddingDates = [];    // all rows from wedding_dates (candidates)
 let scenarios = [];       // costed venue estimate rows
+let scenarioItems = [];   // line items belonging to scenarios (guest-scaled)
 
 
 
@@ -6642,6 +6685,7 @@ function scCardHtml(s) {
         <div class="sc-group-title">${g.title}</div>
         ${g.fields.map(([key, label, type]) => scFieldHtml(s, key, label, type)).join('')}
       </div>`).join('')}
+    ${scEstHtml(s)}
     <div class="sc-foot">Currency: ${escapeHtml(s.currency || 'USD')}</div>
   </div>`;
 }
@@ -6722,9 +6766,246 @@ async function deleteScenario(id) {
   scenarios = scenarios.filter(x => x.id !== id);
   renderScenarios();
 }
+// ══════════════════════════════════════════════════════════════════
+//  SCENARIO LINE ITEMS — guest-scaled cost engine + live estimate panel
+//  Rates (admin/tax/service) and minimums are read off the parent
+//  scenario; nothing is hardcoded. Minimums are FLOORS, never multipliers.
+// ══════════════════════════════════════════════════════════════════
+const scOpenEst = new Set();   // scenario ids whose estimate panel is expanded
+const scUiGuests = {};         // live (uncommitted) guest count per scenario, during a slider drag
+
+function scGuests(s){ const g = scUiGuests[s.id]; if (g != null) return g; return (s.guest_count == null || s.guest_count === '') ? 0 : Number(s.guest_count); }
+function scItemsFor(id){ return scenarioItems.filter(x => x.scenario_id === id).sort((a,b) => (a.sort_order||0) - (b.sort_order||0)); }
+function scEffQty(it, guests){ if (it.scaling === 'per_head') return guests || 0; if (it.scaling === 'flat') return 1; return it.qty == null ? 0 : Number(it.qty); }
+function scLineSub(it, guests){ const p = it.unit_price == null ? 0 : Number(it.unit_price); return p * scEffQty(it, guests); }
+function scMoney(n){ const r = Math.round((Number(n)||0) * 100) / 100; return '$' + r.toLocaleString(undefined, { minimumFractionDigits: (r % 1 === 0 ? 0 : 2), maximumFractionDigits: 2 }); }
+
+// The verified waterfall (see Chileno $71,042.84 / Pedregal $64,186 @ 100):
+// admin & service each on the F&B subtotal; tax on (all-taxable + admin). Independent bases, not cascaded.
+function scCompute(s, guests){
+  const items = scItemsFor(s.id);
+  let all = 0, fb = 0, taxable = 0;
+  for (const it of items) {
+    const sub = scLineSub(it, guests);
+    all += sub;
+    if (it.is_fb) fb += sub;
+    if (it.taxable) taxable += sub;
+  }
+  const fbMin = (s.fb_minimum == null || s.fb_minimum === '') ? null : Number(s.fb_minimum);
+  const binding = fbMin != null && fb < fbMin;
+  const fbEff = binding ? fbMin : fb;
+  const topUp = fbEff - fb;                       // F&B floor top-up (>=0), F&B and taxable
+  const adminPct = Number(s.admin_pct) || 0;
+  const taxPct = Number(s.tax_pct) || 0;
+  const svcPct = Number(s.service_pct) || 0;
+  const admin = adminPct / 100 * fbEff;           // admin on F&B
+  const service = svcPct / 100 * fbEff;           // service on F&B
+  const tax = taxPct / 100 * (taxable + topUp + admin); // tax on all-taxable (+floor top-up) + admin
+  const total = all + topUp + admin + tax + service;
+  return { items, all, fb, fbEff, binding, fbMin, topUp, admin, tax, service, total, adminPct, taxPct, svcPct };
+}
+
+function scEstHtml(s){
+  const open = scOpenEst.has(s.id);
+  const c = scCompute(s, scGuests(s));
+  return `<div class="sc-est">
+    <div class="sc-est-head" onclick="scToggleEst('${s.id}')">
+      <span class="sc-est-caption">Live estimate<span class="sc-est-caret">${open ? '▾' : '▸'}</span></span>
+      <span class="sc-est-total" id="sc-total-${s.id}">${scMoney(c.total)}</span>
+    </div>
+    ${open ? scEstBodyHtml(s, c) : ''}
+  </div>`;
+}
+function scEstBodyHtml(s, c){
+  const guests = scGuests(s);
+  return `<div class="sc-est-body">
+    <div class="sc-guests">
+      <label for="sc-gnum-${s.id}">Guests</label>
+      <input type="range" id="sc-grange-${s.id}" min="0" max="400" step="1" value="${guests}" oninput="scGuestLive('${s.id}',this.value)" onchange="scGuestCommit('${s.id}',this.value)">
+      <input type="number" id="sc-gnum-${s.id}" inputmode="numeric" min="0" value="${guests}" oninput="scGuestLive('${s.id}',this.value)" onchange="scGuestCommit('${s.id}',this.value)">
+    </div>
+    ${scItemsHtml(s, guests)}
+    <button class="sci-add" onclick="scAddItem('${s.id}')">+ Add line item</button>
+    ${scWaterfallHtml(s, c)}
+    ${scFlagsHtml(s, c)}
+    ${scRoomsHtml(s)}
+  </div>`;
+}
+function scItemsHtml(s, guests){
+  const items = scItemsFor(s.id);
+  if (!items.length) return `<div class="sci-empty">No line items yet — add the venue's quote lines below.</div>`;
+  const groups = [], idx = {};
+  for (const it of items) {
+    const ev = it.event || 'Other';
+    if (!(ev in idx)) { idx[ev] = groups.length; groups.push({ event: ev, rows: [] }); }
+    groups[idx[ev]].rows.push(it);
+  }
+  return groups.map(g => `<div class="sci-group">
+      <div class="sci-group-title"><span class="sci-ev" onclick="scEditEvent('${s.id}',this)">${escapeHtml(g.event)}</span></div>
+      ${g.rows.map(it => scRowHtml(it, guests)).join('')}
+    </div>`).join('');
+}
+function scRowHtml(it, guests){
+  const sub = scLineSub(it, guests);
+  const labelDisp = (it.label == null || it.label === '') ? '<span class="sci-label empty" onclick="sciEdit(\'' + it.id + '\',\'label\')">Untitled line</span>' : `<span class="sci-label" onclick="sciEdit('${it.id}','label')">${escapeHtml(it.label)}</span>`;
+  const price = it.unit_price == null ? 0 : Number(it.unit_price);
+  const scLabel = it.scaling === 'per_head' ? 'per head' : (it.scaling === 'flat' ? 'flat' : 'per unit');
+  const qtyHtml = it.scaling === 'per_head'
+    ? `<span class="sci-qty derived" id="sci-qty-${it.id}">× ${guests} guests</span>`
+    : (it.scaling === 'flat'
+        ? `<span class="sci-qty derived">× 1</span>`
+        : `<span class="sci-qty" onclick="sciEdit('${it.id}','qty')">× ${it.qty == null ? 0 : escapeHtml(String(it.qty))}</span>`);
+  return `<div class="sci-row" id="sci-row-${it.id}">
+    <div class="sci-line1">
+      ${labelDisp}
+      <span class="sci-sub" id="sci-sub-${it.id}">${scMoney(sub)}</span>
+      <button class="sci-del" onclick="scDelItem('${it.id}')" aria-label="Delete line">✕</button>
+    </div>
+    <div class="sci-line2">
+      <span class="sci-badge sci-scaling" onclick="sciCycleScaling('${it.id}')">${scLabel}</span>
+      <span class="sci-price" onclick="sciEdit('${it.id}','unit_price')">${scMoney(price)}</span>
+      ${qtyHtml}
+      <span class="sci-badge${it.is_fb ? ' on' : ''}" onclick="sciToggle('${it.id}','is_fb')">F&amp;B</span>
+      <span class="sci-badge${it.taxable ? ' on' : ''}" onclick="sciToggle('${it.id}','taxable')">Tax</span>
+    </div>
+  </div>`;
+}
+function scWaterfallHtml(s, c){
+  const row = (label, sfx, val, extra) => `<div class="sc-wf-row"${extra || ''}><span>${label}</span><span class="sc-wf-v" id="sc-wf-${sfx}-${s.id}">${scMoney(val)}</span></div>`;
+  return `<div class="sc-wf">
+    ${row('Subtotal', 'sub', c.all)}
+    <div class="sc-wf-row"><span id="sc-fblbl-${s.id}">F&amp;B${c.binding ? ' (floored to min)' : ''}</span><span class="sc-wf-v" id="sc-wf-fb-${s.id}">${scMoney(c.fbEff)}</span></div>
+    ${row('Admin ' + (c.adminPct || 0) + '%', 'admin', c.admin, c.adminPct ? '' : ' hidden')}
+    ${row('Tax ' + (c.taxPct || 0) + '%', 'tax', c.tax)}
+    ${row('Service ' + (c.svcPct || 0) + '%', 'service', c.service)}
+    <div class="sc-wf-row sc-wf-total"><span>Total</span><span class="sc-wf-v" id="sc-wf-total-${s.id}">${scMoney(c.total)}</span></div>
+  </div>`;
+}
+function scBindText(s, c){ return c.binding ? `F&B minimum binding — computed F&B ${scMoney(c.fb)} is below the ${scMoney(c.fbMin)} minimum; floored to ${scMoney(c.fbEff)}. Reducing guests will not drop F&B below this floor.` : ''; }
+function scFlagsHtml(s, c){
+  return `<div class="sc-flag sc-flag-bind" id="sc-bind-${s.id}"${c.binding ? '' : ' hidden'}><span>⚠</span><span id="sc-bind-txt-${s.id}">${scBindText(s, c)}</span></div>`;
+}
+function scRoomsHtml(s){
+  const rooms = (s.room_block_rooms == null || s.room_block_rooms === '') ? '—' : escapeHtml(String(s.room_block_rooms));
+  const rule = s.room_scaling;
+  let flag;
+  if (!rule) flag = `<div class="sc-flag sc-flag-warn"><span>⚠</span><span>Room-block scaling rule not recorded for this venue. Rooms shown are a floor, not a derived number — confirm the venue's real rule.</span></div>`;
+  else { const label = rule === 'half_of_guests' ? 'half of guest count' : (rule === 'fixed_minimum' ? 'fixed minimum' : escapeHtml(rule)); flag = `<div class="sc-flag sc-flag-room"><span>ℹ</span><span>Room block is a <strong>minimum</strong> (${label}) — not auto-reduced when guest count drops.</span></div>`; }
+  return `<div class="sc-rooms">Room-block minimum: <strong>${rooms}</strong> rooms</div>${flag}`;
+}
+
+function scReplaceCardById(id){ const s = scenarios.find(x => x.id === id); if (!s) return; const card = document.getElementById('sc-card-' + id); if (card) card.outerHTML = scCardHtml(s); }
+function scToggleEst(id){ if (scOpenEst.has(id)) scOpenEst.delete(id); else scOpenEst.add(id); scReplaceCardById(id); }
+
+// Live slider: recompute in place (no re-render) so the drag keeps focus.
+function scGuestLive(id, val){
+  const g = Math.max(0, parseInt(val, 10) || 0);
+  scUiGuests[id] = g;
+  const r = document.getElementById('sc-grange-' + id), n = document.getElementById('sc-gnum-' + id);
+  if (r && String(r.value) !== String(g)) r.value = g;
+  if (n && document.activeElement !== n && String(n.value) !== String(g)) n.value = g;
+  const s = scenarios.find(x => x.id === id); if (!s) return;
+  const c = scCompute(s, g);
+  for (const it of c.items) {
+    const sub = document.getElementById('sci-sub-' + it.id); if (sub) sub.textContent = scMoney(scLineSub(it, g));
+    if (it.scaling === 'per_head') { const q = document.getElementById('sci-qty-' + it.id); if (q) q.textContent = '× ' + g + ' guests'; }
+  }
+  const set = (sfx, v) => { const el = document.getElementById('sc-wf-' + sfx + '-' + id); if (el) el.textContent = scMoney(v); };
+  set('sub', c.all); set('fb', c.fbEff); set('admin', c.admin); set('tax', c.tax); set('service', c.service); set('total', c.total);
+  const tot = document.getElementById('sc-total-' + id); if (tot) tot.textContent = scMoney(c.total);
+  const fbl = document.getElementById('sc-fblbl-' + id); if (fbl) fbl.innerHTML = 'F&amp;B' + (c.binding ? ' (floored to min)' : '');
+  const bind = document.getElementById('sc-bind-' + id); if (bind) bind.hidden = !c.binding;
+  const bt = document.getElementById('sc-bind-txt-' + id); if (bt) bt.textContent = scBindText(s, c);
+}
+async function scGuestCommit(id, val){
+  const g = Math.max(0, parseInt(val, 10) || 0);
+  const s = scenarios.find(x => x.id === id); if (!s) return;
+  delete scUiGuests[id];
+  if (Number(s.guest_count) !== g) { s.guest_count = g; await dbUpdate('scenarios', id, { guest_count: g }); }
+  scReplaceCardById(id); // re-sync the Overview guest-count field + estimate
+}
+
+// Inline line-item editing (tap value → input; commit on blur/Enter, Esc cancels).
+function sciEdit(itemId, key){
+  const it = scenarioItems.find(x => x.id === itemId); if (!it) return;
+  const row = document.getElementById('sci-row-' + itemId); if (!row) return;
+  const cell = key === 'label' ? row.querySelector('.sci-label') : (key === 'unit_price' ? row.querySelector('.sci-price') : row.querySelector('.sci-qty'));
+  if (!cell || cell.querySelector('input')) return;
+  const type = key === 'label' ? 'text' : 'number';
+  const prev = cell.innerHTML, cur = it[key];
+  cell.innerHTML = `<input class="sci-inp sci-inp-sm" type="${type}"${type === 'number' ? ' step="any" inputmode="decimal"' : ''}>`;
+  const inp = cell.querySelector('input');
+  if (cur != null) inp.value = cur;
+  inp.focus();
+  let done = false;
+  const commit = () => { if (done) return; done = true; sciSave(itemId, key, inp.value); };
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } else if (e.key === 'Escape') { done = true; inp.removeEventListener('blur', commit); cell.innerHTML = prev; } });
+}
+async function sciSave(itemId, key, raw){
+  const it = scenarioItems.find(x => x.id === itemId); if (!it) return;
+  const t = (raw == null ? '' : String(raw)).trim();
+  let val;
+  if (key === 'label') val = t === '' ? null : t;
+  else { val = t === '' ? null : Number(t); if (val != null && isNaN(val)) val = null; }
+  it[key] = val;
+  await dbUpdate('scenario_items', itemId, { [key]: val });
+  scReplaceCardById(it.scenario_id);
+}
+async function sciToggle(itemId, key){
+  const it = scenarioItems.find(x => x.id === itemId); if (!it) return;
+  it[key] = !it[key];
+  await dbUpdate('scenario_items', itemId, { [key]: it[key] });
+  scReplaceCardById(it.scenario_id);
+}
+async function sciCycleScaling(itemId){
+  const it = scenarioItems.find(x => x.id === itemId); if (!it) return;
+  const order = ['per_head', 'flat', 'per_unit'];
+  const next = order[(order.indexOf(it.scaling) + 1) % order.length];
+  it.scaling = next;
+  const patch = { scaling: next };
+  if (next === 'per_unit' && it.qty == null) { it.qty = 1; patch.qty = 1; }
+  await dbUpdate('scenario_items', itemId, patch);
+  scReplaceCardById(it.scenario_id);
+}
+function scEditEvent(sid, el){
+  if (el.querySelector('input')) return;
+  const cur = el.textContent, prev = el.innerHTML;
+  el.innerHTML = `<input class="sci-inp sci-inp-sm" type="text">`;
+  const inp = el.querySelector('input'); inp.value = cur; inp.focus();
+  let done = false;
+  const commit = async () => {
+    if (done) return; done = true;
+    const nv = inp.value.trim() || null;
+    const affected = scenarioItems.filter(x => x.scenario_id === sid && (x.event || 'Other') === cur);
+    for (const it of affected) { it.event = nv; await dbUpdate('scenario_items', it.id, { event: nv }); }
+    scReplaceCardById(sid);
+  };
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } else if (e.key === 'Escape') { done = true; inp.removeEventListener('blur', commit); el.innerHTML = prev; } });
+}
+async function scAddItem(sid){
+  const items = scItemsFor(sid);
+  const maxSort = items.reduce((m, x) => Math.max(m, x.sort_order || 0), 0);
+  const lastEvent = items.length ? (items[items.length - 1].event || 'Other') : 'Ceremony';
+  const row = await dbInsert('scenario_items', { scenario_id: sid, event: lastEvent, label: null, unit_price: 0, qty: null, scaling: 'per_head', taxable: true, is_fb: true, sort_order: maxSort + 10 });
+  if (row) { scenarioItems.push(row); scOpenEst.add(sid); scReplaceCardById(sid); }
+}
+async function scDelItem(itemId){
+  const it = scenarioItems.find(x => x.id === itemId); if (!it) return;
+  if (!confirm('Delete this line item?')) return;
+  const sid = it.scenario_id;
+  await dbDelete('scenario_items', itemId);
+  scenarioItems = scenarioItems.filter(x => x.id !== itemId);
+  scReplaceCardById(sid);
+}
+
 window.addScenario = addScenario;
 window.deleteScenario = deleteScenario;
 window.scEdit = scEdit;
+window.scToggleEst = scToggleEst; window.scGuestLive = scGuestLive; window.scGuestCommit = scGuestCommit;
+window.sciEdit = sciEdit; window.sciToggle = sciToggle; window.sciCycleScaling = sciCycleScaling;
+window.scEditEvent = scEditEvent; window.scAddItem = scAddItem; window.scDelItem = scDelItem;
 
 
 // ── LOAD ALL DATA FROM SUPABASE
@@ -6732,7 +7013,7 @@ async function loadAllData() {
   setSyncStatus('', 'Loading...');
   loadThemesFromDB(); // reconcile theme colours with the DB (seeds the table on first run)
   try {
-    const [g, b, t, v, a, m, itin, ven, wd, scn] = await Promise.all([
+    const [g, b, t, v, a, m, itin, ven, wd, scn, sci] = await Promise.all([
       dbLoad('guests'),
       dbLoad('budget_items'),
       dbLoad('timeline_tasks'),
@@ -6743,10 +7024,12 @@ async function loadAllData() {
       dbLoad('venues'),
       dbLoad('wedding_dates'),
       dbLoad('scenarios'),
+      dbLoad('scenario_items'),
     ]);
     // Candidate wedding dates; the 'chosen' row drives the countdown.
     setWeddingDates(wd);
     scenarios = Array.isArray(scn) ? scn : [];
+    scenarioItems = Array.isArray(sci) ? sci : [];
     guests = g;
     budgetItems = b;
     // Timeline: show defaults immediately, seed to DB if empty
@@ -6809,6 +7092,7 @@ async function loadAllData() {
     subscribeRealtime('venues', () => { dbLoad('venues').then(d => { if (applyVenueRows(d)) { buildNav(); if (venueMode === 'grid') renderVenueGrid(); else if (venueMode === 'archived') renderArchivedGrid(); else venueRenderProfile(currentIdx); } }); });
     subscribeRealtime('wedding_dates', () => { dbLoad('wedding_dates').then(d => { setWeddingDates(d); updateDashboard(); renderDateCandidates(); }); });
     subscribeRealtime('scenarios', () => { dbLoad('scenarios').then(d => { scenarios = Array.isArray(d) ? d : []; if (!document.querySelector('#sc-list .sc-input')) renderScenarios(); }); }); // don't clobber an open inline edit
+    subscribeRealtime('scenario_items', () => { dbLoad('scenario_items').then(d => { scenarioItems = Array.isArray(d) ? d : []; if (!document.querySelector('#sc-list .sc-input, #sc-list .sci-inp')) renderScenarios(); }); }); // don't clobber an open inline edit
   } catch(e) {
     setSyncStatus('error', 'Connection error');
     console.error('loadAllData error', e);
