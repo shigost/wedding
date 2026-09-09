@@ -547,6 +547,25 @@ label {
 .sc-flag-room { background: var(--gold-pale); color: var(--gold); border: 1px solid var(--gold); }
 .sc-rooms { margin-top: 0.6rem; font-size: 0.74rem; color: var(--muted); }
 .sc-rooms strong { color: var(--text); }
+
+/* Draft-questions button + email overlay */
+.sc-email { flex: 0 0 auto; min-width: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--gold); font-size: 0.95rem; cursor: pointer; border-radius: 8px; }
+#sce-overlay { position: fixed; inset: 0; z-index: 1300; background: rgba(0,0,0,0.5); display: none; align-items: stretch; justify-content: center; }
+#sce-overlay.open { display: flex; }
+.sce-sheet { background: var(--bg); width: 100%; max-width: 560px; display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: contain; }
+@media (min-width: 561px) { #sce-overlay { align-items: center; } .sce-sheet { max-height: 90vh; border-radius: 16px; } }
+.sce-head { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.1rem; padding-top: max(1rem, env(safe-area-inset-top)); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.sce-title { font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 1.3rem; color: var(--gold); }
+.sce-close { background: none; border: none; font-size: 1.1rem; color: var(--muted); cursor: pointer; padding: 0.3rem; line-height: 1; }
+.sce-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 1rem 1.1rem; padding-bottom: max(1.2rem, env(safe-area-inset-bottom)); }
+.sce-l { display: block; font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0.7rem 0 0.25rem; }
+.sce-l:first-child { margin-top: 0; }
+.sce-inp { width: 100%; box-sizing: border-box; font-family: var(--font-body, 'Jost', sans-serif); font-size: 16px; padding: 0.55rem 0.65rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); outline: none; }
+.sce-inp:focus { border-color: var(--gold); }
+.sce-ta { resize: vertical; line-height: 1.5; }
+.sce-actions { display: flex; gap: 0.6rem; margin-top: 0.9rem; }
+.sce-actions .btn { flex: 1; }
+.sce-note { font-size: 0.68rem; color: var(--muted-light); margin-top: 0.7rem; line-height: 1.5; }
 .quick-links {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -6629,17 +6648,27 @@ const SCENARIO_GROUPS = [
   { title: 'Notes', fields: [['notes', 'Notes', 'textarea']] },
 ];
 
-function scVenueList() {
+// All venues (active + archived) — used to RESOLVE a linked venue's name.
+function scVenueAll() {
   const rows = (Array.isArray(venueRowsAll) && venueRowsAll.length) ? venueRowsAll : [];
-  return rows.map(r => ({ id: r.id, name: r.name || 'Unnamed venue' }));
+  return rows.map(r => ({ id: r.id, name: r.name || 'Unnamed venue', archived: !!r.archived }));
 }
+// Options list: only ACTIVE venues are newly selectable. If the current link points to a venue
+// that has since been archived, keep it in the list (selected, marked) so the link is never lost.
 function scVenueOptions(selectedId) {
-  return `<option value="">— none —</option>` + scVenueList().map(v =>
-    `<option value="${escapeHtml(String(v.id))}"${String(v.id) === String(selectedId) ? ' selected' : ''}>${escapeHtml(v.name)}</option>`).join('');
+  const all = scVenueAll();
+  let opts = all.filter(v => !v.archived);
+  if (selectedId != null && selectedId !== '' && !opts.some(v => String(v.id) === String(selectedId))) {
+    const cur = all.find(v => String(v.id) === String(selectedId));
+    if (cur) opts = [{ ...cur, archived: true }, ...opts];
+  }
+  return `<option value="">— none —</option>` + opts.map(v =>
+    `<option value="${escapeHtml(String(v.id))}"${String(v.id) === String(selectedId) ? ' selected' : ''}>${escapeHtml(v.name)}${v.archived ? ' (archived)' : ''}</option>`).join('');
 }
+// Resolves over ALL venues (incl. archived) so an archived-linked scenario still shows its name.
 function scenarioVenueName(venueId) {
-  if (venueId == null) return '—';
-  const v = scVenueList().find(x => String(x.id) === String(venueId));
+  if (venueId == null || venueId === '') return '—';
+  const v = scVenueAll().find(x => String(x.id) === String(venueId));
   return v ? escapeHtml(v.name) : '—';
 }
 function populateVenueSelect(selectId) {
@@ -6678,6 +6707,7 @@ function scCardHtml(s) {
   return `<div class="sc-card" id="sc-card-${s.id}">
     <div class="sc-card-head">
       <div class="sc-name" onclick="scEdit('${s.id}','name','text')">${nameDisp}</div>
+      <button class="sc-email" onclick="scEmailDraft('${s.id}')" aria-label="Draft questions email" title="Draft questions email">✉</button>
       <button class="sc-del" onclick="deleteScenario('${s.id}')" aria-label="Delete scenario">🗑</button>
     </div>
     ${SCENARIO_GROUPS.map(g => `
@@ -7000,12 +7030,88 @@ async function scDelItem(itemId){
   scReplaceCardById(sid);
 }
 
+// ── Draft a questions email from a scenario's empty fields + its ASK: notes ──
+// Null/blank venue-answerable fields become plainly-worded questions. guest_count is
+// intentionally omitted (ours to answer). The draft is shown editable first — never auto-sent.
+const SCENARIO_QUESTIONS = [
+  ['fb_total',         'Could you send an itemized estimate for our guest count?'],
+  ['fb_minimum',       'Is there a food & beverage minimum for our date, and what is it?'],
+  ['venue_fees',       'What venue / site fees apply?'],
+  ['tax_pct',          'What tax rate (IVA) applies to the estimate?'],
+  ['service_pct',      'What service charge or gratuity percentage applies?'],
+  ['admin_pct',        'Is there an administrative fee, and what percentage?'],
+  ['room_block_rooms', 'Is a room block required, and what is the minimum number of rooms?'],
+  ['room_block_nights','What is the minimum number of nights for the room block?'],
+  ['room_rate',        'What are the 2027 nightly room rates for our block?'],
+  ['room_payer',       'Does the couple cover the room block, or do guests book and pay for their own rooms?'],
+  ['season_note',      'Does pricing vary by season for our date? If so, how?'],
+  ['curfew',           'Is there a music or event curfew, and what time?'],
+  ['deposit_terms',    'What are the deposit amounts and payment schedule?'],
+  ['quote_date',       'Could you send a current, dated quote for our group?'],
+];
+function scIsEmpty(v){ return v == null || String(v).trim() === ''; }
+function scAskItems(notes){
+  if (!notes) return [];
+  return String(notes).split(/\r?\n/).map(l => l.trim())
+    .filter(l => /^ask\s*:/i.test(l))
+    .map(l => l.replace(/^ask\s*:\s*/i, '').trim())
+    .filter(Boolean);
+}
+function scEmailDraft(id){
+  const s = scenarios.find(x => x.id === id); if (!s) return;
+  const vrow = (Array.isArray(venueRowsAll) ? venueRowsAll : []).find(r => String(r.id) === String(s.venue_id));
+  const venueName = (vrow && vrow.name) ? vrow.name : '';
+  const contactName = (vrow && vrow.contact_name) ? vrow.contact_name : '';
+  const contactEmail = (vrow && vrow.contact_email) ? vrow.contact_email : '';
+  const qs = [];
+  for (const [key, q] of SCENARIO_QUESTIONS) { if (scIsEmpty(s[key])) qs.push(q); }
+  for (const a of scAskItems(s.notes)) qs.push(a);
+  const greeting = contactName ? `Hi ${contactName},` : 'Hi there,';
+  const at = venueName ? ` at ${venueName}` : '';
+  let body;
+  if (qs.length) {
+    const list = qs.map((q, i) => `${i + 1}. ${q}`).join('\n');
+    body = `${greeting}\n\nWe're planning our 2027 wedding${at} and had a few questions before we finalize our estimate:\n\n${list}\n\nThank you so much!`;
+  } else {
+    body = `${greeting}\n\nWe're planning our 2027 wedding${at} — we don't have any outstanding questions right now. Thank you!`;
+  }
+  const subject = venueName ? `A few questions — ${venueName} wedding` : 'A few questions about our wedding';
+  document.getElementById('sce-to').value = contactEmail;
+  document.getElementById('sce-subject').value = subject;
+  document.getElementById('sce-body').value = body;
+  document.getElementById('sce-overlay').classList.add('open');
+  lockBackgroundScroll();
+  document.addEventListener('keydown', scEmailKey);
+}
+function scEmailClose(){
+  document.getElementById('sce-overlay').classList.remove('open');
+  unlockBackgroundScroll();
+  document.removeEventListener('keydown', scEmailKey);
+}
+function scEmailKey(e){ if (e.key === 'Escape') scEmailClose(); }
+function scEmailOpenMail(){
+  const to = document.getElementById('sce-to').value.trim();
+  const subject = document.getElementById('sce-subject').value;
+  const body = document.getElementById('sce-body').value;
+  window.location.href = 'mailto:' + to + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+}
+function scEmailCopy(){
+  const to = document.getElementById('sce-to').value.trim();
+  const subject = document.getElementById('sce-subject').value;
+  const body = document.getElementById('sce-body').value;
+  const txt = (to ? `To: ${to}\n` : '') + `Subject: ${subject}\n\n` + body;
+  const btn = document.getElementById('sce-copy');
+  const done = () => { if (btn) { const t = btn.textContent; btn.textContent = 'Copied ✓'; setTimeout(() => { btn.textContent = t; }, 1500); } };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done).catch(() => {});
+}
+
 window.addScenario = addScenario;
 window.deleteScenario = deleteScenario;
 window.scEdit = scEdit;
 window.scToggleEst = scToggleEst; window.scGuestLive = scGuestLive; window.scGuestCommit = scGuestCommit;
 window.sciEdit = sciEdit; window.sciToggle = sciToggle; window.sciCycleScaling = sciCycleScaling;
 window.scEditEvent = scEditEvent; window.scAddItem = scAddItem; window.scDelItem = scDelItem;
+window.scEmailDraft = scEmailDraft; window.scEmailClose = scEmailClose; window.scEmailOpenMail = scEmailOpenMail; window.scEmailCopy = scEmailCopy;
 
 
 // ── LOAD ALL DATA FROM SUPABASE
@@ -7089,7 +7195,7 @@ async function loadAllData() {
     subscribeRealtime('timeline_tasks', () => { dbLoad('timeline_tasks').then(d => { timelineTasks = d; renderTimeline(); }); });
     subscribeRealtime('vendors', () => { dbLoad('vendors').then(d => { vendors = d; renderVendors(); }); });
     subscribeRealtime('itinerary_items', () => { dbLoad('itinerary_items').then(d => { itinItems = d; renderItinerary(); }); });
-    subscribeRealtime('venues', () => { dbLoad('venues').then(d => { if (applyVenueRows(d)) { buildNav(); if (venueMode === 'grid') renderVenueGrid(); else if (venueMode === 'archived') renderArchivedGrid(); else venueRenderProfile(currentIdx); } }); });
+    subscribeRealtime('venues', () => { dbLoad('venues').then(d => { if (applyVenueRows(d)) { buildNav(); if (venueMode === 'grid') renderVenueGrid(); else if (venueMode === 'archived') renderArchivedGrid(); else venueRenderProfile(currentIdx); } if (document.getElementById('sc-new-venue')) populateVenueSelect('sc-new-venue'); }); }); // keep the scenario venue dropdown archive-aware & live
     subscribeRealtime('wedding_dates', () => { dbLoad('wedding_dates').then(d => { setWeddingDates(d); updateDashboard(); renderDateCandidates(); }); });
     subscribeRealtime('scenarios', () => { dbLoad('scenarios').then(d => { scenarios = Array.isArray(d) ? d : []; if (!document.querySelector('#sc-list .sc-input')) renderScenarios(); }); }); // don't clobber an open inline edit
     subscribeRealtime('scenario_items', () => { dbLoad('scenario_items').then(d => { scenarioItems = Array.isArray(d) ? d : []; if (!document.querySelector('#sc-list .sc-input, #sc-list .sci-inp')) renderScenarios(); }); }); // don't clobber an open inline edit
@@ -7712,6 +7818,29 @@ window.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- Wedding dates overlay -->
+<!-- Scenario questions-email draft (overlay; editable before sending) -->
+<div id="sce-overlay" onclick="if(event.target===this)scEmailClose()">
+  <div class="sce-sheet">
+    <div class="sce-head">
+      <span class="sce-title">Draft questions</span>
+      <button class="sce-close" onclick="scEmailClose()" aria-label="Close">✕</button>
+    </div>
+    <div class="sce-body">
+      <label class="sce-l" for="sce-to">To</label>
+      <input type="email" id="sce-to" class="sce-inp" placeholder="venue contact email">
+      <label class="sce-l" for="sce-subject">Subject</label>
+      <input type="text" id="sce-subject" class="sce-inp">
+      <label class="sce-l" for="sce-body">Message</label>
+      <textarea id="sce-body" class="sce-inp sce-ta" rows="12"></textarea>
+      <div class="sce-actions">
+        <button class="btn btn-secondary" id="sce-copy" onclick="scEmailCopy()">Copy</button>
+        <button class="btn btn-primary" onclick="scEmailOpenMail()">Open in email app</button>
+      </div>
+      <div class="sce-note">Review and edit before sending — this opens your mail app with the draft; it doesn't send anything automatically.</div>
+    </div>
+  </div>
+</div>
+
 <!-- Theme colour editor (overlay; mirrors the dates overlay conventions) -->
 <div id="theme-editor" onclick="if(event.target===this)closeThemeEditor()">
   <div class="te-sheet">
