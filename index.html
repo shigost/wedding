@@ -566,6 +566,39 @@ label {
 .sce-actions { display: flex; gap: 0.6rem; margin-top: 0.9rem; }
 .sce-actions .btn { flex: 1; }
 .sce-note { font-size: 0.68rem; color: var(--muted-light); margin-top: 0.7rem; line-height: 1.5; }
+.sce-note code { font-family: monospace; background: var(--bg2); padding: 0 0.2rem; border-radius: 3px; color: var(--gold); }
+
+/* ── Scenario grid gallery + detail ── */
+.sc-back { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.5rem 0.9rem; border-radius: 8px; cursor: pointer; font-family: 'Jost', sans-serif; margin-bottom: 0.8rem; }
+.sc-back:hover { border-color: var(--gold); color: var(--gold); }
+.sc-gridbar { display: flex; gap: 0.5rem; margin-bottom: 0.8rem; }
+.sc-filter-chip { background: var(--bg2); border: 1px solid var(--border); color: var(--muted); font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.45rem 0.8rem; border-radius: 20px; cursor: pointer; font-family: 'Jost', sans-serif; }
+.sc-filter-chip.on { background: var(--gold-pale); color: var(--gold); border-color: var(--gold); }
+.sc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 0.7rem; }
+.sc-gcard { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.9rem; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; gap: 0.35rem; }
+.sc-gcard:hover { border-color: var(--gold); }
+.sc-gcard.chosen { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+.sc-gcard-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.4rem; }
+.sc-gname { font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 1.05rem; color: var(--dark); line-height: 1.2; word-break: break-word; }
+.sc-star { flex: 0 0 auto; background: none; border: none; color: var(--muted-light); font-size: 1.05rem; line-height: 1; cursor: pointer; padding: 0 0.1rem; min-width: 32px; min-height: 32px; }
+.sc-star.on { color: var(--gold); }
+.sc-chosen-badge { align-self: flex-start; font-size: 0.53rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); background: var(--gold-pale); border: 1px solid var(--gold); border-radius: 20px; padding: 0.12rem 0.5rem; }
+.sc-gtotal { font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 1.5rem; color: var(--gold); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.sc-gmeta { font-size: 0.7rem; color: var(--muted); }
+.sc-gdesc { font-size: 0.74rem; color: var(--muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sc-gpct { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.15rem; }
+.sc-gpct-bar { flex: 1 1 auto; height: 5px; background: var(--bg2); border-radius: 3px; overflow: hidden; }
+.sc-gpct-bar > span { display: block; height: 100%; background: var(--foliage); border-radius: 3px; }
+.sc-gpct-num { flex: 0 0 auto; font-size: 0.6rem; letter-spacing: 0.06em; color: var(--muted-light); }
+.sc-actions-row { display: flex; gap: 0.5rem; margin: 0.5rem 0 0.2rem; }
+.sc-actbtn { flex: 1; background: none; border: 1px solid var(--border); color: var(--muted); font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.5rem 0.6rem; border-radius: 8px; cursor: pointer; font-family: 'Jost', sans-serif; }
+.sc-actbtn:hover { border-color: var(--gold); color: var(--gold); }
+.sc-star-btn.on, .sc-choose-btn.on { border-color: var(--gold); color: var(--gold); background: var(--gold-pale); }
+.sc-notes-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.45rem; }
+.sc-addq { background: none; border: 1px dashed var(--border); color: var(--muted); font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.35rem 0.7rem; border-radius: 8px; cursor: pointer; font-family: 'Jost', sans-serif; }
+.sc-addq:hover { border-color: var(--gold); color: var(--gold); }
+.sc-notes-hint { font-size: 0.66rem; color: var(--muted-light); line-height: 1.4; }
+.sc-notes-hint code { font-family: monospace; background: var(--bg2); padding: 0 0.2rem; border-radius: 3px; color: var(--gold); }
 .quick-links {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3147,7 +3180,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
       <div class="page-sub" id="sc-sub">Costed venue estimates</div>
     </div>
     <div class="page-body">
-      <div class="card">
+      <div class="card" id="sc-add-card">
         <div class="card-title">Add scenario</div>
         <div class="form-row"><input type="text" id="sc-new-name" placeholder="Name (e.g. Chileno Bay — standard)"></div>
         <div class="form-row"><select id="sc-new-venue"><option value="">— Venue (optional) —</option></select></div>
@@ -3258,6 +3291,9 @@ let weddingDate = null;   // derived: the 'chosen' candidate's date (or null)
 let weddingDates = [];    // all rows from wedding_dates (candidates)
 let scenarios = [];       // costed venue estimate rows
 let scenarioItems = [];   // line items belonging to scenarios (guest-scaled)
+let scView = 'grid';      // 'grid' (gallery) | 'detail' (full editable card)
+let scDetailId = null;    // scenario id shown in detail view
+let scStarredOnly = false; // grid "show starred" filter
 
 
 
@@ -6640,7 +6676,7 @@ window.exportItinerary = exportItinerary;
 // ── SCENARIOS (costed venue estimates) ─────────────────────────────
 // USD-only; every field renders even when null (shows "—"), tap to edit inline.
 const SCENARIO_GROUPS = [
-  { title: 'Overview', fields: [['venue_id', 'Venue', 'venue'], ['guest_count', 'Guest count', 'int']] },
+  { title: 'Overview', fields: [['description', 'Description', 'text'], ['venue_id', 'Venue', 'venue'], ['guest_count', 'Guest count', 'int']] },
   { title: 'Food & Beverage', fields: [['fb_total', 'F&B total', 'money'], ['fb_minimum', 'F&B minimum', 'money']] },
   { title: 'Fees', fields: [['venue_fees', 'Venue fees', 'money'], ['tax_pct', 'Tax %', 'pct'], ['service_pct', 'Service %', 'pct'], ['admin_pct', 'Admin %', 'pct']] },
   { title: 'Room block', fields: [['room_block_rooms', 'Rooms', 'int'], ['room_block_nights', 'Nights', 'int'], ['room_rate', 'Room rate', 'money'], ['room_payer', 'Room payer', 'text']] },
@@ -6691,9 +6727,16 @@ function scFieldHtml(s, key, label, type) {
   const disp = scDisplay(s, key, type);
   const empty = disp === '—' ? ' empty' : '';
   if (type === 'textarea') {
+    const tools = key === 'notes'
+      ? `<div class="sc-notes-tools">
+          <button class="sc-addq" onclick="scAddQuestion('${s.id}')">+ Add question</button>
+          <span class="sc-notes-hint">Lines starting with <code>ASK:</code> become questions in the drafted email.</span>
+        </div>`
+      : '';
     return `<div class="sc-field sc-field-block" data-field="${key}">
       <span class="sc-flabel">${label}</span>
       <div class="sc-fval sc-fval-block${empty}" onclick="scEdit('${s.id}','${key}','${type}')">${disp}</div>
+      ${tools}
     </div>`;
   }
   return `<div class="sc-field" data-field="${key}">
@@ -6710,6 +6753,10 @@ function scCardHtml(s) {
       <button class="sc-email" onclick="scEmailDraft('${s.id}')" aria-label="Draft questions email" title="Draft questions email">✉</button>
       <button class="sc-del" onclick="deleteScenario('${s.id}')" aria-label="Delete scenario">🗑</button>
     </div>
+    <div class="sc-actions-row">
+      <button class="sc-actbtn sc-star-btn${s.starred ? ' on' : ''}" onclick="scToggleStar('${s.id}')">${s.starred ? '★ Starred' : '☆ Star'}</button>
+      <button class="sc-actbtn sc-choose-btn${s.is_chosen ? ' on' : ''}" onclick="scChoose('${s.id}')">${s.is_chosen ? '✓ Chosen' : 'Choose this scenario'}</button>
+    </div>
     ${SCENARIO_GROUPS.map(g => `
       <div class="sc-group">
         <div class="sc-group-title">${g.title}</div>
@@ -6724,13 +6771,109 @@ function renderScenarios() {
   const el = document.getElementById('sc-list');
   if (!el) return;
   const sub = document.getElementById('sc-sub');
+  const addCard = document.getElementById('sc-add-card');
+
+  // Detail view: the full editable card + a back button; hide the Add card.
+  if (scView === 'detail' && scDetailId) {
+    const s = scenarios.find(x => x.id === scDetailId);
+    if (!s) { scView = 'grid'; scDetailId = null; return renderScenarios(); }
+    if (addCard) addCard.hidden = true;
+    if (sub) sub.textContent = 'Editing · ' + (s.name || 'Untitled scenario');
+    el.innerHTML = `<button class="sc-back" onclick="scCloseDetail()">← All scenarios</button>` + scCardHtml(s);
+    return;
+  }
+
+  // Grid gallery (default).
+  if (addCard) addCard.hidden = false;
   if (sub) sub.textContent = scenarios.length + (scenarios.length === 1 ? ' scenario' : ' scenarios');
   if (!scenarios.length) {
     el.innerHTML = `<div class="empty-state"><div class="empty-icon">◇</div><div class="empty-text">No scenarios yet. Add one above.</div></div>`;
     return;
   }
-  const list = [...scenarios].sort((a, b) => String(a.created_at || '').localeCompare(String(b.created_at || '')));
-  el.innerHTML = list.map(scCardHtml).join('');
+  const starredCount = scenarios.filter(x => x.starred).length;
+  let list = scenarios.slice();
+  if (scStarredOnly) list = list.filter(x => x.starred);
+  list.sort((a, b) =>
+    ((b.is_chosen ? 1 : 0) - (a.is_chosen ? 1 : 0)) ||
+    ((b.starred ? 1 : 0) - (a.starred ? 1 : 0)) ||
+    String(a.created_at || '').localeCompare(String(b.created_at || '')));
+  const toolbar = `<div class="sc-gridbar">
+      <button class="sc-filter-chip${scStarredOnly ? ' on' : ''}" onclick="scToggleStarredFilter()">★ Show starred${starredCount ? ` (${starredCount})` : ''}</button>
+    </div>`;
+  const grid = list.length
+    ? `<div class="sc-grid">${list.map(scGridCardHtml).join('')}</div>`
+    : `<div class="empty-state"><div class="empty-icon">★</div><div class="empty-text">No starred scenarios yet.</div></div>`;
+  el.innerHTML = toolbar + grid;
+}
+
+// Completeness = weighted share of filled quote fields. Money-movers weigh double.
+// (description/name/venue_id/guest_count/currency/starred/is_chosen are excluded — ours, not the venue's.)
+const SC_WEIGHTS = {
+  fb_total: 2, fb_minimum: 2, venue_fees: 2, tax_pct: 2, service_pct: 2, room_block_rooms: 2, room_rate: 2, room_payer: 2, room_scaling: 2,
+  season_note: 1, curfew: 1, source: 1, notes: 1, deposit_terms: 1, room_block_nights: 1, quote_date: 1,
+};
+function scCompleteness(s) {
+  let filled = 0, total = 0;
+  for (const k in SC_WEIGHTS) { const w = SC_WEIGHTS[k]; total += w; if (!scIsEmpty(s[k])) filled += w; }
+  return total ? Math.round(100 * filled / total) : 0;
+}
+function scGridCardHtml(s) {
+  const c = scCompute(s, scGuests(s));
+  const pct = scCompleteness(s);
+  const nameDisp = (s.name == null || s.name === '') ? 'Untitled scenario' : escapeHtml(s.name);
+  const venue = scenarioVenueName(s.venue_id);
+  const gc = (s.guest_count == null || s.guest_count === '') ? '—' : escapeHtml(String(s.guest_count));
+  const desc = scIsEmpty(s.description) ? '—' : escapeHtml(String(s.description));
+  return `<div class="sc-gcard${s.is_chosen ? ' chosen' : ''}" onclick="scOpenDetail('${s.id}')">
+    <div class="sc-gcard-top">
+      <span class="sc-gname">${nameDisp}</span>
+      <button class="sc-star${s.starred ? ' on' : ''}" onclick="event.stopPropagation();scToggleStar('${s.id}')" aria-label="${s.starred ? 'Unstar' : 'Star'} scenario">${s.starred ? '★' : '☆'}</button>
+    </div>
+    ${s.is_chosen ? '<div class="sc-chosen-badge">✓ Chosen</div>' : ''}
+    <div class="sc-gtotal">${scMoney(c.total)}</div>
+    <div class="sc-gmeta">${venue} · ${gc} guests</div>
+    <div class="sc-gdesc">${desc}</div>
+    <div class="sc-gpct"><span class="sc-gpct-bar"><span style="width:${pct}%"></span></span><span class="sc-gpct-num">${pct}%</span></div>
+  </div>`;
+}
+function scOpenDetail(id) { scView = 'detail'; scDetailId = id; renderScenarios(); const p = document.getElementById('page-scenarios'); if (p) p.scrollTop = 0; }
+function scCloseDetail() { scView = 'grid'; scDetailId = null; renderScenarios(); }
+function scToggleStarredFilter() { scStarredOnly = !scStarredOnly; renderScenarios(); }
+async function scToggleStar(id) {
+  const s = scenarios.find(x => x.id === id); if (!s) return;
+  s.starred = !s.starred;
+  await dbUpdate('scenarios', id, { starred: s.starred });
+  renderScenarios();
+}
+async function reloadScenarios() { const d = await dbLoad('scenarios'); scenarios = Array.isArray(d) ? d : []; renderScenarios(); }
+// Choosing is atomic via the set_chosen_scenario() RPC (demote+promote). Re-tapping ✓ Chosen
+// unchooses (a plain update to false) — the partial unique index allows zero chosen.
+async function scChoose(id) {
+  const s = scenarios.find(x => x.id === id); if (!s) return;
+  if (s.is_chosen) {
+    s.is_chosen = false;
+    await dbUpdate('scenarios', id, { is_chosen: false });
+    renderScenarios();
+    return;
+  }
+  setSyncStatus('', 'Saving...');
+  const { error } = await sb.rpc('set_chosen_scenario', { p_id: id });
+  if (error) { setSyncStatus('error', 'Error saving'); console.error('set_chosen_scenario rpc error', JSON.stringify(error), error.message || error); }
+  else { setSyncStatus('ok', 'Saved'); setTimeout(() => setSyncStatus('ok', 'Live'), 1200); }
+  await reloadScenarios();
+}
+// Append a new "ASK: " line to notes and open the notes editor with the caret after it.
+async function scAddQuestion(id) {
+  const s = scenarios.find(x => x.id === id); if (!s) return;
+  const cur = s.notes ? String(s.notes) : '';
+  const next = (cur ? cur.replace(/\s+$/, '') + '\n' : '') + 'ASK: ';
+  s.notes = next;
+  await dbUpdate('scenarios', id, { notes: next });
+  scReplaceCardById(id);
+  scEdit(id, 'notes', 'textarea');
+  const card = document.getElementById('sc-card-' + id);
+  const ta = card && card.querySelector('.sc-field[data-field="notes"] textarea');
+  if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
 }
 
 // Tap a field's value → swap in the right input; commit on blur/Enter, Esc cancels.
@@ -7079,6 +7222,8 @@ function scEmailDraft(id){
   document.getElementById('sce-to').value = contactEmail;
   document.getElementById('sce-subject').value = subject;
   document.getElementById('sce-body').value = body;
+  const askHint = document.getElementById('sce-askhint');
+  if (askHint) askHint.hidden = scAskItems(s.notes).length > 0;
   document.getElementById('sce-overlay').classList.add('open');
   lockBackgroundScroll();
   document.addEventListener('keydown', scEmailKey);
@@ -7112,6 +7257,8 @@ window.scToggleEst = scToggleEst; window.scGuestLive = scGuestLive; window.scGue
 window.sciEdit = sciEdit; window.sciToggle = sciToggle; window.sciCycleScaling = sciCycleScaling;
 window.scEditEvent = scEditEvent; window.scAddItem = scAddItem; window.scDelItem = scDelItem;
 window.scEmailDraft = scEmailDraft; window.scEmailClose = scEmailClose; window.scEmailOpenMail = scEmailOpenMail; window.scEmailCopy = scEmailCopy;
+window.scOpenDetail = scOpenDetail; window.scCloseDetail = scCloseDetail; window.scToggleStarredFilter = scToggleStarredFilter;
+window.scToggleStar = scToggleStar; window.scChoose = scChoose; window.scAddQuestion = scAddQuestion;
 
 
 // ── LOAD ALL DATA FROM SUPABASE
@@ -7832,6 +7979,7 @@ window.addEventListener('DOMContentLoaded', () => {
       <input type="text" id="sce-subject" class="sce-inp">
       <label class="sce-l" for="sce-body">Message</label>
       <textarea id="sce-body" class="sce-inp sce-ta" rows="12"></textarea>
+      <div id="sce-askhint" class="sce-note" hidden>No <code>ASK:</code> questions in this scenario's notes yet — add a line starting with <code>ASK:</code> (or tap “+ Add question” on the scenario) to include your own questions here next time.</div>
       <div class="sce-actions">
         <button class="btn btn-secondary" id="sce-copy" onclick="scEmailCopy()">Copy</button>
         <button class="btn btn-primary" onclick="scEmailOpenMail()">Open in email app</button>
