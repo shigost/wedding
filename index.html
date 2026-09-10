@@ -3977,8 +3977,10 @@ HARDCODED_VENUES.forEach(v => { if (v && v.id) HARDCODED_IMAGES_BY_SLUG[v.id] = 
 function venueRowToProfile(row) {
   const la = (row && row.local_area && typeof row.local_area === 'object') ? row.local_area : {};
   const photos = Array.isArray(row.photos) ? row.photos : [];
-  let images = photos.map(p => (typeof p === 'string' ? p : (p && p.url))).filter(Boolean);
-  if (images.length === 0) images = HARDCODED_IMAGES_BY_SLUG[row.slug] || []; // bridge from hardcoded until Storage stage
+  const pairs = photos.map(p => (typeof p === 'string' ? { url: p, thumb: p } : { url: p && p.url, thumb: (p && (p.thumb || p.url)) })).filter(x => x.url);
+  let images = pairs.map(x => x.url);
+  let thumbs = pairs.map(x => x.thumb); // display thumbnails, index-aligned with images (falls back to original)
+  if (images.length === 0) { images = HARDCODED_IMAGES_BY_SLUG[row.slug] || []; thumbs = images.slice(); } // bridge from hardcoded until Storage stage
   return {
     _row:             row,   // raw DB row, for the edit form (id/status/rating/slug + jsonb in DB shape)
     id:               row.slug || row.id,
@@ -4010,6 +4012,7 @@ function venueRowToProfile(row) {
     contactEmail:     row.contact_email || '',
     contactPhone:     row.contact_phone || '',
     images:           images,
+    thumbs:           thumbs,
     liked:            !!row.liked,
     archived:         !!row.archived,
   };
@@ -4031,7 +4034,7 @@ function buildNav() {
   if (!track) return;
   track.innerHTML = VENUES.map((v, i) => `
     <div class="vnav-item ${i === currentIdx ? 'active' : ''}" data-idx="${i}" onclick="selectVenue(${i})">
-      <img class="vnav-thumb" src="${escapeHtml(v.images[0] || '')}" alt="${escapeHtml(v.name)}" onerror="this.style.opacity=0">
+      <img class="vnav-thumb" src="${escapeHtml((v.thumbs && v.thumbs[0]) || v.images[0] || '')}" alt="${escapeHtml(v.name)}" onerror="this.style.opacity=0">
       <div>
         <div class="vnav-name">${escapeHtml(v.name.split(' ').slice(0,3).join(' '))}</div>
         <div class="vnav-dist">${escapeHtml(String(v.distMin))} min</div>
@@ -5847,8 +5850,35 @@ function moodError(msg) {
   if (el) el.textContent = msg || '';
 }
 
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50 MB — originals are stored untouched, never downsized
+
+// Build a universally-renderable JPEG thumbnail for grid display (also converts HEIC → JPEG
+// on iOS Safari, so HEIC photos aren't broken on desktop Chrome). createImageBitmap with
+// imageOrientation:'from-image' applies EXIF rotation so thumbnails are never sideways.
+// Returns a Blob, or null if the browser can't decode the file (e.g. HEIC on desktop Chrome) —
+// callers then fall back to the original for display.
+async function generateThumbnail(file, maxDim, quality) {
+  maxDim = maxDim || 800; quality = quality || 0.82;
+  try {
+    if (typeof createImageBitmap !== 'function') return null;
+    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+    const w = Math.max(1, Math.round(bitmap.width * scale));
+    const h = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+    if (bitmap.close) bitmap.close();
+    return await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality));
+  } catch (e) {
+    console.warn('thumbnail generation failed (falling back to original for display)', file && file.name, e && e.message);
+    return null;
+  }
+}
+
 // Sequential batch upload: one file at a time (gentle on the connection / Supabase rate limits),
 // per-file validation preserved, failures collected — a bad file never aborts the batch.
+// Each file uploads the ORIGINAL untouched, plus a best-effort JPEG display thumbnail.
 async function uploadBatch(files, opts) {
   const list = Array.from(files || []);
   const failed = [];
@@ -5857,14 +5887,24 @@ async function uploadBatch(files, opts) {
     const file = list[i];
     if (opts.progress) opts.progress(i + 1, list.length, file.name);
     if (!file.type || !file.type.startsWith('image/')) { failed.push({ name: file.name || 'file', reason: 'not an image' }); continue; }
-    if (file.size > 10 * 1024 * 1024) { failed.push({ name: file.name || 'file', reason: 'over 10 MB' }); continue; }
+    if (file.size > MAX_UPLOAD_BYTES) { failed.push({ name: file.name || 'file', reason: 'over 50 MB' }); continue; }
     try {
+      const base = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error: upErr } = await sb.storage.from(opts.bucket).upload(path, file, { contentType: file.type, upsert: false });
+      // Original — stored as-is.
+      const { error: upErr } = await sb.storage.from(opts.bucket).upload(`${base}.${ext}`, file, { contentType: file.type, upsert: false });
       if (upErr) throw upErr;
-      const { data: pub } = sb.storage.from(opts.bucket).getPublicUrl(path);
-      await opts.onSuccess(pub.publicUrl, file);
+      const url = sb.storage.from(opts.bucket).getPublicUrl(`${base}.${ext}`).data.publicUrl;
+      // Display thumbnail (JPEG) — best-effort; if it can't be made/uploaded, the original is used.
+      let thumbUrl = null;
+      const thumbBlob = await generateThumbnail(file);
+      if (thumbBlob) {
+        const tPath = `thumbs/${base}.jpg`;
+        const { error: tErr } = await sb.storage.from(opts.bucket).upload(tPath, thumbBlob, { contentType: 'image/jpeg', upsert: false });
+        if (!tErr) thumbUrl = sb.storage.from(opts.bucket).getPublicUrl(tPath).data.publicUrl;
+        else console.warn('thumb upload failed (using original)', tErr.message || tErr);
+      }
+      await opts.onSuccess(url, file, thumbUrl);
       ok++;
     } catch (e) {
       console.error('batch upload error', file.name, JSON.stringify(e), e.message || e);
@@ -5887,7 +5927,7 @@ async function uploadMoodImage(event) {
   const { ok, failed } = await uploadBatch(files, {
     bucket: MOOD_BUCKET,
     progress: (n, total) => { const lbl = document.getElementById('mood-upload-label'); if (lbl) lbl.innerHTML = `<span class="mood-spinner"></span> Uploading ${n}/${total}…`; },
-    onSuccess: async (url) => { const row = await dbInsert('mood_images', { url, label: label || 'Inspo', themes }); if (row) { moodImages.push(row); renderMoodBoard(); } },
+    onSuccess: async (url, file, thumbUrl) => { const row = await dbInsert('mood_images', { url, thumb_url: thumbUrl, label: label || 'Inspo', themes }); if (row) { moodImages.push(row); renderMoodBoard(); } },
   });
   if (ok > 0) { document.getElementById('mood-label').value = ''; resetMoodAddThemes(); }
   batchReport('mood-upload-error', ok, failed);
@@ -6000,7 +6040,7 @@ function renderMoodBoard() {
   }
   grid.innerHTML = visible.map(img => `
     <div class="mood-card" id="mood-card-${img.id}">
-      <img class="mood-img" src="${escapeHtml(img.url)}" alt="${escapeHtml(img.label)}" loading="lazy" onerror="moodImgFallback(this)" onclick="openMoodViewer(${img.id})">
+      <img class="mood-img" src="${escapeHtml(img.thumb_url || img.url)}" alt="${escapeHtml(img.label)}" loading="lazy" onerror="moodImgFallback(this)" onclick="openMoodViewer(${img.id})">
       <div class="mood-card-foot">
         <div class="mood-label" style="padding:0">${escapeHtml(img.label)}</div>
         <div style="display:flex;gap:0.3rem;flex-shrink:0;">
@@ -6455,7 +6495,7 @@ function renderVenueGrid() {
   }
   el.innerHTML = VENUES.map((v, i) => `
     <div class="venue-tile" onclick="openVenueProfile(${i})">
-      <img class="venue-tile-photo" src="${escapeHtml(v.images[0] || '')}" alt="${escapeHtml(v.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
+      <img class="venue-tile-photo" src="${escapeHtml((v.thumbs && v.thumbs[0]) || v.images[0] || '')}" alt="${escapeHtml(v.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
       <div class="venue-tile-body">
         <div class="venue-tile-name">${escapeHtml(v.name)}</div>
         ${(v.score || v.score === 0) ? `<div class="venue-tile-score">★ ${escapeHtml(String(v.score))}</div>` : ''}
@@ -6484,7 +6524,7 @@ function renderArchivedGrid() {
     return `
     <div class="venue-tile" data-id="${escapeHtml(String(id))}" onclick="toggleArchivedSelect('${escapeHtml(String(id))}')">
       <div class="venue-tile-check">✓</div>
-      <img class="venue-tile-photo" src="${escapeHtml(v.images[0] || '')}" alt="${escapeHtml(v.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
+      <img class="venue-tile-photo" src="${escapeHtml((v.thumbs && v.thumbs[0]) || v.images[0] || '')}" alt="${escapeHtml(v.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
       <div class="venue-tile-body">
         <div class="venue-tile-name">${escapeHtml(v.name)}</div>
         ${(v.score || v.score === 0) ? `<div class="venue-tile-score">★ ${escapeHtml(String(v.score))}</div>` : ''}
@@ -7666,11 +7706,13 @@ function vfAddLocalTag(v) { vfAppend('vf-la-tags-list', `<input type="text" clas
 function vfAddPhoto(o) {
   o = o || {};
   const url = o.url || '';
+  const preview = o.thumb || url; // show the JPEG thumb in the form when we have one
   const thumb = url
-    ? `<div class="vf-photo-thumb"><img src="${vfEsc(url)}" alt="" onerror="vfPhotoThumbFail(this)"></div>`
+    ? `<div class="vf-photo-thumb"><img src="${vfEsc(preview)}" alt="" onerror="vfPhotoThumbFail(this)"></div>`
     : `<div class="vf-photo-thumb empty"></div>`;
   vfAppend('vf-photos-list',
-    `${thumb}<input type="text" class="vf-photo-url" placeholder="Image URL" value="${vfEsc(url)}" oninput="vfPhotoThumb(this)">` +
+    `${thumb}<input type="hidden" class="vf-photo-thumbval" value="${vfEsc(o.thumb || '')}">` +
+    `<input type="text" class="vf-photo-url" placeholder="Image URL" value="${vfEsc(url)}" oninput="vfPhotoThumb(this)">` +
     `<input type="text" class="vf-photo-cap" placeholder="Caption" value="${vfEsc(o.caption)}" style="flex:0.8">`);
 }
 // Live-update a photo row's thumbnail when its URL changes.
@@ -7712,7 +7754,7 @@ async function vfUploadPhoto(event) {
   const { ok, failed } = await uploadBatch(files, {
     bucket: VENUE_BUCKET,
     progress: (n, total) => { const btn = document.getElementById('vf-photo-upload-btn'); if (btn) btn.innerHTML = `<span class="mood-spinner"></span> Uploading ${n}/${total}…`; },
-    onSuccess: async (url) => { vfAddPhoto({ url, caption: '' }); },
+    onSuccess: async (url, file, thumbUrl) => { vfAddPhoto({ url, caption: '', thumb: thumbUrl }); },
   });
   batchReport('vf-photo-error', ok, failed);
   setSyncStatus(failed.length ? 'error' : 'ok', failed.length ? 'Some failed' : 'Live');
@@ -7883,6 +7925,7 @@ async function saveVenueForm() {
   const photos = [...document.querySelectorAll('#vf-photos-list .vf-row')].map(row => ({
     url:     row.querySelector('.vf-photo-url').value.trim(),
     caption: row.querySelector('.vf-photo-cap').value.trim(),
+    thumb:   (row.querySelector('.vf-photo-thumbval') ? row.querySelector('.vf-photo-thumbval').value.trim() : '') || null,
   })).filter(p => p.url);
 
   const laText = vfText('vf-la-text');
