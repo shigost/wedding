@@ -1262,6 +1262,44 @@ textarea.inline-edit { min-height: 56px; resize: vertical; line-height: 1.4; }
 .vv-ctrls { display: flex; gap: 0.3rem; flex-shrink: 0; }
 .vv-ctrl { min-width: 34px; min-height: 30px; background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 7px; cursor: pointer; font-size: 0.8rem; }
 .vv-ctrl:hover { border-color: var(--gold); color: var(--gold); }
+/* Continuous venue video player (story-bar) */
+.vplayer { border-radius: 12px; overflow: hidden; background: #000; }
+.vpl-segs { display: flex; gap: 3px; padding: 6px 6px 0; background: #000; }
+.vpl-seg { flex: 1; height: 3px; padding: 0; border: 0; background: rgba(255,255,255,0.28); border-radius: 2px; overflow: hidden; cursor: pointer; position: relative; }
+.vpl-seg-fill { position: absolute; inset: 0; width: 0%; background: #fff; border-radius: 2px; }
+.vpl-seg-fill.done { width: 100%; }
+.vpl-stage { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; display: block; border: 0; padding: 0; }
+.vpl-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vpl-tap { position: absolute; inset: 0 0 44px 0; background: transparent; border: 0; cursor: pointer; }
+.vpl-big { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 56px; height: 56px; border-radius: 50%; border: 0; background: rgba(0,0,0,0.5); color: #fff; font-size: 1.3rem; cursor: pointer; z-index: 2; }
+.vpl-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 44px; display: flex; align-items: center; gap: 0.5rem; padding: 0 0.6rem; background: linear-gradient(transparent, rgba(0,0,0,0.55)); z-index: 3; }
+.vpl-btn { background: none; border: 0; color: #fff; font-size: 1rem; cursor: pointer; min-width: 30px; }
+.vpl-scrub { flex: 1; accent-color: #fff; height: 3px; }
+.vpl-embeds-only { display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.vpl-embed-hint { color: #fff; font-size: 0.85rem; letter-spacing: 0.04em; }
+.vpl-caption { font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; min-height: 1em; }
+/* Video grid overlay */
+#vm-grid, #vm-embed { position: fixed; inset: 0; z-index: 1355; background: rgba(0,0,0,0.6); display: none; align-items: stretch; justify-content: center; }
+#vm-grid.open, #vm-embed.open { display: flex; }
+.vm-grid-sheet { background: var(--bg); width: 100%; max-width: 560px; display: flex; flex-direction: column; overflow: hidden; }
+@media (min-width: 561px) { #vm-grid { align-items: center; } .vm-grid-sheet { max-height: 90vh; border-radius: 16px; } }
+.vm-grid-body { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem; }
+@media (min-width: 480px) { .vm-grid-body { grid-template-columns: repeat(3, 1fr); } }
+.vm-tile { position: relative; cursor: pointer; }
+.vm-tile-crop { aspect-ratio: 16/9; border-radius: 10px; background: #14181f; }
+.vm-tile-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vm-tile-crop.vm-noposter .vm-tile-img { display: none; }
+.vm-tile-badge { position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.6rem; letter-spacing: 0.04em; padding: 2px 6px; border-radius: 6px; }
+.vm-tile-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.3rem; margin-top: 0.3rem; }
+.vm-tile-label { font-size: 0.68rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vm-tile-acts { display: flex; gap: 0.2rem; flex-shrink: 0; }
+.vm-tile-act { min-width: 28px; min-height: 26px; background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; cursor: pointer; font-size: 0.72rem; }
+.vm-tile-act:hover { border-color: var(--gold); color: var(--gold); }
+/* Embedded video overlay player */
+.vm-embed-sheet { position: relative; width: 100%; max-width: 900px; align-self: center; padding: 0 0.8rem; }
+.vm-embed-frame-wrap { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; }
+#vm-embed-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.vm-embed-close { position: absolute; top: -40px; right: 0.8rem; background: rgba(255,255,255,0.9); border: 0; border-radius: 50%; width: 32px; height: 32px; font-size: 0.9rem; cursor: pointer; }
 #lb-edit-btn { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(1.2rem, env(safe-area-inset-bottom)); z-index: 3; background: rgba(255,255,255,0.92); color: #1a2130; border: none; border-radius: 22px; padding: 0.7rem 1.6rem; font-size: 0.9rem; font-family: 'Jost', sans-serif; cursor: pointer; box-shadow: 0 3px 14px rgba(0,0,0,0.4); }
 #vp-edit-overlay { position: fixed; inset: 0; z-index: 1360; background: rgba(0,0,0,0.5); display: none; align-items: stretch; justify-content: center; }
 #vp-edit-overlay.open { display: flex; }
@@ -8259,7 +8297,7 @@ async function vfUploadVideo(event) {
     onProgress: (sent, total) => { const p = total ? Math.round(sent / total * 100) : 0; if (fill) fill.style.width = p + '%'; if (pct) pct.textContent = p + '%'; },
     onSuccess: () => {
       prog.hidden = true; if (btn) btn.disabled = false; setSyncStatus('ok', 'Live'); setTimeout(() => setSyncStatus('ok', 'Live'), 800);
-      vfAddVideo({ kind: 'upload', url: path, label: '', trim_start: 0, trim_end: null, poster_url: null, focal_x: 50, focal_y: 50, focal_zoom: 1, _localUrl: URL.createObjectURL(file) });
+      vfAddVideo({ kind: 'upload', url: path, label: '', trim_start: 0, trim_end: null, poster_url: null, focal_x: 50, focal_y: 50, focal_zoom: 1, captured_at: (file && file.lastModified) ? file.lastModified : null, _localUrl: URL.createObjectURL(file) });
     }
   });
   up.findPreviousUploads().then(prev => { if (prev && prev.length) up.resumeFromPreviousUpload(prev[0]); up.start(); }).catch(() => up.start());
@@ -8285,7 +8323,7 @@ function vfAddVideo(o) {
       + `<div class="vf-v-note">Trim, poster &amp; framing aren't available for embeds.</div>`);
   } else {
     vfAppend('vf-videos-list',
-      `<input type="hidden" class="vf-v-kind" value="upload"><input type="hidden" class="vf-v-url" value="${vfEsc(o.url || '')}"><input type="hidden" class="vf-v-ts" value="${o.trim_start == null ? 0 : o.trim_start}"><input type="hidden" class="vf-v-te" value="${o.trim_end == null ? '' : o.trim_end}"><input type="hidden" class="vf-v-poster" value="${vfEsc(o.poster_url || '')}"><input type="hidden" class="vf-v-fx" value="${o.focal_x == null ? 50 : o.focal_x}"><input type="hidden" class="vf-v-fy" value="${o.focal_y == null ? 50 : o.focal_y}"><input type="hidden" class="vf-v-zoom" value="${o.focal_zoom == null ? 1 : o.focal_zoom}"><input type="hidden" class="vf-v-local" value="${vfEsc(o._localUrl || '')}">`
+      `<input type="hidden" class="vf-v-kind" value="upload"><input type="hidden" class="vf-v-url" value="${vfEsc(o.url || '')}"><input type="hidden" class="vf-v-ts" value="${o.trim_start == null ? 0 : o.trim_start}"><input type="hidden" class="vf-v-te" value="${o.trim_end == null ? '' : o.trim_end}"><input type="hidden" class="vf-v-poster" value="${vfEsc(o.poster_url || '')}"><input type="hidden" class="vf-v-fx" value="${o.focal_x == null ? 50 : o.focal_x}"><input type="hidden" class="vf-v-fy" value="${o.focal_y == null ? 50 : o.focal_y}"><input type="hidden" class="vf-v-zoom" value="${o.focal_zoom == null ? 1 : o.focal_zoom}"><input type="hidden" class="vf-v-cap" value="${o.captured_at == null ? '' : o.captured_at}"><input type="hidden" class="vf-v-local" value="${vfEsc(o._localUrl || '')}">`
       + `<div class="vf-v-main"><span class="vf-v-badge vf-v-upload">Upload</span><input type="text" class="vf-v-label vf-item" placeholder="Label" value="${vfEsc(o.label || '')}"></div>`
       + `<div class="vf-v-actions"><button type="button" class="btn btn-secondary btn-sm" onclick="vvEditRow(this)">✎ Trim · poster · crop</button></div>`);
   }
@@ -8298,10 +8336,12 @@ function vfCollectVideos() {
     const label = (gv(r, '.vf-v-label') || '').trim();
     if (kind === 'embed') return { kind: 'embed', provider: gv(r, '.vf-v-provider'), video_id: gv(r, '.vf-v-id'), url: gv(r, '.vf-v-url'), label };
     const teRaw = gv(r, '.vf-v-te');
+    const capRaw = gv(r, '.vf-v-cap');
     return { kind: 'upload', url: gv(r, '.vf-v-url'), label,
       trim_start: num(r.querySelector('.vf-v-ts'), 0),
       trim_end: teRaw === '' ? null : (isNaN(Number(teRaw)) ? null : Number(teRaw)),
       poster_url: gv(r, '.vf-v-poster') || null,
+      captured_at: capRaw === '' ? null : (isNaN(Number(capRaw)) ? null : Number(capRaw)),
       focal_x: num(r.querySelector('.vf-v-fx'), 50), focal_y: num(r.querySelector('.vf-v-fy'), 50), focal_zoom: num(r.querySelector('.vf-v-zoom'), 1) };
   }).filter(v => v.url || v.video_id);
 }
@@ -8395,41 +8435,194 @@ async function vveSave() {
   vvCloseEditor();
 }
 
-// ── Profile render ──
+// ── Ordering: oldest-first by captured_at (file.lastModified), falling back
+//    to the 13-digit upload timestamp in the storage path, then to input order. ──
+function vmOrderKey(vid) {
+  if (vid && vid.captured_at != null && !isNaN(Number(vid.captured_at))) return Number(vid.captured_at);
+  const u = (vid && vid.url) || '';
+  const m = u.replace(/^.*\//, '').match(/^(\d{13})/); // videos/<Date.now()>-<rand>.<ext>
+  if (m) return Number(m[1]);
+  return Number.MAX_SAFE_INTEGER;
+}
+// Return [{vid, origIdx}] sorted oldest-first, stably (preserves index into v._row.videos).
+function vmSorted(vids) {
+  return (Array.isArray(vids) ? vids : []).map((vid, origIdx) => ({ vid, origIdx }))
+    .sort((a, b) => vmOrderKey(a.vid) - vmOrderKey(b.vid));
+}
+
+// ── Continuous single player (uploads rotate; embeds live only in the grid) ──
+let vplState = null;
 function venueVideosHtml(v) {
-  const vids = Array.isArray(v.videos) ? v.videos : [];
-  const items = vids.map((vid, i) => {
-    const foot = vid.kind === 'embed'
-      ? `<div class="vv-foot"><span class="vv-cap">${escapeHtml(vid.label || '')}</span><span class="vv-ctrls"><button class="vv-ctrl" onclick="vpVideoRemove(${i})" aria-label="Remove">🗑</button></span></div>`
-      : `<div class="vv-foot"><span class="vv-cap">${escapeHtml(vid.label || '')}</span><span class="vv-ctrls"><button class="vv-ctrl" onclick="vvEditProfile(${i})" aria-label="Trim, poster, framing">✎</button><button class="vv-ctrl" onclick="vpVideoRemove(${i})" aria-label="Remove">🗑</button></span></div>`;
-    if (vid.kind === 'embed') {
-      return `<div class="vv-item"><div class="vv-embed"><iframe src="${escapeHtml(videoEmbedSrc(vid.provider, vid.video_id))}" title="${escapeHtml(vid.label || 'Video')}" loading="lazy" frameborder="0" allow="fullscreen; picture-in-picture" allowfullscreen></iframe></div>${foot}</div>`;
-    }
-    return `<div class="vv-item"><div class="pcrop vv-frame" data-vvidx="${i}"><video class="vv-video" playsinline controls preload="metadata" controlsList="nodownload noremoteplayback" disablePictureInPicture></video></div>${foot}</div>`;
-  }).join('');
-  return `<div class="psec"><div class="psec-title vv-heading" onclick="vuToggle()">Walkthrough Videos <span class="vv-add-hint">＋ add</span></div>${vids.length ? `<div class="vv-list">${items}</div>` : `<div class="vv-empty">No videos yet — tap ＋ add here or the button up top.</div>`}</div>`;
+  const sorted = vmSorted(v.videos);
+  const uploads = sorted.filter(s => s.vid.kind !== 'embed');
+  const hasAny = sorted.length > 0;
+  if (!hasAny) {
+    return `<div class="psec"><div class="psec-title vv-heading" onclick="vuToggle()">Walkthrough Videos <span class="vv-add-hint">＋ add</span></div><div class="vv-empty">No videos yet — tap ＋ add here or the button up top.</div></div>`;
+  }
+  const segs = uploads.map((s, i) => `<button class="vpl-seg" onclick="vplSegJump(${i})" aria-label="Video ${i + 1}"><span class="vpl-seg-fill" data-seg="${i}"></span></button>`).join('');
+  const stage = uploads.length
+    ? `<div class="vpl-stage" id="vpl-stage">
+         <video class="vpl-video" id="vpl-video" playsinline preload="none" muted controlsList="nodownload noremoteplayback" disablePictureInPicture></video>
+         <button class="vpl-tap" id="vpl-tap" onclick="vplOpenGrid()" aria-label="Browse all videos"></button>
+         <button class="vpl-big" id="vpl-big" onclick="vplPlayToggle(event)" aria-label="Play">▶</button>
+         <div class="vpl-bar" id="vpl-bar">
+           <button class="vpl-btn" id="vpl-play" onclick="vplPlayToggle(event)" aria-label="Play/pause">▶</button>
+           <input type="range" class="vpl-scrub" id="vpl-scrub" min="0" max="1" step="0.01" value="0" oninput="vplScrub(this.value)">
+           <button class="vpl-btn" id="vpl-mute" onclick="vplMuteToggle(event)" aria-label="Mute/unmute">🔇</button>
+         </div>
+       </div>`
+    : `<button class="vpl-stage vpl-embeds-only" onclick="vplOpenGrid()"><span class="vpl-embed-hint">▶ Browse videos</span></button>`;
+  return `<div class="psec"><div class="psec-title vv-heading" onclick="vuToggle()">Walkthrough Videos <span class="vv-add-hint">＋ add</span></div>
+    <div class="vplayer">
+      ${uploads.length ? `<div class="vpl-segs" id="vpl-segs">${segs}</div>` : ''}
+      ${stage}
+    </div>
+    <div class="vpl-caption" id="vpl-caption"></div></div>`;
 }
 async function hydrateVenueVideos(v) {
-  if (!v.videos || !v.videos.length) return;
-  for (let i = 0; i < v.videos.length; i++) {
-    const vid = v.videos[i]; if (vid.kind === 'embed') continue;
-    const frame = document.querySelector(`.vv-frame[data-vvidx="${i}"]`); if (!frame) continue;
-    const el = frame.querySelector('video'); if (!el) continue;
-    let src = null, poster = null;
-    if (vid.url) { const { data } = await sb.storage.from(VVID_BUCKET).createSignedUrl(vid.url, 7200); src = data && data.signedUrl; }
-    if (vid.poster_url) { const { data } = await sb.storage.from(VVID_BUCKET).createSignedUrl(vid.poster_url, 7200); poster = data && data.signedUrl; }
-    if (poster) el.poster = poster;
-    applyFocal(el, vid);
-    if (src) {
-      const ts = Number(vid.trim_start) || 0;
-      const te = (vid.trim_end == null || vid.trim_end === '') ? null : Number(vid.trim_end);
-      el.addEventListener('loadedmetadata', () => { if (ts > 0) { try { el.currentTime = ts; } catch (e) {} } });
-      if (te != null) el.addEventListener('timeupdate', () => { if (el.currentTime >= te) el.pause(); });
-      el.addEventListener('play', () => { if (el.currentTime < ts || (te != null && el.currentTime >= te)) { try { el.currentTime = ts; } catch (e) {} } });
-      el.src = src;
+  vplState = null;
+  const sorted = vmSorted(v.videos);
+  const rotation = sorted.filter(s => s.vid.kind !== 'embed');
+  if (!rotation.length) return; // nothing to rotate (embeds-only or empty)
+  const el = document.getElementById('vpl-video'); if (!el) return;
+  vplState = { rotation, all: sorted, cur: 0, playing: false, muted: true, ts: 0, te: null, wasPlaying: false, io: null, seeking: false };
+  el.muted = true;
+  el.addEventListener('timeupdate', vplTick);
+  el.addEventListener('ended', () => vplNext());
+  el.addEventListener('play', () => { vplState.playing = true; vplSyncButtons(); });
+  el.addEventListener('pause', () => { if (!vplState.seeking) { vplState.playing = false; vplSyncButtons(); } });
+  // Pause when scrolled out of view; resume only if it had been playing.
+  const stage = document.getElementById('vpl-stage');
+  if (stage && 'IntersectionObserver' in window) {
+    vplState.io = new IntersectionObserver((entries) => {
+      const e = entries[0]; if (!e) return;
+      if (e.intersectionRatio < 0.5) { if (vplState.playing) { vplState.wasPlaying = true; el.pause(); } }
+      else if (vplState.wasPlaying) { vplState.wasPlaying = false; el.play().catch(() => {}); }
+    }, { threshold: [0, 0.5, 1] });
+    vplState.io.observe(stage);
+  }
+  await vplLoad(0, false);
+}
+async function vplLoad(i, autoplay) {
+  if (!vplState || !vplState.rotation.length) return;
+  vplState.cur = ((i % vplState.rotation.length) + vplState.rotation.length) % vplState.rotation.length;
+  const el = document.getElementById('vpl-video'); if (!el) return;
+  const vid = vplState.rotation[vplState.cur].vid;
+  vplState.ts = Number(vid.trim_start) || 0;
+  vplState.te = (vid.trim_end == null || vid.trim_end === '') ? null : Number(vid.trim_end);
+  applyFocal(el, vid);
+  const cap = document.getElementById('vpl-caption'); if (cap) cap.textContent = vid.label || '';
+  vplMarkSegments();
+  let src = null, poster = null;
+  if (vid.url) { const { data } = await sb.storage.from(VVID_BUCKET).createSignedUrl(vid.url, 7200); src = data && data.signedUrl; }
+  if (vid.poster_url) { const { data } = await sb.storage.from(VVID_BUCKET).createSignedUrl(vid.poster_url, 7200); poster = data && data.signedUrl; }
+  if (poster) el.poster = poster; else el.removeAttribute('poster');
+  if (!src) return;
+  el.preload = 'metadata';
+  const onMeta = () => {
+    const dur = el.duration || 0;
+    if (vplState.te == null || vplState.te > dur + 0.5) vplState.te = null;
+    try { el.currentTime = vplState.ts; } catch (e) {}
+    const scrub = document.getElementById('vpl-scrub');
+    if (scrub) { scrub.min = vplState.ts; scrub.max = (vplState.te == null ? dur : vplState.te) || (vplState.ts + 1); scrub.step = 0.05; scrub.value = vplState.ts; }
+    if (autoplay) el.play().catch(() => {});
+  };
+  el.addEventListener('loadedmetadata', onMeta, { once: true });
+  el.src = src;
+}
+function vplTick() {
+  if (!vplState) return;
+  const el = document.getElementById('vpl-video'); if (!el) return;
+  const end = vplState.te == null ? (el.duration || 0) : vplState.te;
+  if (end && el.currentTime >= end - 0.03) { vplNext(); return; }
+  const scrub = document.getElementById('vpl-scrub');
+  if (scrub && !vplState.seeking) scrub.value = el.currentTime;
+  const span = (end - vplState.ts) || 1;
+  const frac = Math.max(0, Math.min(1, (el.currentTime - vplState.ts) / span));
+  const fill = document.querySelector(`.vpl-seg-fill[data-seg="${vplState.cur}"]`);
+  if (fill) fill.style.width = (frac * 100) + '%';
+}
+function vplNext() { if (vplState) vplLoad(vplState.cur + 1, vplState.playing); }
+function vplMarkSegments() {
+  if (!vplState) return;
+  document.querySelectorAll('.vpl-seg-fill').forEach(f => {
+    const idx = Number(f.getAttribute('data-seg'));
+    f.style.width = idx < vplState.cur ? '100%' : (idx === vplState.cur ? '0%' : '0%');
+    f.classList.toggle('done', idx < vplState.cur);
+  });
+}
+function vplSyncButtons() {
+  const playing = vplState && vplState.playing;
+  const pb = document.getElementById('vpl-play'); if (pb) pb.textContent = playing ? '⏸' : '▶';
+  const big = document.getElementById('vpl-big'); if (big) big.hidden = !!playing;
+}
+function vplPlayToggle(e) { if (e) e.stopPropagation(); const el = document.getElementById('vpl-video'); if (!el) return; if (el.paused) el.play().catch(() => {}); else el.pause(); }
+function vplMuteToggle(e) { if (e) e.stopPropagation(); const el = document.getElementById('vpl-video'); if (!el || !vplState) return; vplState.muted = !vplState.muted; el.muted = vplState.muted; const mb = document.getElementById('vpl-mute'); if (mb) mb.textContent = vplState.muted ? '🔇' : '🔊'; }
+function vplScrub(val) {
+  const el = document.getElementById('vpl-video'); if (!el || !vplState) return;
+  vplState.seeking = true;
+  let t = Number(val);
+  const end = vplState.te == null ? (el.duration || 0) : vplState.te;
+  t = Math.max(vplState.ts, Math.min(t, end || t));
+  try { el.currentTime = t; } catch (e) {}
+  clearTimeout(vplState._seekT); vplState._seekT = setTimeout(() => { vplState.seeking = false; }, 250);
+}
+function vplSegJump(i) { if (vplState) vplLoad(i, vplState.playing || true); }
+
+// ── Grid overlay: ALL videos (posters), tap upload → jump+play, embed → own player ──
+async function vplOpenGrid() {
+  const v = VENUES[currentIdx]; if (!v || !v._row) return;
+  const sorted = vmSorted(v._row.videos);
+  const body = document.getElementById('vm-grid-body'); if (!body) return;
+  body.innerHTML = sorted.map(({ vid, origIdx }) => {
+    const isEmbed = vid.kind === 'embed';
+    const badge = isEmbed ? (vid.provider === 'vimeo' ? 'Vimeo' : 'YouTube') : '▶';
+    const edit = isEmbed ? '' : `<button class="vm-tile-act" onclick="event.stopPropagation();vvEditProfile(${origIdx})" aria-label="Edit">✎</button>`;
+    return `<div class="vm-tile" onclick="vmGridPick(${origIdx})">
+      <div class="pcrop vm-tile-crop"><img class="vm-tile-img" data-oi="${origIdx}" alt=""></div>
+      <span class="vm-tile-badge">${badge}</span>
+      <div class="vm-tile-foot"><span class="vm-tile-label">${escapeHtml(vid.label || (isEmbed ? 'Embedded video' : 'Walkthrough'))}</span>
+        <span class="vm-tile-acts">${edit}<button class="vm-tile-act" onclick="event.stopPropagation();vpVideoRemove(${origIdx})" aria-label="Remove">🗑</button></span></div>
+    </div>`;
+  }).join('');
+  document.getElementById('vm-grid').classList.add('open');
+  lockBackgroundScroll();
+  document.addEventListener('keydown', vmGridKey);
+  // Lazily resolve posters.
+  for (const { vid, origIdx } of sorted) {
+    const img = body.querySelector(`.vm-tile-img[data-oi="${origIdx}"]`); if (!img) continue;
+    if (vid.kind === 'embed') {
+      if (vid.provider === 'youtube' && vid.video_id) { img.src = `https://img.youtube.com/vi/${vid.video_id}/hqdefault.jpg`; }
+      else { img.closest('.vm-tile-crop').classList.add('vm-noposter'); }
+      continue;
     }
+    applyFocal(img, vid);
+    if (vid.poster_url) { const { data } = await sb.storage.from(VVID_BUCKET).createSignedUrl(vid.poster_url, 7200); if (data && data.signedUrl) img.src = data.signedUrl; else img.closest('.vm-tile-crop').classList.add('vm-noposter'); }
+    else img.closest('.vm-tile-crop').classList.add('vm-noposter');
   }
 }
+function vmGridClose() { const g = document.getElementById('vm-grid'); if (g) g.classList.remove('open'); unlockBackgroundScroll(); document.removeEventListener('keydown', vmGridKey); }
+function vmGridKey(e) { if (e.key === 'Escape') vmGridClose(); }
+function vmGridPick(origIdx) {
+  const v = VENUES[currentIdx]; if (!v || !v._row) return;
+  const vid = (v._row.videos || [])[origIdx]; if (!vid) return;
+  if (vid.kind === 'embed') { vmEmbedOpen(origIdx); return; }
+  vmGridClose();
+  if (vplState) { const ri = vplState.rotation.findIndex(r => r.origIdx === origIdx); if (ri >= 0) vplLoad(ri, true); }
+}
+function vmEmbedOpen(origIdx) {
+  const v = VENUES[currentIdx]; if (!v || !v._row) return;
+  const vid = (v._row.videos || [])[origIdx]; if (!vid || vid.kind !== 'embed') return;
+  const frame = document.getElementById('vm-embed-frame');
+  if (frame) frame.src = videoEmbedSrc(vid.provider, vid.video_id);
+  document.getElementById('vm-embed').classList.add('open');
+  lockBackgroundScroll();
+  document.addEventListener('keydown', vmEmbedKey);
+}
+function vmEmbedClose() { const f = document.getElementById('vm-embed-frame'); if (f) f.src = ''; const o = document.getElementById('vm-embed'); if (o) o.classList.remove('open'); if (!document.getElementById('vm-grid').classList.contains('open')) unlockBackgroundScroll(); document.removeEventListener('keydown', vmEmbedKey); }
+function vmEmbedKey(e) { if (e.key === 'Escape') vmEmbedClose(); }
+window.vplPlayToggle = vplPlayToggle; window.vplMuteToggle = vplMuteToggle; window.vplScrub = vplScrub; window.vplSegJump = vplSegJump; window.vplOpenGrid = vplOpenGrid;
+window.vmGridClose = vmGridClose; window.vmGridPick = vmGridPick; window.vmEmbedOpen = vmEmbedOpen; window.vmEmbedClose = vmEmbedClose;
 // ── In-place upload panel on the venue profile (photos + videos, one place) ──
 let vuOpen = false, vuLinksOpen = false, vuReport = '';
 function venueUploadPanelHtml() {
@@ -8504,7 +8697,7 @@ async function vuPickFiles(event) {
     vuProg(i + 1, files.length, f.name, isVideo ? 'video' : 'photo', 0);
     if (isVideo) {
       if (f.size > VIDEO_MAX_BYTES) { failed.push({ name: f.name, reason: 'over 500MB' }); continue; }
-      try { const path = await vuUploadVideoResumable(f, p => vuProg(i + 1, files.length, f.name, 'video', p)); videos.push({ kind: 'upload', url: path, label: '', trim_start: 0, trim_end: null, poster_url: null, focal_x: 50, focal_y: 50, focal_zoom: 1 }); okV++; }
+      try { const path = await vuUploadVideoResumable(f, p => vuProg(i + 1, files.length, f.name, 'video', p)); videos.push({ kind: 'upload', url: path, label: '', trim_start: 0, trim_end: null, poster_url: null, focal_x: 50, focal_y: 50, focal_zoom: 1, captured_at: (f && f.lastModified) ? f.lastModified : null }); okV++; }
       catch (e) { console.error('video upload', e); failed.push({ name: f.name, reason: 'video upload failed' }); }
     } else if (isImage) {
       if (f.size > MAX_UPLOAD_BYTES) { failed.push({ name: f.name, reason: 'over 50MB' }); continue; }
@@ -8544,6 +8737,7 @@ async function vuAddEmbed() {
 // ── Per-item edit from the profile: video trim/poster (inline) + remove ──
 async function vvEditProfile(idx) {
   const v = VENUES[currentIdx]; if (!v || !v._row) return;
+  const g = document.getElementById('vm-grid'); if (g && g.classList.contains('open')) vmGridClose();
   const vidObj = (v._row.videos || [])[idx]; if (!vidObj || vidObj.kind === 'embed') return;
   let src = null; if (vidObj.url) { const { data } = await sb.storage.from(VVID_BUCKET).createSignedUrl(vidObj.url, 3600); src = data && data.signedUrl; }
   if (!src) { alert('Could not load the video for editing.'); return; }
@@ -8555,6 +8749,7 @@ async function vvEditProfile(idx) {
 }
 async function vpVideoRemove(idx) {
   if (!confirm('Remove this video? The Storage file is kept.')) return;
+  const g = document.getElementById('vm-grid'); if (g && g.classList.contains('open')) vmGridClose();
   const v = VENUES[currentIdx]; if (!v || !v._row) return;
   const videos = (Array.isArray(v._row.videos) ? v._row.videos : []).slice(); videos.splice(idx, 1);
   await dbUpdate('venues', v._row.id, { videos }); applyVenueRows(await dbLoad('venues')); buildNav(); venueRenderProfile(currentIdx);
@@ -9166,6 +9361,21 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
       <div class="sce-actions"><button type="button" class="btn btn-secondary" onclick="vpEditClose()">Cancel</button><button type="button" class="btn btn-primary" onclick="vpEditSave()">Save</button></div>
     </div>
+  </div>
+</div>
+
+<!-- Venue video grid: all videos as posters; tap an upload to play it, an embed opens its own player -->
+<div id="vm-grid" onclick="if(event.target===this)vmGridClose()">
+  <div class="vm-grid-sheet">
+    <div class="sce-head"><span class="sce-title">All videos</span><button class="sce-close" onclick="vmGridClose()" aria-label="Close">✕</button></div>
+    <div class="sce-body"><div id="vm-grid-body" class="vm-grid-body"></div></div>
+  </div>
+</div>
+<!-- Embedded (YouTube/Vimeo) player overlay — embeds never join the rotation -->
+<div id="vm-embed" onclick="if(event.target===this)vmEmbedClose()">
+  <div class="vm-embed-sheet">
+    <button class="vm-embed-close" onclick="vmEmbedClose()" aria-label="Close">✕</button>
+    <div class="vm-embed-frame-wrap"><iframe id="vm-embed-frame" title="Video" frameborder="0" allow="fullscreen; picture-in-picture" allowfullscreen></iframe></div>
   </div>
 </div>
 
