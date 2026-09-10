@@ -538,6 +538,43 @@ textarea.inline-edit { min-height: 56px; resize: vertical; line-height: 1.4; }
 /* Mood card: action controls hidden until the ⋯ toggle */
 .mood-more { position: absolute; top: 0.4rem; right: 0.4rem; width: 30px; height: 30px; border-radius: 50%; border: none; background: rgba(0,0,0,0.45); color: #fff; font-size: 1rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
 .mood-more:hover { background: rgba(0,0,0,0.65); }
+
+/* ── Mood board redesign: hero, toolbar, tools, selection, sheets ── */
+#mood-hero { position: relative; }
+#mood-hero .theme-hero-banner { cursor: pointer; }
+.mood-hero-empty { display: flex; flex-direction: column; gap: 0.6rem; align-items: flex-start; padding: 1.2rem; background: var(--header-gradient); border-bottom: 1px solid var(--border); }
+.mhe-title { font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 1.6rem; color: var(--gold); }
+.mhe-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.mood-tb { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+.mood-tb-btn { min-height: 40px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-size: 0.72rem; letter-spacing: 0.04em; padding: 0.5rem 0.9rem; border-radius: 10px; cursor: pointer; font-family: 'Jost', sans-serif; }
+.mood-tb-btn:hover:not([disabled]) { border-color: var(--gold); color: var(--gold); }
+.mood-tb-btn[disabled] { opacity: 0.4; cursor: default; }
+.mood-tb-add { font-size: 1.1rem; line-height: 1; width: 44px; padding: 0; display: flex; align-items: center; justify-content: center; }
+.mood-tb-add.on { background: var(--gold-pale); color: var(--gold); border-color: var(--gold); }
+.mood-tb-primary { background: var(--gold-pale); color: var(--gold); border-color: var(--gold); }
+.mood-tb-link { margin-left: auto; background: none; border: none; color: var(--muted); font-size: 0.68rem; text-decoration: underline; cursor: pointer; }
+.mood-tb-sel { position: sticky; top: 0; z-index: 5; background: var(--bg); }
+.mood-sel-count { font-size: 0.72rem; color: var(--muted); font-weight: 600; margin-right: auto; }
+#mood-tools { margin-bottom: 0.9rem; }
+.mood-add-panel { margin-top: 0.7rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.mood-add-panel #mood-label { font-size: 16px; padding: 0.55rem 0.65rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); }
+.mood-url-toggle { align-self: flex-start; }
+.mood-card.selectable { cursor: pointer; position: relative; }
+.mood-card.selectable .mood-img { pointer-events: none; }
+.mood-card.selectable.selected { outline: 3px solid var(--gold); outline-offset: -3px; }
+.mood-card.selectable.selected .mood-img { opacity: 0.82; }
+.mood-check { position: absolute; top: 0.5rem; right: 0.5rem; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; background: rgba(0,0,0,0.35); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+.mood-card.selectable.selected .mood-check { background: var(--gold); }
+#ml-edit-btn { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(1.2rem, env(safe-area-inset-bottom)); z-index: 2; background: rgba(255,255,255,0.92); color: #1a2130; border: none; border-radius: 22px; padding: 0.7rem 1.6rem; font-size: 0.9rem; font-family: 'Jost', sans-serif; cursor: pointer; box-shadow: 0 3px 14px rgba(0,0,0,0.4); }
+#mood-theme-overlay, #mood-edit-overlay, #mood-tag-overlay { position: fixed; inset: 0; z-index: 1300; background: rgba(0,0,0,0.5); display: none; align-items: stretch; justify-content: center; }
+#mood-theme-overlay.open, #mood-edit-overlay.open, #mood-tag-overlay.open { display: flex; }
+.mt-sheet, .me-sheet { background: var(--bg); width: 100%; max-width: 460px; display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: contain; }
+@media (min-width: 461px) { #mood-theme-overlay, #mood-edit-overlay, #mood-tag-overlay { align-items: center; } .mt-sheet, .me-sheet { max-height: 92vh; border-radius: 16px; } }
+.mt-block { margin-bottom: 1rem; }
+.mt-lbl { font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 0.4rem; }
+.me-thumb-wrap { max-width: 220px; margin: 0 auto 0.8rem; border-radius: 10px; }
+.me-actions { display: flex; gap: 0.5rem; margin-top: 0.9rem; }
+.me-actions .btn { flex: 1; }
 .sc-textarea { min-height: 72px; resize: vertical; }
 .sc-foot { margin-top: 0.6rem; font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted-light); }
 
@@ -3288,60 +3325,40 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
 
   <!-- MOOD BOARD -->
   <div class="page" id="page-moodboard">
-    <img id="mood-hero-img" class="theme-hero-banner" alt="" hidden>
-    <div class="page-header">
-      <div class="page-title">Mood Board</div>
-      <div class="page-sub" id="mood-sub">Vision · Palette · Aesthetic</div>
+    <div id="mood-hero" onclick="moodOpenThemePanel()">
+      <img id="mood-hero-img" class="theme-hero-banner" alt="" hidden>
+      <div id="mood-hero-empty" class="mood-hero-empty">
+        <div class="mhe-title">Mood Board</div>
+        <div class="mhe-actions">
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();moodSetCover()">＋ Set cover photo</button>
+          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();moodOpenThemePanel()">Theme details</button>
+        </div>
+      </div>
+      <input type="file" id="mood-cover-file" accept="image/*" style="display:none" onchange="onThemeImageFile(document.body.getAttribute('data-theme'), event)">
     </div>
     <div class="page-body">
-
-      <!-- Theme palette & vibe — dynamic per theme -->
-      <div class="card" id="mood-palette-card">
-        <div class="card-title">Wedding Colour Palette</div>
-        <div id="mood-palette-swatches" class="mood-palette"></div>
-      </div>
-
-      <div class="card" id="mood-vibe-card">
-        <div class="card-title">Vibe Words</div>
-        <div id="mood-vibe-pills" style="display:flex;flex-wrap:wrap;gap:0.5rem;"></div>
-      </div>
-
-      <!-- Theme description card -->
-      <div class="card" id="mood-theme-card">
-        <div class="card-title">Current Theme</div>
-        <div id="mood-theme-desc" style="font-size:0.85rem;line-height:1.8;color:var(--muted);"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Add Inspiration Image</div>
-        <div class="form-row">
-          <label>Label (optional)</label>
-          <input type="text" id="mood-label" placeholder="e.g. Ceremony inspo · Florals · Dress">
-        </div>
-        <input type="file" id="mood-file" accept="image/*" multiple style="display:none" onchange="uploadMoodImage(event)">
-        <button class="btn btn-primary mood-upload-btn" id="mood-upload-btn" onclick="document.getElementById('mood-file').click()">
-          <span id="mood-upload-label">📷 Upload from device</span>
-        </button>
-        <div class="mood-or"><span>or</span></div>
-        <div class="mood-url-row">
-          <input type="text" id="mood-url" placeholder="Paste image URL…" onkeydown="if(event.key==='Enter')addMoodImage()">
-          <button class="btn btn-secondary" id="mood-url-btn" onclick="addMoodImage()">Add</button>
-        </div>
-        <div class="form-row" style="margin-top:0.7rem;margin-bottom:0">
-          <label>Tag themes (optional)</label>
-          <div class="mood-theme-picker" id="mood-add-themes"></div>
-        </div>
-        <div class="mood-error" id="mood-upload-error"></div>
-      </div>
-
-      <div class="mood-filterbar" id="mood-filterbar"></div>
-
-      <div class="mood-grid" id="mood-grid">
-        <div class="empty-state" style="grid-column:1/-1">
-          <div class="empty-icon">◉</div>
-          <div class="empty-text">Add images above to build your mood board.</div>
+      <div id="mood-toolbar"></div>
+      <div id="mood-tools" hidden>
+        <div class="mood-filterbar" id="mood-filterbar"></div>
+        <div class="mood-add-panel">
+          <input type="text" id="mood-label" placeholder="Label (optional)">
+          <input type="file" id="mood-file" accept="image/*" multiple style="display:none" onchange="uploadMoodImage(event)">
+          <button class="btn btn-primary mood-upload-btn" id="mood-upload-btn" onclick="document.getElementById('mood-file').click()"><span id="mood-upload-label">Upload</span></button>
+          <button class="btn btn-secondary mood-url-toggle" onclick="moodUrlToggle()">Paste image URL</button>
+          <div id="mood-url-section" hidden>
+            <div class="mood-url-row">
+              <input type="text" id="mood-url" placeholder="Paste image URL…" onkeydown="if(event.key==='Enter')addMoodImage()">
+              <button class="btn btn-secondary" id="mood-url-btn" onclick="addMoodImage()">Add</button>
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:0.7rem;margin-bottom:0">
+            <label>Tag themes (optional)</label>
+            <div class="mood-theme-picker" id="mood-add-themes"></div>
+          </div>
+          <div class="mood-error" id="mood-upload-error"></div>
         </div>
       </div>
+      <div class="mood-grid" id="mood-grid"></div>
     </div>
   </div>
 
@@ -4929,6 +4946,7 @@ function applyThemeHeroImage(key){
     if(url){ el.onerror = () => { el.hidden = true; }; el.src = url; el.hidden = false; }
     else { el.removeAttribute('src'); el.hidden = true; }
   });
+  const me = document.getElementById('mood-hero-empty'); if (me) me.hidden = !!url; // placeholder shows only when no cover
 }
 
 // ── persistence: DB is source of truth; localStorage caches for instant apply ──
@@ -6178,18 +6196,9 @@ async function addMoodImage() {
 
 async function removeMoodImage(id) {
   if (!confirm('Remove this image?')) return;
-  const img = moodImages.find(x => x.id === id);
-  await dbDelete('mood_images', id);
+  await dbDelete('mood_images', id); // no storage.remove — the file is never hard-deleted
   moodImages = moodImages.filter(x => x.id !== id);
   renderMoodBoard();
-  // If it was an upload to our bucket, delete the Storage file too.
-  const path = img && storagePathFromUrl(img.url);
-  if (path) {
-    try {
-      const { error } = await sb.storage.from(MOOD_BUCKET).remove([path]);
-      if (error) console.error('storage remove error', error);
-    } catch(e) { console.error('storage remove error', e); }
-  }
 }
 
 // Inline edit (full-width): label + theme tags.
@@ -6308,9 +6317,123 @@ function vfAdjustPhoto(btn) {
 }
 window.closeCropEditor = closeCropEditor; window.cropSetShape = cropSetShape; window.cropZoom = cropZoom; window.cropReset = cropReset; window.cropSave = cropSave;
 window.cropDown = cropDown; window.cropMove = cropMove; window.cropUp = cropUp; window.moodAdjust = moodAdjust; window.vfAdjustPhoto = vfAdjustPhoto;
-const moodOpen = new Set(); // mood cards showing their action controls
-function moodToggle(id) { if (moodOpen.has(id)) moodOpen.delete(id); else moodOpen.add(id); renderMoodBoard(); }
-window.moodToggle = moodToggle;
+// ── Mood board: selection mode, archive, theme panel, per-photo edit ──
+let moodSelect = false;      // batch selection mode
+let moodArchiveView = false; // viewing archived photos
+const moodSel = new Set();   // selected photo ids
+let mlCurrentId = null;      // photo currently open in the lightbox
+
+function moodCurrentList() {
+  return moodArchiveView ? moodImages.filter(x => x.archived) : moodImages.filter(x => !x.archived && moodVisible(x));
+}
+function moodToolsToggle() { const t = document.getElementById('mood-tools'); if (t) t.hidden = !t.hidden; renderMoodToolbar(); }
+function moodUrlToggle() { const s = document.getElementById('mood-url-section'); if (s) s.hidden = !s.hidden; }
+function moodEnterSelect() { moodSelect = true; moodSel.clear(); const t = document.getElementById('mood-tools'); if (t) t.hidden = true; renderMoodBoard(); }
+function moodExitSelect() { moodSelect = false; moodSel.clear(); renderMoodBoard(); }
+function moodOpenArchive() { moodArchiveView = true; moodSel.clear(); const t = document.getElementById('mood-tools'); if (t) t.hidden = true; renderMoodBoard(); }
+function moodCloseArchive() { moodArchiveView = false; moodSel.clear(); renderMoodBoard(); }
+function moodToggleSel(id) { if (moodSel.has(id)) moodSel.delete(id); else moodSel.add(id); renderMoodBoard(); }
+function moodSelectAll() { moodCurrentList().forEach(x => moodSel.add(x.id)); renderMoodBoard(); }
+function moodDeselectAll() { moodSel.clear(); renderMoodBoard(); }
+async function moodArchiveSelected() {
+  if (!moodSel.size) return;
+  for (const id of [...moodSel]) { const img = moodImages.find(x => x.id === id); if (img) { img.archived = true; await dbUpdate('mood_images', id, { archived: true }); } }
+  moodExitSelect();
+}
+async function moodUnarchiveSelected() {
+  if (!moodSel.size) return;
+  for (const id of [...moodSel]) { const img = moodImages.find(x => x.id === id); if (img) { img.archived = false; await dbUpdate('mood_images', id, { archived: false }); } }
+  moodSel.clear();
+  if (!moodImages.some(x => x.archived)) moodArchiveView = false;
+  renderMoodBoard();
+}
+function moodTagSelected() { if (!moodSel.size) return; document.getElementById('mood-tag-picker').innerHTML = moodThemePickerHtml([]); document.getElementById('mood-tag-overlay').classList.add('open'); lockBackgroundScroll(); }
+function moodCloseTagSheet() { document.getElementById('mood-tag-overlay').classList.remove('open'); unlockBackgroundScroll(); }
+async function moodApplyTags() {
+  const add = collectMoodThemes(document.getElementById('mood-tag-picker'));
+  if (add.length) {
+    for (const id of [...moodSel]) {
+      const img = moodImages.find(x => x.id === id); if (!img) continue;
+      const merged = [...new Set([...(Array.isArray(img.themes) ? img.themes : []), ...add])];
+      img.themes = merged;
+      await dbUpdate('mood_images', id, { themes: merged });
+    }
+  }
+  moodCloseTagSheet();
+  moodExitSelect();
+}
+// Theme panel (palette / vibe / description) — opened by tapping the hero.
+function moodOpenThemePanel() { renderMoodTheme(); document.getElementById('mood-theme-overlay').classList.add('open'); lockBackgroundScroll(); document.addEventListener('keydown', moodThemeKey); }
+function moodCloseThemePanel() { document.getElementById('mood-theme-overlay').classList.remove('open'); unlockBackgroundScroll(); document.removeEventListener('keydown', moodThemeKey); }
+function moodThemeKey(e) { if (e.key === 'Escape') moodCloseThemePanel(); }
+function moodSetCover() { const f = document.getElementById('mood-cover-file'); if (f) f.click(); }
+// Single-photo edit view (from the lightbox ✎ Edit).
+function moodOpenEdit(e) {
+  if (e) e.stopPropagation();
+  const img = moodImages.find(x => x.id === mlCurrentId); if (!img) return;
+  const th = document.getElementById('me-thumb'); th.src = img.thumb_url || img.url; applyFocal(th, img);
+  document.getElementById('me-label').value = img.label || '';
+  document.getElementById('me-themes').innerHTML = moodThemePickerHtml(img.themes);
+  document.getElementById('mood-edit-overlay').classList.add('open');
+  lockBackgroundScroll();
+  document.addEventListener('keydown', moodEditKey);
+}
+function moodCloseEdit() { document.getElementById('mood-edit-overlay').classList.remove('open'); unlockBackgroundScroll(); document.removeEventListener('keydown', moodEditKey); }
+function moodEditKey(e) { if (e.key === 'Escape') moodCloseEdit(); }
+async function moodEditSave() {
+  const img = moodImages.find(x => x.id === mlCurrentId); if (!img) return;
+  const label = document.getElementById('me-label').value.trim();
+  const themes = collectMoodThemes(document.getElementById('me-themes'));
+  img.label = label || 'Inspo'; img.themes = themes;
+  await dbUpdate('mood_images', img.id, { label: img.label, themes });
+  renderMoodBoard();
+  moodCloseEdit();
+}
+function moodEditAdjust() { if (mlCurrentId != null) moodAdjust(mlCurrentId); }
+async function moodEditDelete() {
+  const img = moodImages.find(x => x.id === mlCurrentId); if (!img) return;
+  if (!confirm('Delete this photo? The entry is removed but the Storage file is kept.')) return;
+  const id = img.id;
+  await dbDelete('mood_images', id);   // no storage.remove — files are never hard-deleted
+  moodImages = moodImages.filter(x => x.id !== id);
+  moodCloseEdit();
+  closeMoodViewer();
+  renderMoodBoard();
+}
+function renderMoodToolbar() {
+  const tb = document.getElementById('mood-toolbar'); if (!tb) return;
+  if (moodArchiveView) {
+    tb.innerHTML = `<div class="mood-tb mood-tb-sel">
+      <span class="mood-sel-count">Archived · ${moodSel.size} selected</span>
+      <button class="mood-tb-btn" onclick="moodSelectAll()">All</button>
+      <button class="mood-tb-btn" onclick="moodDeselectAll()">None</button>
+      <button class="mood-tb-btn mood-tb-primary" onclick="moodUnarchiveSelected()"${moodSel.size ? '' : ' disabled'}>↩ Unarchive</button>
+      <button class="mood-tb-btn" onclick="moodCloseArchive()">Done</button></div>`;
+  } else if (moodSelect) {
+    tb.innerHTML = `<div class="mood-tb mood-tb-sel">
+      <span class="mood-sel-count">${moodSel.size} selected</span>
+      <button class="mood-tb-btn" onclick="moodSelectAll()">All</button>
+      <button class="mood-tb-btn" onclick="moodDeselectAll()">None</button>
+      <button class="mood-tb-btn" onclick="moodTagSelected()"${moodSel.size ? '' : ' disabled'}>Tag</button>
+      <button class="mood-tb-btn" onclick="moodArchiveSelected()"${moodSel.size ? '' : ' disabled'}>Archive</button>
+      <button class="mood-tb-btn" onclick="moodExitSelect()">Done</button></div>`;
+  } else {
+    const archived = moodImages.filter(x => x.archived).length;
+    const toolsOpen = !document.getElementById('mood-tools').hidden;
+    tb.innerHTML = `<div class="mood-tb">
+      <button class="mood-tb-btn mood-tb-add${toolsOpen ? ' on' : ''}" onclick="moodToolsToggle()" aria-label="Add photos and filters">＋</button>
+      <button class="mood-tb-btn" onclick="moodEnterSelect()">Edit gallery</button>
+      ${archived ? `<button class="mood-tb-link" onclick="moodOpenArchive()">Archived (${archived})</button>` : ''}</div>`;
+  }
+}
+window.moodToolsToggle = moodToolsToggle; window.moodUrlToggle = moodUrlToggle;
+window.moodEnterSelect = moodEnterSelect; window.moodExitSelect = moodExitSelect;
+window.moodOpenArchive = moodOpenArchive; window.moodCloseArchive = moodCloseArchive;
+window.moodToggleSel = moodToggleSel; window.moodSelectAll = moodSelectAll; window.moodDeselectAll = moodDeselectAll;
+window.moodArchiveSelected = moodArchiveSelected; window.moodUnarchiveSelected = moodUnarchiveSelected;
+window.moodTagSelected = moodTagSelected; window.moodCloseTagSheet = moodCloseTagSheet; window.moodApplyTags = moodApplyTags;
+window.moodOpenThemePanel = moodOpenThemePanel; window.moodCloseThemePanel = moodCloseThemePanel; window.moodSetCover = moodSetCover;
+window.moodOpenEdit = moodOpenEdit; window.moodCloseEdit = moodCloseEdit; window.moodEditSave = moodEditSave; window.moodEditAdjust = moodEditAdjust; window.moodEditDelete = moodEditDelete;
 
 function renderMoodBoard() {
   const grid = document.getElementById('mood-grid');
@@ -6319,36 +6442,30 @@ function renderMoodBoard() {
   const addPicker = document.getElementById('mood-add-themes');
   if (addPicker && !addPicker.children.length) addPicker.innerHTML = moodThemePickerHtml([]);
   renderMoodFilterBar();
+  renderMoodToolbar();
 
-  if (moodImages.length === 0) {
-    grid.innerHTML = `
-      <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◉</div>
-      <div class="empty-text">Add images above to build your mood board.</div></div>`;
+  const selecting = moodSelect || moodArchiveView;
+  const list = moodCurrentList();
+  if (moodArchiveView && list.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🗄</div><div class="empty-text">No archived photos.</div></div>`;
     return;
   }
-  const visible = moodImages.filter(moodVisible);
-  if (visible.length === 0) {
-    grid.innerHTML = `
-      <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◉</div>
-      <div class="empty-text">No images match the current filters.<br>Tap “All” above to see everything.</div></div>`;
+  if (!moodArchiveView && moodImages.filter(x => !x.archived).length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◉</div><div class="empty-text">No photos yet. Tap ＋ to add inspiration.</div></div>`;
     return;
   }
-  grid.innerHTML = visible.map(img => `
-    <div class="mood-card${moodOpen.has(img.id) ? ' expanded' : ''}" id="mood-card-${img.id}">
-      <div class="pcrop pcrop-43">
-        <img class="mood-img" src="${escapeHtml(img.thumb_url || img.url)}" style="${focalStyle(img)}" alt="${escapeHtml(img.label)}" loading="lazy" onerror="moodImgFallback(this)" onclick="openMoodViewer(${img.id})">
-        <button class="mood-more" onclick="event.stopPropagation();moodToggle(${img.id})" aria-label="Photo actions">${moodOpen.has(img.id) ? '×' : '⋯'}</button>
-      </div>
-      <div class="mood-card-foot">
-        <div class="mood-label" style="padding:0">${escapeHtml(img.label)}</div>
-        ${moodOpen.has(img.id) ? `<div style="display:flex;gap:0.3rem;flex-shrink:0;">
-          <button class="btn btn-secondary mood-adjust-btn" onclick="moodAdjust(${img.id})" aria-label="Adjust crop">⛶</button>
-          <button class="btn btn-secondary mood-edit-btn" onclick="startEditMoodImage(${img.id})" aria-label="Edit label and tags">✎</button>
-          <button class="btn btn-danger mood-del" onclick="removeMoodImage(${img.id})" aria-label="Delete image">✕</button>
-        </div>` : ''}
-      </div>
-    </div>
-  `).join('');
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">◉</div><div class="empty-text">No photos match the current filters.<br>Open ＋ and tap “All” to see everything.</div></div>`;
+    return;
+  }
+  grid.innerHTML = list.map(img => {
+    const inner = `<div class="pcrop pcrop-43"><img class="mood-img" src="${escapeHtml(img.thumb_url || img.url)}" style="${focalStyle(img)}" alt="${escapeHtml(img.label || '')}" loading="lazy" onerror="moodImgFallback(this)"${selecting ? '' : ` onclick="openMoodViewer(${img.id})"`}></div>`;
+    if (selecting) {
+      const on = moodSel.has(img.id);
+      return `<div class="mood-card selectable${on ? ' selected' : ''}" onclick="moodToggleSel(${img.id})">${inner}<div class="mood-check">${on ? '✓' : ''}</div></div>`;
+    }
+    return `<div class="mood-card" id="mood-card-${img.id}">${inner}</div>`;
+  }).join('');
 }
 
 // ── MOOD IMAGE VIEWER (lightbox with zoom/pan) ──────────────
@@ -6403,16 +6520,11 @@ function mlResetZoom() { ml = { scale: 1, tx: 0, ty: 0 }; mlApply(); }
 function openMoodViewer(id) {
   const item = moodImages.find(x => x.id === id);
   if (!item) return;
+  mlCurrentId = id;
   const box = document.getElementById('mood-lightbox');
   const img = document.getElementById('ml-img');
   mlResetZoom();
-  img.src = item.url;
-  document.getElementById('ml-caption').innerHTML = escapeHtml(item.label || '');
-  const tags = Array.isArray(item.themes) ? item.themes : [];
-  document.getElementById('ml-tags').innerHTML = tags.length
-    ? tags.map(t => `<span class="ml-tag">${escapeHtml((MOOD_THEMES.find(([v]) => v === t) || [, t])[1])}</span>`).join('')
-    : '<span class="ml-tag ml-tag-none">No theme tags</span>';
-  box.classList.remove('details-open');
+  img.src = item.url; // always the full original
   box.classList.add('open');
   img.onload = measureMoodBase;
   requestAnimationFrame(() => requestAnimationFrame(measureMoodBase));
@@ -6437,7 +6549,7 @@ function mlDist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
 function mlPointerDown(e) {
   const box = document.getElementById('mood-lightbox');
   const img = document.getElementById('ml-img');
-  if (e.target.closest('#ml-close, #ml-details-btn, #ml-details')) return; // let controls work
+  if (e.target.closest('#ml-close, #ml-edit-btn')) return; // let controls work
   box.setPointerCapture && box.setPointerCapture(e.pointerId);
   mlPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   mlDown = { x: e.clientX, y: e.clientY, target: e.target, moved: false };
@@ -8678,10 +8790,49 @@ window.addEventListener('DOMContentLoaded', () => {
 <div id="mood-lightbox">
   <button id="ml-close" onclick="closeMoodViewer()" aria-label="Close">✕</button>
   <img id="ml-img" src="" alt="" draggable="false">
-  <button id="ml-details-btn" onclick="toggleMoodDetails(event)" aria-label="Show details">ⓘ Details</button>
-  <div id="ml-details">
-    <div id="ml-caption"></div>
-    <div id="ml-tags"></div>
+  <button id="ml-edit-btn" onclick="moodOpenEdit(event)" aria-label="Edit this photo">✎ Edit</button>
+</div>
+
+<!-- Mood: theme panel (palette / vibe / description), opened by tapping the hero -->
+<div id="mood-theme-overlay" onclick="if(event.target===this)moodCloseThemePanel()">
+  <div class="mt-sheet">
+    <div class="sce-head"><span class="sce-title" id="mood-sub">Palette &amp; Vision</span><button class="sce-close" onclick="moodCloseThemePanel()" aria-label="Close">✕</button></div>
+    <div class="sce-body">
+      <div class="mt-block"><div class="mt-lbl">Palette</div><div id="mood-palette-swatches" class="mood-palette"></div></div>
+      <div class="mt-block"><div class="mt-lbl">Vibe words</div><div id="mood-vibe-pills" style="display:flex;flex-wrap:wrap;gap:0.5rem;"></div></div>
+      <div class="mt-block"><div class="mt-lbl">Description</div><div id="mood-theme-desc" style="font-size:0.85rem;line-height:1.8;color:var(--muted);"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Mood: single-photo edit view (label, tags, adjust crop, delete) -->
+<div id="mood-edit-overlay" onclick="if(event.target===this)moodCloseEdit()">
+  <div class="me-sheet">
+    <div class="sce-head"><span class="sce-title">Edit photo</span><button class="sce-close" onclick="moodCloseEdit()" aria-label="Close">✕</button></div>
+    <div class="sce-body">
+      <div class="pcrop pcrop-43 me-thumb-wrap"><img id="me-thumb" alt=""></div>
+      <label class="sce-l" for="me-label">Label</label>
+      <input type="text" id="me-label" class="sce-inp" placeholder="Label / caption">
+      <label class="sce-l">Theme tags</label>
+      <div class="mood-theme-picker" id="me-themes"></div>
+      <div class="me-actions">
+        <button class="btn btn-secondary" onclick="moodEditAdjust()">⛶ Adjust crop</button>
+        <button class="btn btn-danger" onclick="moodEditDelete()">🗑 Delete</button>
+      </div>
+      <div class="sce-actions"><button class="btn btn-secondary" onclick="moodCloseEdit()">Cancel</button><button class="btn btn-primary" onclick="moodEditSave()">Save</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Mood: batch tag sheet (selection mode) -->
+<div id="mood-tag-overlay" onclick="if(event.target===this)moodCloseTagSheet()">
+  <div class="me-sheet">
+    <div class="sce-head"><span class="sce-title">Tag selected</span><button class="sce-close" onclick="moodCloseTagSheet()" aria-label="Close">✕</button></div>
+    <div class="sce-body">
+      <div class="sce-note">Add these theme tags to the selected photos.</div>
+      <div class="mood-theme-picker" id="mood-tag-picker"></div>
+      <div class="sce-actions"><button class="btn btn-secondary" onclick="moodCloseTagSheet()">Cancel</button><button class="btn btn-primary" onclick="moodApplyTags()">Apply tags</button></div>
+    </div>
   </div>
 </div>
 
