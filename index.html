@@ -599,6 +599,33 @@ label {
 .sc-addq:hover { border-color: var(--gold); color: var(--gold); }
 .sc-notes-hint { font-size: 0.66rem; color: var(--muted-light); line-height: 1.4; }
 .sc-notes-hint code { font-family: monospace; background: var(--bg2); padding: 0 0.2rem; border-radius: 3px; color: var(--gold); }
+
+/* ── Type badge, grid type filter, add-venue + types overlays ── */
+.sc-type-badge { display: inline-block; font-size: 0.56rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.16rem 0.5rem; border-radius: 20px; border: 1px solid; line-height: 1.3; }
+.sc-gbadges { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.sc-type-filter { flex: 0 0 auto; font-size: 0.64rem; padding: 0.42rem 0.5rem; border: 1px solid var(--border); border-radius: 20px; background: var(--bg2); color: var(--muted); font-family: 'Jost', sans-serif; max-width: 46%; }
+.sc-types-btn { flex: 0 0 auto; background: none; border: 1px solid var(--border); color: var(--muted); font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.45rem 0.7rem; border-radius: 20px; cursor: pointer; font-family: 'Jost', sans-serif; }
+.sc-types-btn:hover { border-color: var(--gold); color: var(--gold); }
+#nv-overlay, #st-overlay { position: fixed; inset: 0; z-index: 1300; background: rgba(0,0,0,0.5); display: none; align-items: stretch; justify-content: center; }
+#nv-overlay.open, #st-overlay.open { display: flex; }
+.nv-sheet, .st-sheet { background: var(--bg); width: 100%; max-width: 440px; display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: contain; }
+@media (min-width: 481px) { #nv-overlay, #st-overlay { align-items: center; } .nv-sheet, .st-sheet { max-height: 90vh; border-radius: 16px; } }
+.nv-dup { font-size: 0.74rem; color: var(--love); background: var(--love-light); border: 1px solid var(--love); border-radius: 8px; padding: 0.55rem 0.65rem; margin-top: 0.6rem; line-height: 1.5; }
+.nv-linkbtn { display: inline-block; margin-top: 0.35rem; background: none; border: 1px solid var(--love); color: var(--love); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.35rem 0.7rem; border-radius: 7px; cursor: pointer; font-family: 'Jost', sans-serif; }
+.st-row { border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem; margin-bottom: 0.6rem; background: var(--surface); }
+.st-row-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
+.st-reorder { display: flex; gap: 0.25rem; flex: 0 0 auto; }
+.st-mv, .st-del { min-width: 30px; min-height: 30px; border: 1px solid var(--border); background: none; color: var(--muted); border-radius: 7px; cursor: pointer; font-size: 0.8rem; }
+.st-mv[disabled] { opacity: 0.35; cursor: default; }
+.st-del { color: var(--love); border-color: var(--love-light); }
+.st-name { width: 100%; box-sizing: border-box; font-size: 16px; padding: 0.45rem 0.55rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); outline: none; margin-bottom: 0.5rem; }
+.st-name:focus { border-color: var(--gold); }
+.st-swatches { display: flex; gap: 0.4rem; }
+.st-swatch { width: 26px; height: 26px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
+.st-swatch.on { border-color: var(--text); }
+.st-add { display: flex; gap: 0.5rem; margin-top: 0.4rem; }
+.st-add .sce-inp { flex: 1; }
+.st-add .btn { flex: 0 0 auto; }
 .quick-links {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3183,7 +3210,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
       <div class="card" id="sc-add-card">
         <div class="card-title">Add scenario</div>
         <div class="form-row"><input type="text" id="sc-new-name" placeholder="Name (e.g. Chileno Bay — standard)"></div>
-        <div class="form-row"><select id="sc-new-venue"><option value="">— Venue (optional) —</option></select></div>
+        <div class="form-row"><select id="sc-new-venue" onchange="scNewVenueChange(this)"><option value="">— Venue (optional) —</option></select></div>
         <button class="btn btn-primary" onclick="addScenario()">+ Add scenario</button>
       </div>
       <div id="sc-list"></div>
@@ -3294,6 +3321,8 @@ let scenarioItems = [];   // line items belonging to scenarios (guest-scaled)
 let scView = 'grid';      // 'grid' (gallery) | 'detail' (full editable card)
 let scDetailId = null;    // scenario id shown in detail view
 let scStarredOnly = false; // grid "show starred" filter
+let scenarioTypes = [];    // user-defined scenario types (name + colour slot)
+let scTypeFilter = 'all';  // grid type filter: 'all' | 'untyped' | <type id>
 
 
 
@@ -4726,6 +4755,9 @@ const THEME_DEFAULTS = {
   noite:     { key:'noite',     name:'Noche',  is_dark:true,  ground:'#232b3d', hero:'#d68a62', accent:'#c9a24b', foliage:'#6f9a72', hero_image_url:null, sort:3 },
 };
 const THEME_ORDER = ['beira','jardim','editorial','noite'];
+// Fixed hue anchors for the six scenario-type colour slots (slot1..slot6). Never stored as hex;
+// deriveThemeVars renders each per theme so they stay coherent across Mar / Blanca / Arena / Noche.
+const TYPE_HUES = ['#4a6fd4', '#c76f56', '#5f8a4f', '#c9a24b', '#8a5fb0', '#3f8f9a'];
 // Live records: defaults overlaid by DB values and local edits.
 let THEMES = JSON.parse(JSON.stringify(THEME_DEFAULTS));
 
@@ -4791,6 +4823,13 @@ function deriveThemeVars(t){
       : `linear-gradient(135deg, #ffffff 0%, ${_darken(g,0.03)} 100%)`,
     '--card-shadow': D ? '0 4px 24px rgba(0,0,0,0.45)' : '0 2px 16px rgba(35,43,61,0.08)',
   };
+  // Six named type-colour slots: fixed hue anchors, tuned to the theme so slot N keeps a
+  // stable identity but reads correctly (darkened on light themes, lightened on dark).
+  TYPE_HUES.forEach((h, i) => {
+    const n = i + 1;
+    V['--type' + n] = _readable(h, D ? g : '#ffffff', D, 3.2);
+    V['--type' + n + '-bg'] = D ? _mix(g, h, 0.20) : _mix('#ffffff', h, 0.16);
+  });
   return V;
 }
 function applyThemeVars(V){ const rs = document.documentElement.style; for(const k in V) rs.setProperty(k, V[k]); }
@@ -6676,7 +6715,7 @@ window.exportItinerary = exportItinerary;
 // ── SCENARIOS (costed venue estimates) ─────────────────────────────
 // USD-only; every field renders even when null (shows "—"), tap to edit inline.
 const SCENARIO_GROUPS = [
-  { title: 'Overview', fields: [['description', 'Description', 'text'], ['venue_id', 'Venue', 'venue'], ['guest_count', 'Guest count', 'int']] },
+  { title: 'Overview', fields: [['description', 'Description', 'text'], ['type_id', 'Type', 'sctype'], ['venue_id', 'Venue', 'venue'], ['guest_count', 'Guest count', 'int']] },
   { title: 'Food & Beverage', fields: [['fb_total', 'F&B total', 'money'], ['fb_minimum', 'F&B minimum', 'money']] },
   { title: 'Fees', fields: [['venue_fees', 'Venue fees', 'money'], ['tax_pct', 'Tax %', 'pct'], ['service_pct', 'Service %', 'pct'], ['admin_pct', 'Admin %', 'pct']] },
   { title: 'Room block', fields: [['room_block_rooms', 'Rooms', 'int'], ['room_block_nights', 'Nights', 'int'], ['room_rate', 'Room rate', 'money'], ['room_payer', 'Room payer', 'text']] },
@@ -6699,7 +6738,8 @@ function scVenueOptions(selectedId) {
     if (cur) opts = [{ ...cur, archived: true }, ...opts];
   }
   return `<option value="">— none —</option>` + opts.map(v =>
-    `<option value="${escapeHtml(String(v.id))}"${String(v.id) === String(selectedId) ? ' selected' : ''}>${escapeHtml(v.name)}${v.archived ? ' (archived)' : ''}</option>`).join('');
+    `<option value="${escapeHtml(String(v.id))}"${String(v.id) === String(selectedId) ? ' selected' : ''}>${escapeHtml(v.name)}${v.archived ? ' (archived)' : ''}</option>`).join('')
+    + `<option value="__add_venue__">+ Add new venue…</option>`;
 }
 // Resolves over ALL venues (incl. archived) so an archived-linked scenario still shows its name.
 function scenarioVenueName(venueId) {
@@ -6712,10 +6752,159 @@ function populateVenueSelect(selectId) {
   if (sel) sel.innerHTML = scVenueOptions(sel.value);
 }
 
+// ── Add a venue from the scenario dropdown (shared create path; styled overlay, not prompt) ──
+async function createVenueByName(name) {
+  const row = await dbInsert('venues', { name: name, slug: slugify(name), archived: false });
+  if (!row) { alert('Could not create the venue. Please try again.'); return null; }
+  applyVenueRows(await dbLoad('venues')); // same refresh saveVenueForm uses → shows on the Venues page
+  buildNav();
+  populateVenueSelect('sc-new-venue');
+  return row;
+}
+let nvContext = null; // where to link the created/linked venue back to
+function scNewVenueChange(sel) { if (sel.value === '__add_venue__') { sel.value = ''; openNewVenueOverlay({ kind: 'add' }); } }
+function scInlineVenueChange(sel) {
+  if (sel.value !== '__add_venue__') return;
+  const card = sel.closest('.sc-card');
+  const sid = card ? card.id.replace('sc-card-', '') : null;
+  if (!sid) return;
+  scReplaceCardById(sid); // close the inline editor (reverts the field) before opening the overlay
+  openNewVenueOverlay({ kind: 'scenario', scenarioId: sid });
+}
+function openNewVenueOverlay(ctx) {
+  nvContext = ctx;
+  document.getElementById('nv-name').value = '';
+  const dup = document.getElementById('nv-dup'); if (dup) { dup.hidden = true; dup.innerHTML = ''; }
+  document.getElementById('nv-overlay').classList.add('open');
+  lockBackgroundScroll();
+  document.addEventListener('keydown', nvKey);
+  setTimeout(() => { const i = document.getElementById('nv-name'); if (i) i.focus(); }, 60);
+}
+function closeNewVenueOverlay() {
+  document.getElementById('nv-overlay').classList.remove('open');
+  unlockBackgroundScroll();
+  document.removeEventListener('keydown', nvKey);
+  nvContext = null;
+}
+function nvKey(e) { if (e.key === 'Escape') closeNewVenueOverlay(); }
+async function nvCreate() {
+  const name = (document.getElementById('nv-name').value || '').trim();
+  if (!name) return;
+  const norm = name.toLowerCase();
+  // Duplicate guard: match on normalised name across ALL venues (incl. archived) — surface, don't dupe.
+  const existing = (Array.isArray(venueRowsAll) ? venueRowsAll : []).find(r => ((r.name || '').trim().toLowerCase()) === norm);
+  if (existing) {
+    const dup = document.getElementById('nv-dup');
+    dup.hidden = false;
+    dup.innerHTML = `A venue named “${escapeHtml(existing.name || name)}”${existing.archived ? ' (archived)' : ''} already exists. `
+      + `<button class="nv-linkbtn" onclick="nvLink('${existing.id}')">Link to it instead</button>`;
+    return;
+  }
+  const row = await createVenueByName(name);
+  if (row) nvLink(row.id);
+}
+function nvLink(venueId) {
+  const ctx = nvContext;
+  closeNewVenueOverlay();
+  if (ctx && ctx.kind === 'scenario') { scSave(ctx.scenarioId, 'venue_id', 'venue', String(venueId)); }
+  else { populateVenueSelect('sc-new-venue'); const sel = document.getElementById('sc-new-venue'); if (sel) sel.value = String(venueId); }
+}
+
+// ── Scenario types: colour slots, inline picker, manager overlay ──
+function scTypeById(id) { if (id == null) return null; return scenarioTypes.find(t => String(t.id) === String(id)) || null; }
+function scTypeSlotN(colorKey) { const m = /^slot([1-6])$/.exec(String(colorKey || '')); return m ? Number(m[1]) : 1; }
+function scTypesSorted() { return scenarioTypes.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.created_at || '').localeCompare(String(b.created_at || ''))); }
+function scTypeBadgeHtml(t, extraClass) {
+  const n = scTypeSlotN(t.color_key);
+  return `<span class="sc-type-badge${extraClass || ''}" style="background:var(--type${n}-bg);color:var(--type${n});border-color:var(--type${n})">${escapeHtml(t.name || 'Type')}</span>`;
+}
+function scTypeOptions(selectedId) {
+  return `<option value="">— none —</option>` + scTypesSorted().map(t =>
+    `<option value="${escapeHtml(String(t.id))}"${String(t.id) === String(selectedId) ? ' selected' : ''}>${escapeHtml(t.name || 'Type')}</option>`).join('');
+}
+function scSetTypeFilter(v) { scTypeFilter = v; renderScenarios(); }
+function openTypesManager() {
+  renderTypesManager();
+  document.getElementById('st-overlay').classList.add('open');
+  lockBackgroundScroll();
+  document.addEventListener('keydown', stKey);
+}
+function closeTypesManager() {
+  document.getElementById('st-overlay').classList.remove('open');
+  unlockBackgroundScroll();
+  document.removeEventListener('keydown', stKey);
+  renderScenarios(); // reflect renames / recolours on the grid
+}
+function stKey(e) { if (e.key === 'Escape') closeTypesManager(); }
+function renderTypesManager() {
+  const list = scTypesSorted();
+  const el = document.getElementById('st-list');
+  if (!el) return;
+  el.innerHTML = list.length ? list.map((t, i) => {
+    const n = scTypeSlotN(t.color_key);
+    const swatches = [1, 2, 3, 4, 5, 6].map(k => `<button class="st-swatch${k === n ? ' on' : ''}" style="background:var(--type${k})" onclick="stSetColor('${t.id}',${k})" aria-label="Colour slot ${k}"></button>`).join('');
+    return `<div class="st-row">
+        <div class="st-row-top">
+          <span class="sc-type-badge" style="background:var(--type${n}-bg);color:var(--type${n});border-color:var(--type${n})">${escapeHtml(t.name || 'Type')}</span>
+          <div class="st-reorder">
+            <button class="st-mv" onclick="stMove('${t.id}',-1)"${i === 0 ? ' disabled' : ''} aria-label="Move up">↑</button>
+            <button class="st-mv" onclick="stMove('${t.id}',1)"${i === list.length - 1 ? ' disabled' : ''} aria-label="Move down">↓</button>
+            <button class="st-del" onclick="stDelete('${t.id}')" aria-label="Delete type">✕</button>
+          </div>
+        </div>
+        <input class="st-name" type="text" value="${escapeHtml(t.name || '')}" onchange="stRename('${t.id}',this.value)" placeholder="Type name">
+        <div class="st-swatches">${swatches}</div>
+      </div>`;
+  }).join('') : `<div class="sci-empty">No types yet — add one below.</div>`;
+}
+async function stAdd() {
+  const inp = document.getElementById('st-new-name');
+  const name = (inp.value || '').trim();
+  if (!name) return;
+  const maxSort = scenarioTypes.reduce((m, x) => Math.max(m, x.sort_order || 0), 0);
+  const used = new Set(scenarioTypes.map(t => scTypeSlotN(t.color_key)));
+  let slot = ((scenarioTypes.length) % 6) + 1;
+  for (let k = 1; k <= 6; k++) { if (!used.has(k)) { slot = k; break; } }
+  const row = await dbInsert('scenario_types', { name, color_key: 'slot' + slot, sort_order: maxSort + 10 });
+  if (row) { scenarioTypes.push(row); inp.value = ''; renderTypesManager(); }
+}
+async function stRename(id, val) {
+  const t = scTypeById(id); if (!t) return;
+  t.name = (val || '').trim() || null;
+  await dbUpdate('scenario_types', id, { name: t.name });
+  renderTypesManager();
+}
+async function stSetColor(id, k) {
+  const t = scTypeById(id); if (!t) return;
+  t.color_key = 'slot' + k;
+  await dbUpdate('scenario_types', id, { color_key: t.color_key });
+  renderTypesManager();
+}
+async function stMove(id, dir) {
+  const list = scTypesSorted();
+  const i = list.findIndex(t => String(t.id) === String(id));
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= list.length) return;
+  const a = list[i], b = list[j];
+  const as = a.sort_order || 0, bs = b.sort_order || 0;
+  a.sort_order = bs; b.sort_order = as;
+  await dbUpdate('scenario_types', a.id, { sort_order: bs });
+  await dbUpdate('scenario_types', b.id, { sort_order: as });
+  renderTypesManager();
+}
+async function stDelete(id) {
+  if (!confirm('Delete this type? Scenarios using it become untyped.')) return;
+  await dbDelete('scenario_types', id);
+  scenarioTypes = scenarioTypes.filter(t => String(t.id) !== String(id));
+  await reloadScenarios(); // FK on delete set null cleared type_id on affected scenarios
+  renderTypesManager();
+}
+
 // Display formatting — null/blank always renders "—" (never a blank or a 0).
 function scDisplay(s, key, type) {
   const v = s[key];
   if (type === 'venue') return scenarioVenueName(v);
+  if (type === 'sctype') { const t = scTypeById(v); return t ? scTypeBadgeHtml(t) : '—'; }
   if (v == null || v === '') return '—';
   if (type === 'money') { const n = Number(v); return isNaN(n) ? '—' : '$' + n.toLocaleString(); }
   if (type === 'pct') return escapeHtml(String(v)) + '%';
@@ -6793,12 +6982,20 @@ function renderScenarios() {
   const starredCount = scenarios.filter(x => x.starred).length;
   let list = scenarios.slice();
   if (scStarredOnly) list = list.filter(x => x.starred);
+  if (scTypeFilter === 'untyped') list = list.filter(x => x.type_id == null);
+  else if (scTypeFilter !== 'all') list = list.filter(x => String(x.type_id) === String(scTypeFilter));
   list.sort((a, b) =>
     ((b.is_chosen ? 1 : 0) - (a.is_chosen ? 1 : 0)) ||
     ((b.starred ? 1 : 0) - (a.starred ? 1 : 0)) ||
     String(a.created_at || '').localeCompare(String(b.created_at || '')));
+  const tf = String(scTypeFilter);
+  const typeOpts = `<option value="all"${tf === 'all' ? ' selected' : ''}>All types</option>`
+    + `<option value="untyped"${tf === 'untyped' ? ' selected' : ''}>Untyped</option>`
+    + scTypesSorted().map(t => `<option value="${escapeHtml(String(t.id))}"${tf === String(t.id) ? ' selected' : ''}>${escapeHtml(t.name || 'Type')}</option>`).join('');
   const toolbar = `<div class="sc-gridbar">
       <button class="sc-filter-chip${scStarredOnly ? ' on' : ''}" onclick="scToggleStarredFilter()">★ Show starred${starredCount ? ` (${starredCount})` : ''}</button>
+      <select class="sc-type-filter" onchange="scSetTypeFilter(this.value)">${typeOpts}</select>
+      <button class="sc-types-btn" onclick="openTypesManager()">⚙ Types</button>
     </div>`;
   const grid = list.length
     ? `<div class="sc-grid">${list.map(scGridCardHtml).join('')}</div>`
@@ -6824,12 +7021,13 @@ function scGridCardHtml(s) {
   const venue = scenarioVenueName(s.venue_id);
   const gc = (s.guest_count == null || s.guest_count === '') ? '—' : escapeHtml(String(s.guest_count));
   const desc = scIsEmpty(s.description) ? '—' : escapeHtml(String(s.description));
+  const type = scTypeById(s.type_id);
   return `<div class="sc-gcard${s.is_chosen ? ' chosen' : ''}" onclick="scOpenDetail('${s.id}')">
     <div class="sc-gcard-top">
       <span class="sc-gname">${nameDisp}</span>
       <button class="sc-star${s.starred ? ' on' : ''}" onclick="event.stopPropagation();scToggleStar('${s.id}')" aria-label="${s.starred ? 'Unstar' : 'Star'} scenario">${s.starred ? '★' : '☆'}</button>
     </div>
-    ${s.is_chosen ? '<div class="sc-chosen-badge">✓ Chosen</div>' : ''}
+    ${(s.is_chosen || type) ? `<div class="sc-gbadges">${s.is_chosen ? '<span class="sc-chosen-badge">✓ Chosen</span>' : ''}${type ? scTypeBadgeHtml(type) : ''}</div>` : ''}
     <div class="sc-gtotal">${scMoney(c.total)}</div>
     <div class="sc-gmeta">${venue} · ${gc} guests</div>
     <div class="sc-gdesc">${desc}</div>
@@ -6887,7 +7085,8 @@ function scEdit(id, key, type) {
   if (!cell || cell.querySelector('input,select,textarea')) return; // already editing
   const cur = s[key];
   let html;
-  if (type === 'venue') html = `<select class="sc-input">${scVenueOptions(cur)}</select>`;
+  if (type === 'venue') html = `<select class="sc-input" onchange="scInlineVenueChange(this)">${scVenueOptions(cur)}</select>`;
+  else if (type === 'sctype') html = `<select class="sc-input">${scTypeOptions(cur)}</select>`;
   else if (type === 'textarea') html = `<textarea class="sc-input sc-textarea" rows="3"></textarea>`;
   else if (type === 'date') html = `<input class="sc-input" type="date">`;
   else if (type === 'money' || type === 'pct' || type === 'int') html = `<input class="sc-input" type="number" step="${type === 'int' ? '1' : 'any'}" inputmode="decimal">`;
@@ -6895,7 +7094,7 @@ function scEdit(id, key, type) {
   const prev = cell.innerHTML;
   cell.innerHTML = html;
   const inp = cell.querySelector('.sc-input');
-  if (type === 'venue') inp.value = cur == null ? '' : String(cur);
+  if (type === 'venue' || type === 'sctype') inp.value = cur == null ? '' : String(cur);
   else if (cur != null) inp.value = cur;
   inp.focus();
   let done = false;
@@ -6910,11 +7109,12 @@ function scEdit(id, key, type) {
 async function scSave(id, key, type, raw) {
   const s = scenarios.find(x => x.id === id);
   if (!s) return;
+  if (type === 'venue' && raw === '__add_venue__') return; // sentinel handled by the add-venue overlay, never saved
   const t = (raw == null ? '' : String(raw)).trim();
   let val;
   if (type === 'money' || type === 'pct') { val = t === '' ? null : Number(t); if (val != null && isNaN(val)) val = null; }
   else if (type === 'int' || type === 'venue') { val = t === '' ? null : parseInt(t, 10); if (val != null && isNaN(val)) val = null; }
-  else { val = t === '' ? null : t; }
+  else { val = t === '' ? null : t; }  // text / sctype (uuid string)
   s[key] = val;
   await dbUpdate('scenarios', id, { [key]: val });
   const card = document.getElementById('sc-card-' + id);
@@ -7259,6 +7459,9 @@ window.scEditEvent = scEditEvent; window.scAddItem = scAddItem; window.scDelItem
 window.scEmailDraft = scEmailDraft; window.scEmailClose = scEmailClose; window.scEmailOpenMail = scEmailOpenMail; window.scEmailCopy = scEmailCopy;
 window.scOpenDetail = scOpenDetail; window.scCloseDetail = scCloseDetail; window.scToggleStarredFilter = scToggleStarredFilter;
 window.scToggleStar = scToggleStar; window.scChoose = scChoose; window.scAddQuestion = scAddQuestion;
+window.scNewVenueChange = scNewVenueChange; window.scInlineVenueChange = scInlineVenueChange; window.closeNewVenueOverlay = closeNewVenueOverlay; window.nvCreate = nvCreate; window.nvLink = nvLink;
+window.scSetTypeFilter = scSetTypeFilter; window.openTypesManager = openTypesManager; window.closeTypesManager = closeTypesManager;
+window.stAdd = stAdd; window.stRename = stRename; window.stSetColor = stSetColor; window.stMove = stMove; window.stDelete = stDelete;
 
 
 // ── LOAD ALL DATA FROM SUPABASE
@@ -7266,7 +7469,7 @@ async function loadAllData() {
   setSyncStatus('', 'Loading...');
   loadThemesFromDB(); // reconcile theme colours with the DB (seeds the table on first run)
   try {
-    const [g, b, t, v, a, m, itin, ven, wd, scn, sci] = await Promise.all([
+    const [g, b, t, v, a, m, itin, ven, wd, scn, sci, sct] = await Promise.all([
       dbLoad('guests'),
       dbLoad('budget_items'),
       dbLoad('timeline_tasks'),
@@ -7278,11 +7481,13 @@ async function loadAllData() {
       dbLoad('wedding_dates'),
       dbLoad('scenarios'),
       dbLoad('scenario_items'),
+      dbLoad('scenario_types'),
     ]);
     // Candidate wedding dates; the 'chosen' row drives the countdown.
     setWeddingDates(wd);
     scenarios = Array.isArray(scn) ? scn : [];
     scenarioItems = Array.isArray(sci) ? sci : [];
+    scenarioTypes = Array.isArray(sct) ? sct : [];
     guests = g;
     budgetItems = b;
     // Timeline: show defaults immediately, seed to DB if empty
@@ -7346,6 +7551,7 @@ async function loadAllData() {
     subscribeRealtime('wedding_dates', () => { dbLoad('wedding_dates').then(d => { setWeddingDates(d); updateDashboard(); renderDateCandidates(); }); });
     subscribeRealtime('scenarios', () => { dbLoad('scenarios').then(d => { scenarios = Array.isArray(d) ? d : []; if (!document.querySelector('#sc-list .sc-input')) renderScenarios(); }); }); // don't clobber an open inline edit
     subscribeRealtime('scenario_items', () => { dbLoad('scenario_items').then(d => { scenarioItems = Array.isArray(d) ? d : []; if (!document.querySelector('#sc-list .sc-input, #sc-list .sci-inp')) renderScenarios(); }); }); // don't clobber an open inline edit
+    subscribeRealtime('scenario_types', () => { dbLoad('scenario_types').then(d => { scenarioTypes = Array.isArray(d) ? d : []; if (document.getElementById('st-overlay') && document.getElementById('st-overlay').classList.contains('open')) renderTypesManager(); if (!document.querySelector('#sc-list .sc-input, #sc-list .sci-inp')) renderScenarios(); }); });
   } catch(e) {
     setSyncStatus('error', 'Connection error');
     console.error('loadAllData error', e);
@@ -7965,6 +8171,43 @@ window.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- Wedding dates overlay -->
+<!-- New venue from the scenario dropdown (styled overlay, not a system prompt) -->
+<div id="nv-overlay" onclick="if(event.target===this)closeNewVenueOverlay()">
+  <div class="nv-sheet">
+    <div class="sce-head">
+      <span class="sce-title">Add venue</span>
+      <button class="sce-close" onclick="closeNewVenueOverlay()" aria-label="Close">✕</button>
+    </div>
+    <div class="sce-body">
+      <label class="sce-l" for="nv-name">Venue name</label>
+      <input type="text" id="nv-name" class="sce-inp" placeholder="e.g. Chileno Bay" onkeydown="if(event.key==='Enter')nvCreate()">
+      <div id="nv-dup" class="nv-dup" hidden></div>
+      <div class="sce-actions">
+        <button class="btn btn-secondary" onclick="closeNewVenueOverlay()">Cancel</button>
+        <button class="btn btn-primary" onclick="nvCreate()">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scenario types manager -->
+<div id="st-overlay" onclick="if(event.target===this)closeTypesManager()">
+  <div class="st-sheet">
+    <div class="sce-head">
+      <span class="sce-title">Scenario types</span>
+      <button class="sce-close" onclick="closeTypesManager()" aria-label="Close">✕</button>
+    </div>
+    <div class="sce-body">
+      <div id="st-list"></div>
+      <div class="st-add">
+        <input type="text" id="st-new-name" class="sce-inp" placeholder="New type name" onkeydown="if(event.key==='Enter')stAdd()">
+        <button class="btn btn-primary" onclick="stAdd()">Add</button>
+      </div>
+      <div class="sce-note">Colours are named slots that adapt to the active theme, so a type stays coherent across Mar, Blanca, Arena and Noche.</div>
+    </div>
+  </div>
+</div>
+
 <!-- Scenario questions-email draft (overlay; editable before sending) -->
 <div id="sce-overlay" onclick="if(event.target===this)scEmailClose()">
   <div class="sce-sheet">
