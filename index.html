@@ -1114,11 +1114,33 @@ label {
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: 6px; font-size: 0.7rem;
 }
-.mood-edit-btn {
+.mood-edit-btn, .mood-adjust-btn {
   flex-shrink: 0; width: 30px; height: 30px; padding: 0;
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: 6px; font-size: 0.7rem;
 }
+
+/* Per-photo display-crop wrapper (clips zoom; the file itself is untouched) */
+.pcrop { position: relative; overflow: hidden; display: block; }
+.pcrop > img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pcrop-43 { width: 100%; aspect-ratio: 4/3; background: var(--bg2); }
+
+/* Crop editor overlay */
+#crop-overlay { position: fixed; inset: 0; z-index: 1350; background: rgba(0,0,0,0.6); display: none; align-items: stretch; justify-content: center; }
+#crop-overlay.open { display: flex; }
+.crop-sheet { background: var(--bg); width: 100%; max-width: 460px; display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: contain; }
+@media (min-width: 461px) { #crop-overlay { align-items: center; } .crop-sheet { max-height: 92vh; border-radius: 16px; } }
+.crop-shape-toggle { display: flex; gap: 0.4rem; margin-bottom: 0.7rem; }
+.crop-tab { flex: 1; background: var(--bg2); border: 1px solid var(--border); color: var(--muted); font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.5rem; border-radius: 8px; cursor: pointer; font-family: 'Jost', sans-serif; }
+.crop-tab.on { background: var(--gold-pale); color: var(--gold); border-color: var(--gold); }
+.crop-frame { position: relative; overflow: hidden; width: 100%; background: #000; border-radius: 8px; touch-action: none; cursor: grab; }
+.crop-frame.tile { aspect-ratio: 4/3; }
+.crop-frame.hero { aspect-ratio: 16/9; }
+.crop-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+.crop-zoom-l { display: block; font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0.8rem 0 0.3rem; }
+.crop-zoom { width: 100%; accent-color: var(--gold); }
+.vf-photo-adjust { flex: 0 0 auto; background: none; border: 1px solid var(--border); color: var(--muted); font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.4rem 0.6rem; border-radius: 7px; cursor: pointer; font-family: 'Jost', sans-serif; }
+.vf-photo-adjust:hover { border-color: var(--gold); color: var(--gold); }
 /* Broken / non-image URL fallback */
 .mood-img-broken {
   display: flex; align-items: center; justify-content: center; text-align: center;
@@ -3977,10 +3999,13 @@ HARDCODED_VENUES.forEach(v => { if (v && v.id) HARDCODED_IMAGES_BY_SLUG[v.id] = 
 function venueRowToProfile(row) {
   const la = (row && row.local_area && typeof row.local_area === 'object') ? row.local_area : {};
   const photos = Array.isArray(row.photos) ? row.photos : [];
-  const pairs = photos.map(p => (typeof p === 'string' ? { url: p, thumb: p } : { url: p && p.url, thumb: (p && (p.thumb || p.url)) })).filter(x => x.url);
+  const pairs = photos.map(p => (typeof p === 'string'
+    ? { url: p, thumb: p, focal_x: 50, focal_y: 50, focal_zoom: 1 }
+    : { url: p && p.url, thumb: (p && (p.thumb || p.url)), focal_x: (p && p.focal_x), focal_y: (p && p.focal_y), focal_zoom: (p && p.focal_zoom) })).filter(x => x.url);
   let images = pairs.map(x => x.url);
   let thumbs = pairs.map(x => x.thumb); // display thumbnails, index-aligned with images (falls back to original)
-  if (images.length === 0) { images = HARDCODED_IMAGES_BY_SLUG[row.slug] || []; thumbs = images.slice(); } // bridge from hardcoded until Storage stage
+  let focals = pairs.map(x => ({ focal_x: x.focal_x, focal_y: x.focal_y, focal_zoom: x.focal_zoom })); // per-photo display crop, index-aligned
+  if (images.length === 0) { images = HARDCODED_IMAGES_BY_SLUG[row.slug] || []; thumbs = images.slice(); focals = images.map(() => ({})); } // bridge from hardcoded until Storage stage
   return {
     _row:             row,   // raw DB row, for the edit form (id/status/rating/slug + jsonb in DB shape)
     id:               row.slug || row.id,
@@ -4013,6 +4038,7 @@ function venueRowToProfile(row) {
     contactPhone:     row.contact_phone || '',
     images:           images,
     thumbs:           thumbs,
+    focals:           focals,
     liked:            !!row.liked,
     archived:         !!row.archived,
   };
@@ -4034,7 +4060,7 @@ function buildNav() {
   if (!track) return;
   track.innerHTML = VENUES.map((v, i) => `
     <div class="vnav-item ${i === currentIdx ? 'active' : ''}" data-idx="${i}" onclick="selectVenue(${i})">
-      <img class="vnav-thumb" src="${escapeHtml((v.thumbs && v.thumbs[0]) || v.images[0] || '')}" alt="${escapeHtml(v.name)}" onerror="this.style.opacity=0">
+      <div class="pcrop vnav-thumb"><img src="${escapeHtml((v.thumbs && v.thumbs[0]) || v.images[0] || '')}" style="${focalStyle(v.focals && v.focals[0])}" alt="${escapeHtml(v.name)}" onerror="this.style.opacity=0"></div>
       <div>
         <div class="vnav-name">${escapeHtml(v.name.split(' ').slice(0,3).join(' '))}</div>
         <div class="vnav-dist">${escapeHtml(String(v.distMin))} min</div>
@@ -4186,7 +4212,7 @@ function venueRenderProfile(idx) {
   try {
     inner.innerHTML = `
     <div class="profile-hero" id="hero-area" onclick="openLightbox(VENUES[${idx}].images, heroIdx, VENUES[${idx}].name)">
-      <img id="hero-img" src="${v.images[0]}" alt="${v.name}">
+      <img id="hero-img" src="${v.images[0]}" style="${focalStyle(v.focals && v.focals[0])}" alt="${v.name}">
       <div class="hero-nav left" onclick="event.stopPropagation();cycleHero(${idx}, -1)"><div class="hn-arrow">‹</div></div>
       <div class="hero-nav right" onclick="event.stopPropagation();cycleHero(${idx}, 1)"><div class="hn-arrow">›</div></div>
       <div class="hero-dots">${v.images.map((_, i) => `<div class="hdot ${i===0?'active':''}" id="hdot-${i}"></div>`).join('')}</div>
@@ -4301,7 +4327,7 @@ function cycleHero(idx, dir) {
   const v = VENUES[idx];
   heroIdx = (heroIdx + dir + v.images.length) % v.images.length;
   const img = document.getElementById('hero-img');
-  if (img) { img.style.opacity = '0'; setTimeout(() => { img.src = v.images[heroIdx]; img.style.opacity = '1'; }, 150); }
+  if (img) { img.style.opacity = '0'; setTimeout(() => { img.src = v.images[heroIdx]; applyFocal(img, v.focals && v.focals[heroIdx]); img.style.opacity = '1'; }, 150); }
   document.querySelectorAll('.hdot').forEach((d, i) => d.classList.toggle('active', i === heroIdx));
 }
 
@@ -6017,6 +6043,91 @@ async function saveEditMoodImage(id) {
   renderMoodBoard();
 }
 
+// ── Per-photo display crop (a stored view transform; the file is never modified) ──
+// focal_x/y are an object-position %, focal_zoom a scale. Defaults 50/50/1 = centered, no zoom,
+// so photos without values render exactly as before.
+function _clampf(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function focalVals(o) { o = o || {}; return { x: (o.focal_x == null ? 50 : Number(o.focal_x)), y: (o.focal_y == null ? 50 : Number(o.focal_y)), z: (o.focal_zoom == null ? 1 : Number(o.focal_zoom)) }; }
+function focalStyle(o) { const f = focalVals(o); return `object-position:${f.x}% ${f.y}%;transform:scale(${f.z});transform-origin:${f.x}% ${f.y}%;`; }
+function applyFocal(el, o) { if (!el) return; const f = focalVals(o); el.style.objectPosition = `${f.x}% ${f.y}%`; el.style.transform = `scale(${f.z})`; el.style.transformOrigin = `${f.x}% ${f.y}%`; }
+
+// Crop editor overlay — drag to reposition, slider/pinch to zoom, live preview in tile + hero shapes.
+let cropCtx = null;
+function cropObj() { return { focal_x: Math.round(cropCtx.fx * 10) / 10, focal_y: Math.round(cropCtx.fy * 10) / 10, focal_zoom: Math.round(cropCtx.z * 100) / 100 }; }
+function openCropEditor(opts) {
+  const f = focalVals({ focal_x: opts.fx, focal_y: opts.fy, focal_zoom: opts.zoom });
+  cropCtx = { fx: f.x, fy: f.y, z: f.z, url: opts.imageUrl || '', shape: 'tile', onSave: opts.onSave };
+  document.getElementById('crop-overlay').classList.add('open');
+  lockBackgroundScroll();
+  document.addEventListener('keydown', cropKey);
+  renderCropEditor();
+}
+function closeCropEditor() {
+  document.getElementById('crop-overlay').classList.remove('open');
+  unlockBackgroundScroll();
+  document.removeEventListener('keydown', cropKey);
+  cropCtx = null;
+}
+function cropKey(e) { if (e.key === 'Escape') closeCropEditor(); }
+function renderCropEditor() {
+  const img = document.getElementById('crop-img');
+  const frame = document.getElementById('crop-frame');
+  if (!img || !frame || !cropCtx) return;
+  img.src = cropCtx.url;
+  frame.classList.toggle('hero', cropCtx.shape === 'hero');
+  frame.classList.toggle('tile', cropCtx.shape !== 'hero');
+  document.getElementById('crop-tab-tile').classList.toggle('on', cropCtx.shape !== 'hero');
+  document.getElementById('crop-tab-hero').classList.toggle('on', cropCtx.shape === 'hero');
+  document.getElementById('crop-zoom').value = cropCtx.z;
+  applyFocal(img, cropObj());
+}
+function cropSetShape(s) { if (!cropCtx) return; cropCtx.shape = s; renderCropEditor(); }
+function cropZoom(v) { if (!cropCtx) return; cropCtx.z = _clampf(Number(v) || 1, 1, 3); applyFocal(document.getElementById('crop-img'), cropObj()); }
+function cropReset() { if (!cropCtx) return; cropCtx.fx = 50; cropCtx.fy = 50; cropCtx.z = 1; document.getElementById('crop-zoom').value = 1; applyFocal(document.getElementById('crop-img'), cropObj()); }
+function cropSave() { if (!cropCtx || !cropCtx.onSave) { closeCropEditor(); return; } const cb = cropCtx.onSave, out = cropObj(); closeCropEditor(); cb(out); }
+let _cropDrag = null, _cropPinch = null;
+function cropDown(e) {
+  if (!cropCtx) return;
+  if (e.touches && e.touches.length === 2) { const a = e.touches[0], b = e.touches[1]; _cropPinch = { d: Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY) || 1, z: cropCtx.z }; _cropDrag = null; return; }
+  const t = e.touches ? e.touches[0] : e; _cropDrag = { x: t.clientX, y: t.clientY };
+}
+function cropMove(e) {
+  if (!cropCtx) return;
+  const frame = document.getElementById('crop-frame'); const r = frame.getBoundingClientRect();
+  if (e.touches && e.touches.length === 2 && _cropPinch) {
+    const a = e.touches[0], b = e.touches[1]; const d = Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+    cropCtx.z = _clampf(_cropPinch.z * (d / _cropPinch.d), 1, 3);
+    document.getElementById('crop-zoom').value = cropCtx.z;
+    applyFocal(document.getElementById('crop-img'), cropObj()); e.preventDefault(); return;
+  }
+  if (!_cropDrag) return;
+  const t = e.touches ? e.touches[0] : e;
+  const dx = t.clientX - _cropDrag.x, dy = t.clientY - _cropDrag.y;
+  _cropDrag.x = t.clientX; _cropDrag.y = t.clientY;
+  cropCtx.fx = _clampf(cropCtx.fx - (dx / r.width) * 100, 0, 100);
+  cropCtx.fy = _clampf(cropCtx.fy - (dy / r.height) * 100, 0, 100);
+  applyFocal(document.getElementById('crop-img'), cropObj()); e.preventDefault();
+}
+function cropUp() { _cropDrag = null; _cropPinch = null; }
+
+// Entry points
+function moodAdjust(id) {
+  const item = moodImages.find(x => x.id === id); if (!item) return;
+  openCropEditor({ imageUrl: item.thumb_url || item.url, fx: item.focal_x, fy: item.focal_y, zoom: item.focal_zoom,
+    onSave: async (f) => { item.focal_x = f.focal_x; item.focal_y = f.focal_y; item.focal_zoom = f.focal_zoom; await dbUpdate('mood_images', id, f); renderMoodBoard(); } });
+}
+function vfAdjustPhoto(btn) {
+  const row = btn.closest('.vf-row'); if (!row) return;
+  const tv = row.querySelector('.vf-photo-thumbval'), uv = row.querySelector('.vf-photo-url');
+  const url = ((tv && tv.value) || (uv && uv.value) || '').trim();
+  if (!url) { alert('Add the photo first, then adjust its crop.'); return; }
+  const fx = row.querySelector('.vf-photo-fx'), fy = row.querySelector('.vf-photo-fy'), zm = row.querySelector('.vf-photo-zoom');
+  openCropEditor({ imageUrl: url, fx: fx.value, fy: fy.value, zoom: zm.value,
+    onSave: (f) => { fx.value = f.focal_x; fy.value = f.focal_y; zm.value = f.focal_zoom; const pv = row.querySelector('.vf-photo-thumb img'); if (pv) applyFocal(pv, f); } });
+}
+window.closeCropEditor = closeCropEditor; window.cropSetShape = cropSetShape; window.cropZoom = cropZoom; window.cropReset = cropReset; window.cropSave = cropSave;
+window.cropDown = cropDown; window.cropMove = cropMove; window.cropUp = cropUp; window.moodAdjust = moodAdjust; window.vfAdjustPhoto = vfAdjustPhoto;
+
 function renderMoodBoard() {
   const grid = document.getElementById('mood-grid');
   if (!grid) return;
@@ -6040,10 +6151,11 @@ function renderMoodBoard() {
   }
   grid.innerHTML = visible.map(img => `
     <div class="mood-card" id="mood-card-${img.id}">
-      <img class="mood-img" src="${escapeHtml(img.thumb_url || img.url)}" alt="${escapeHtml(img.label)}" loading="lazy" onerror="moodImgFallback(this)" onclick="openMoodViewer(${img.id})">
+      <div class="pcrop pcrop-43"><img class="mood-img" src="${escapeHtml(img.thumb_url || img.url)}" style="${focalStyle(img)}" alt="${escapeHtml(img.label)}" loading="lazy" onerror="moodImgFallback(this)" onclick="openMoodViewer(${img.id})"></div>
       <div class="mood-card-foot">
         <div class="mood-label" style="padding:0">${escapeHtml(img.label)}</div>
         <div style="display:flex;gap:0.3rem;flex-shrink:0;">
+          <button class="btn btn-secondary mood-adjust-btn" onclick="moodAdjust(${img.id})" aria-label="Adjust crop">⛶</button>
           <button class="btn btn-secondary mood-edit-btn" onclick="startEditMoodImage(${img.id})" aria-label="Edit label and tags">✎</button>
           <button class="btn btn-danger mood-del" onclick="removeMoodImage(${img.id})" aria-label="Delete image">✕</button>
         </div>
@@ -6495,7 +6607,7 @@ function renderVenueGrid() {
   }
   el.innerHTML = VENUES.map((v, i) => `
     <div class="venue-tile" onclick="openVenueProfile(${i})">
-      <img class="venue-tile-photo" src="${escapeHtml((v.thumbs && v.thumbs[0]) || v.images[0] || '')}" alt="${escapeHtml(v.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
+      <div class="pcrop venue-tile-photo"><img src="${escapeHtml((v.thumbs && v.thumbs[0]) || v.images[0] || '')}" style="${focalStyle(v.focals && v.focals[0])}" alt="${escapeHtml(v.name)}" loading="lazy" onerror="this.style.visibility='hidden'"></div>
       <div class="venue-tile-body">
         <div class="venue-tile-name">${escapeHtml(v.name)}</div>
         ${(v.score || v.score === 0) ? `<div class="venue-tile-score">★ ${escapeHtml(String(v.score))}</div>` : ''}
@@ -6524,7 +6636,7 @@ function renderArchivedGrid() {
     return `
     <div class="venue-tile" data-id="${escapeHtml(String(id))}" onclick="toggleArchivedSelect('${escapeHtml(String(id))}')">
       <div class="venue-tile-check">✓</div>
-      <img class="venue-tile-photo" src="${escapeHtml((v.thumbs && v.thumbs[0]) || v.images[0] || '')}" alt="${escapeHtml(v.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
+      <div class="pcrop venue-tile-photo"><img src="${escapeHtml((v.thumbs && v.thumbs[0]) || v.images[0] || '')}" style="${focalStyle(v.focals && v.focals[0])}" alt="${escapeHtml(v.name)}" loading="lazy" onerror="this.style.visibility='hidden'"></div>
       <div class="venue-tile-body">
         <div class="venue-tile-name">${escapeHtml(v.name)}</div>
         ${(v.score || v.score === 0) ? `<div class="venue-tile-score">★ ${escapeHtml(String(v.score))}</div>` : ''}
@@ -7707,13 +7819,17 @@ function vfAddPhoto(o) {
   o = o || {};
   const url = o.url || '';
   const preview = o.thumb || url; // show the JPEG thumb in the form when we have one
+  const fx = o.focal_x == null ? 50 : o.focal_x, fy = o.focal_y == null ? 50 : o.focal_y, fz = o.focal_zoom == null ? 1 : o.focal_zoom;
+  const fstyle = focalStyle({ focal_x: fx, focal_y: fy, focal_zoom: fz });
   const thumb = url
-    ? `<div class="vf-photo-thumb"><img src="${vfEsc(preview)}" alt="" onerror="vfPhotoThumbFail(this)"></div>`
+    ? `<div class="vf-photo-thumb"><img src="${vfEsc(preview)}" style="${fstyle}" alt="" onerror="vfPhotoThumbFail(this)"></div>`
     : `<div class="vf-photo-thumb empty"></div>`;
   vfAppend('vf-photos-list',
     `${thumb}<input type="hidden" class="vf-photo-thumbval" value="${vfEsc(o.thumb || '')}">` +
+    `<input type="hidden" class="vf-photo-fx" value="${vfEsc(fx)}"><input type="hidden" class="vf-photo-fy" value="${vfEsc(fy)}"><input type="hidden" class="vf-photo-zoom" value="${vfEsc(fz)}">` +
     `<input type="text" class="vf-photo-url" placeholder="Image URL" value="${vfEsc(url)}" oninput="vfPhotoThumb(this)">` +
-    `<input type="text" class="vf-photo-cap" placeholder="Caption" value="${vfEsc(o.caption)}" style="flex:0.8">`);
+    `<input type="text" class="vf-photo-cap" placeholder="Caption" value="${vfEsc(o.caption)}" style="flex:0.8">` +
+    `<button type="button" class="vf-photo-adjust" onclick="vfAdjustPhoto(this)" aria-label="Adjust crop">Adjust</button>`);
 }
 // Live-update a photo row's thumbnail when its URL changes.
 function vfPhotoThumb(input) {
@@ -7922,10 +8038,14 @@ async function saveVenueForm() {
     price: row.querySelector('.vf-h-price').value.trim(),
   })).filter(h => h.name || h.stars || h.dist || h.price);
 
+  const vfNum = (el, d) => { const n = el ? Number(el.value) : NaN; return isNaN(n) ? d : n; };
   const photos = [...document.querySelectorAll('#vf-photos-list .vf-row')].map(row => ({
     url:     row.querySelector('.vf-photo-url').value.trim(),
     caption: row.querySelector('.vf-photo-cap').value.trim(),
     thumb:   (row.querySelector('.vf-photo-thumbval') ? row.querySelector('.vf-photo-thumbval').value.trim() : '') || null,
+    focal_x:    vfNum(row.querySelector('.vf-photo-fx'), 50),
+    focal_y:    vfNum(row.querySelector('.vf-photo-fy'), 50),
+    focal_zoom: vfNum(row.querySelector('.vf-photo-zoom'), 1),
   })).filter(p => p.url);
 
   const laText = vfText('vf-la-text');
@@ -8227,6 +8347,34 @@ window.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- Wedding dates overlay -->
+<!-- Photo display-crop editor (a stored view transform; the original file is never modified) -->
+<div id="crop-overlay" onclick="if(event.target===this)closeCropEditor()">
+  <div class="crop-sheet">
+    <div class="sce-head">
+      <span class="sce-title">Adjust crop</span>
+      <button class="sce-close" onclick="closeCropEditor()" aria-label="Close">✕</button>
+    </div>
+    <div class="sce-body">
+      <div class="crop-shape-toggle">
+        <button type="button" id="crop-tab-tile" class="crop-tab on" onclick="cropSetShape('tile')">Tile · 4:3</button>
+        <button type="button" id="crop-tab-hero" class="crop-tab" onclick="cropSetShape('hero')">Hero · wide</button>
+      </div>
+      <div class="crop-frame tile" id="crop-frame"
+        onmousedown="cropDown(event)" onmousemove="cropMove(event)" onmouseup="cropUp()" onmouseleave="cropUp()"
+        ontouchstart="cropDown(event)" ontouchmove="cropMove(event)" ontouchend="cropUp()">
+        <img id="crop-img" src="" alt="" draggable="false">
+      </div>
+      <label class="crop-zoom-l" for="crop-zoom">Zoom</label>
+      <input type="range" id="crop-zoom" class="crop-zoom" min="1" max="3" step="0.01" value="1" oninput="cropZoom(this.value)">
+      <div class="sce-actions">
+        <button class="btn btn-secondary" onclick="cropReset()">Reset</button>
+        <button class="btn btn-primary" onclick="cropSave()">Save</button>
+      </div>
+      <div class="sce-note">Drag the photo to reposition; zoom with the slider or pinch. This only changes how the photo displays in tiles — opening it always shows the full original.</div>
+    </div>
+  </div>
+</div>
+
 <!-- New venue from the scenario dropdown (styled overlay, not a system prompt) -->
 <div id="nv-overlay" onclick="if(event.target===this)closeNewVenueOverlay()">
   <div class="nv-sheet">
