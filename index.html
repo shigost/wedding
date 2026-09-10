@@ -521,6 +521,23 @@ textarea.inline-edit { min-height: 56px; resize: vertical; line-height: 1.4; }
 .vt-collapse { flex: 0 0 auto; background: none; border: none; color: var(--muted-light); font-size: 0.85rem; cursor: pointer; padding: 0; min-width: 30px; min-height: 30px; }
 .vt-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; margin-top: 0.6rem; }
 .vt-status-select { font-size: 16px; padding: 0.35rem 0.5rem; }
+/* Guest tiles: sleek collapsed row, tap to expand into an editable panel */
+.guest-tile { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.7rem 0.85rem; cursor: pointer; transition: border-color 0.15s; display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.5rem; }
+.guest-tile:hover { border-color: var(--gold); }
+.guest-tile.expanded { flex-direction: column; align-items: stretch; cursor: default; border-color: var(--gold); gap: 0; }
+.gt-main { min-width: 0; }
+.gt-badges { display: flex; flex-wrap: wrap; gap: 0.3rem; justify-content: flex-end; flex-shrink: 0; }
+.gt-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.3rem; }
+.gt-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; padding: 0.45rem 0; border-bottom: 1px solid var(--border-light); }
+.gt-label { font-size: 0.72rem; color: var(--muted); flex: 0 0 auto; }
+.gt-val { font-size: 0.85rem; color: var(--text); text-align: right; cursor: pointer; min-width: 0; word-break: break-word; }
+.gt-empty { color: var(--muted-light); font-style: italic; }
+.gt-actions { display: flex; justify-content: flex-end; margin-top: 0.6rem; }
+.guest-subfilters { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+.guest-subfilters select { font-size: 16px; padding: 0.4rem 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-family: 'Jost', sans-serif; }
+/* Mood card: action controls hidden until the ⋯ toggle */
+.mood-more { position: absolute; top: 0.4rem; right: 0.4rem; width: 30px; height: 30px; border-radius: 50%; border: none; background: rgba(0,0,0,0.45); color: #fff; font-size: 1rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+.mood-more:hover { background: rgba(0,0,0,0.65); }
 .sc-textarea { min-height: 72px; resize: vertical; }
 .sc-foot { margin-top: 0.6rem; font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted-light); }
 
@@ -2780,7 +2797,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         </div>
         <div class="stat-card">
           <div class="stat-num" id="dash-guests">0</div>
-          <div class="stat-label">Guests</div>
+          <div class="stat-label">Expected</div>
         </div>
         <div class="stat-card">
           <div class="stat-num" id="dash-budget">—</div>
@@ -2931,9 +2948,21 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         <button class="gf-btn" data-filter="Taleran" onclick="filterGuests('Taleran')">Taleran's side</button>
       </div>
 
-      <div style="margin-bottom:1rem">
-        <select id="guest-party-filter" style="width:auto" onchange="filterByParty(this.value)">
+      <div class="guest-subfilters">
+        <select id="guest-party-filter" onchange="filterByParty(this.value)">
           <option value="all">All parties</option>
+        </select>
+        <select id="guest-rsvp-filter" onchange="filterByRsvp(this.value)">
+          <option value="all">All RSVPs</option>
+          <option value="no_response">No response</option>
+          <option value="accepted">Accepted</option>
+          <option value="declined">Declined</option>
+        </select>
+        <select id="guest-likelihood-filter" onchange="filterByLikelihood(this.value)">
+          <option value="all">Any likelihood</option>
+          <option value="likely">Likely</option>
+          <option value="unlikely">Unlikely</option>
+          <option value="unknown">Unknown</option>
         </select>
       </div>
 
@@ -5251,13 +5280,97 @@ async function saveEditGuest(id) {
   updateDashboard();
 }
 
+// ── Guests: RSVP (their response) + likelihood (my expectation) — two independent axes ──
+const GUEST_SIDES = [['Alyssa', "Alyssa's side"], ['Taleran', "Taleran's side"], ['Mutual', 'Mutual']];
+const GUEST_STATUSES = [['invited', 'Invited'], ['maybe', 'Maybe'], ['cut', 'Cut']];
+const RSVP_OPTS = [['no_response', 'No response'], ['accepted', 'Accepted'], ['declined', 'Declined']];
+const LIKELIHOOD_OPTS = [['unknown', 'Unknown'], ['likely', 'Likely'], ['unlikely', 'Unlikely']];
+const _optLbl = (opts, v) => { const o = opts.find(x => x[0] === v); return o ? o[1] : opts[0][1]; };
+const guestOpen = new Set();      // expanded guest cards
+let guestRsvpFilter = 'all';
+let guestLikelihoodFilter = 'all';
+
+// Stats over the actual invite list (status === 'invited'). Expected = accepted + no-response
+// guests NOT marked 'unlikely' (declined excluded). This is the realistic head count.
+function guestStats() {
+  const inv = guests.filter(g => g.status === 'invited');
+  const accepted = inv.filter(g => g.rsvp_status === 'accepted').length;
+  const declined = inv.filter(g => g.rsvp_status === 'declined').length;
+  const expected = accepted + inv.filter(g => (g.rsvp_status || 'no_response') === 'no_response' && g.likelihood !== 'unlikely').length;
+  return { invited: inv.length, accepted, declined, rsvps: accepted + declined, expected };
+}
+
+function gsExpand(id) { guestOpen.add(id); renderGuests(); }
+function gsCollapse(id) { guestOpen.delete(id); renderGuests(); }
+function guestEdit(id, key) {
+  const g = guests.find(x => x.id === id); if (!g) return;
+  const cell = document.querySelector(`#guest-item-${id} [data-gf="${key}"]`); if (!cell) return;
+  const spec = { value: g[key] == null ? '' : g[key], onSave: raw => guestSave(id, key, raw) };
+  if (key === 'side') { spec.type = 'select'; spec.options = GUEST_SIDES; }
+  else if (key === 'status') { spec.type = 'select'; spec.options = GUEST_STATUSES; }
+  else if (key === 'rsvp_status') { spec.type = 'select'; spec.options = RSVP_OPTS; spec.value = g.rsvp_status || 'no_response'; }
+  else if (key === 'likelihood') { spec.type = 'select'; spec.options = LIKELIHOOD_OPTS; spec.value = g.likelihood || 'unknown'; }
+  else { spec.type = 'text'; spec.placeholder = key === 'party_name' ? 'Party / group' : 'Full name'; }
+  inlineEditCell(cell, spec);
+}
+async function guestSave(id, key, raw) {
+  const g = guests.find(x => x.id === id); if (!g) return;
+  const t = (raw == null ? '' : String(raw)).trim();
+  if (key === 'name' && !t) { renderGuests(); return; } // name required — revert
+  const val = (key === 'party_name') ? (t || null) : t;
+  g[key] = val;
+  await dbUpdate('guests', id, { [key]: val });
+  renderGuests();
+  updateDashboard();
+}
+function filterByRsvp(v) { guestRsvpFilter = v; renderGuests(); }
+function filterByLikelihood(v) { guestLikelihoodFilter = v; renderGuests(); }
+window.gsExpand = gsExpand; window.gsCollapse = gsCollapse; window.guestEdit = guestEdit;
+window.filterByRsvp = filterByRsvp; window.filterByLikelihood = filterByLikelihood;
+
+function gsStatusPill(g) {
+  return `<span class="pill pill-${g.status === 'invited' ? 'sage' : g.status === 'cut' ? 'love' : 'muted'}">${g.status === 'invited' ? '✓ Invited' : g.status === 'cut' ? '✕ Cut' : '? Maybe'}</span>`;
+}
+// Collapsed tile: name, side, status pill, and RSVP/likelihood only when non-default. Sleek.
+function gsTileHtml(g) {
+  const rsvp = g.rsvp_status || 'no_response', lk = g.likelihood || 'unknown';
+  return `<div class="guest-tile" onclick="gsExpand(${g.id})">
+    <div class="gt-main">
+      <div class="guest-name">${escapeHtml(g.name)}</div>
+      <div class="guest-side">${escapeHtml(g.side)}'s side</div>
+    </div>
+    <div class="gt-badges">
+      ${gsStatusPill(g)}
+      ${rsvp === 'accepted' ? '<span class="pill pill-sage">Accepted</span>' : rsvp === 'declined' ? '<span class="pill pill-love">Declined</span>' : ''}
+      ${lk === 'likely' ? '<span class="pill pill-foliage">Likely</span>' : lk === 'unlikely' ? '<span class="pill pill-muted">Unlikely</span>' : ''}
+    </div>
+  </div>`;
+}
+function gfRow(g, label, key, display) {
+  return `<div class="gt-row"><span class="gt-label">${label}</span><span class="gt-val inline-tap" data-gf="${key}" onclick="guestEdit(${g.id},'${key}')">${display}</span></div>`;
+}
+// Expanded tile: every field tap-to-edit (side/invite/RSVP/likelihood as selects) + Remove.
+function gsExpandedHtml(g) {
+  const rsvp = g.rsvp_status || 'no_response', lk = g.likelihood || 'unknown';
+  return `<div class="guest-tile expanded" id="guest-item-${g.id}">
+    <div class="gt-top">
+      <div class="guest-name inline-tap" data-gf="name" onclick="guestEdit(${g.id},'name')">${escapeHtml(g.name)}</div>
+      <button class="vt-collapse" onclick="gsCollapse(${g.id})" aria-label="Collapse">▲</button>
+    </div>
+    ${gfRow(g, 'Side', 'side', escapeHtml(_optLbl(GUEST_SIDES, g.side)))}
+    ${gfRow(g, 'Party', 'party_name', g.party_name ? escapeHtml(g.party_name) : '<span class="gt-empty">＋ Add party</span>')}
+    ${gfRow(g, 'Invite', 'status', escapeHtml(_optLbl(GUEST_STATUSES, g.status)))}
+    ${gfRow(g, 'RSVP', 'rsvp_status', escapeHtml(_optLbl(RSVP_OPTS, rsvp)))}
+    ${gfRow(g, 'Likelihood', 'likelihood', escapeHtml(_optLbl(LIKELIHOOD_OPTS, lk)))}
+    <div class="gt-actions"><button class="btn btn-danger btn-sm" onclick="removeGuest(${g.id})">🗑 Remove</button></div>
+  </div>`;
+}
+
 function renderGuests() {
-  const invited = guests.filter(g => g.status === 'invited').length;
-  const maybe = guests.filter(g => g.status === 'maybe').length;
-  const cut = guests.filter(g => g.status === 'cut').length;
+  const st = guestStats();
   const headerEl = document.getElementById('guest-header-sub');
-  if (headerEl) headerEl.textContent = `${invited} invited · ${maybe} maybe · ${cut} cut`;
-  document.getElementById('ql-guests').textContent = invited + ' invited';
+  if (headerEl) headerEl.textContent = `${st.invited} invited · ${st.rsvps} RSVPs received · ${st.expected} expected`;
+  document.getElementById('ql-guests').textContent = `${st.invited} inv · ${st.rsvps} RSVP · ${st.expected} exp`;
 
   // Normalize a guest's party into a key (blank/missing → null = "No party")
   const partyKey = g => (g.party_name && g.party_name.trim()) ? g.party_name : null;
@@ -5287,6 +5400,8 @@ function renderGuests() {
   // Party filter (independent axis, applied on top)
   if (guestPartyFilter === '__none__') filtered = filtered.filter(g => partyKey(g) === null);
   else if (guestPartyFilter !== 'all') filtered = filtered.filter(g => partyKey(g) === guestPartyFilter);
+  if (guestRsvpFilter !== 'all') filtered = filtered.filter(g => (g.rsvp_status || 'no_response') === guestRsvpFilter);
+  if (guestLikelihoodFilter !== 'all') filtered = filtered.filter(g => (g.likelihood || 'unknown') === guestLikelihoodFilter);
 
   if (filtered.length === 0) {
     document.getElementById('guest-list-container').innerHTML = `
@@ -5304,25 +5419,7 @@ function renderGuests() {
   const namedKeys = Object.keys(groups).filter(k => k !== '__none__').sort((a, b) => a.localeCompare(b));
   const orderedKeys = [...namedKeys, ...(groups['__none__'] ? ['__none__'] : [])];
 
-  const cardHtml = g => `
-    <div class="guest-card" id="guest-item-${g.id}">
-      <div>
-        <div class="guest-name">${escapeHtml(g.name)}</div>
-        <div class="guest-side">${escapeHtml(g.side)}'s side</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:0.5rem">
-        <span class="pill pill-${g.status==='invited'?'sage':g.status==='cut'?'love':'muted'}">
-          ${g.status==='invited'?'✓ Invited':g.status==='cut'?'✕ Cut':'? Maybe'}
-        </span>
-        <div class="guest-actions">
-          <button class="btn btn-secondary btn-sm" onclick="startEditGuest(${g.id})">✎</button>
-          ${g.status!=='invited'?`<button class="btn btn-secondary btn-sm" onclick="changeGuestStatus(${g.id},'invited')">✓</button>`:''}
-          ${g.status!=='maybe'?`<button class="btn btn-secondary btn-sm" onclick="changeGuestStatus(${g.id},'maybe')">?</button>`:''}
-          ${g.status!=='cut'?`<button class="btn btn-danger btn-sm" onclick="changeGuestStatus(${g.id},'cut')">✕</button>`:''}
-          <button class="btn btn-danger btn-sm" onclick="removeGuest(${g.id})">🗑</button>
-        </div>
-      </div>
-    </div>`;
+  const cardHtml = g => guestOpen.has(g.id) ? gsExpandedHtml(g) : gsTileHtml(g);
 
   document.getElementById('guest-list-container').innerHTML = orderedKeys.map(k => {
     const list = groups[k];
@@ -6211,6 +6308,9 @@ function vfAdjustPhoto(btn) {
 }
 window.closeCropEditor = closeCropEditor; window.cropSetShape = cropSetShape; window.cropZoom = cropZoom; window.cropReset = cropReset; window.cropSave = cropSave;
 window.cropDown = cropDown; window.cropMove = cropMove; window.cropUp = cropUp; window.moodAdjust = moodAdjust; window.vfAdjustPhoto = vfAdjustPhoto;
+const moodOpen = new Set(); // mood cards showing their action controls
+function moodToggle(id) { if (moodOpen.has(id)) moodOpen.delete(id); else moodOpen.add(id); renderMoodBoard(); }
+window.moodToggle = moodToggle;
 
 function renderMoodBoard() {
   const grid = document.getElementById('mood-grid');
@@ -6234,15 +6334,18 @@ function renderMoodBoard() {
     return;
   }
   grid.innerHTML = visible.map(img => `
-    <div class="mood-card" id="mood-card-${img.id}">
-      <div class="pcrop pcrop-43"><img class="mood-img" src="${escapeHtml(img.thumb_url || img.url)}" style="${focalStyle(img)}" alt="${escapeHtml(img.label)}" loading="lazy" onerror="moodImgFallback(this)" onclick="openMoodViewer(${img.id})"></div>
+    <div class="mood-card${moodOpen.has(img.id) ? ' expanded' : ''}" id="mood-card-${img.id}">
+      <div class="pcrop pcrop-43">
+        <img class="mood-img" src="${escapeHtml(img.thumb_url || img.url)}" style="${focalStyle(img)}" alt="${escapeHtml(img.label)}" loading="lazy" onerror="moodImgFallback(this)" onclick="openMoodViewer(${img.id})">
+        <button class="mood-more" onclick="event.stopPropagation();moodToggle(${img.id})" aria-label="Photo actions">${moodOpen.has(img.id) ? '×' : '⋯'}</button>
+      </div>
       <div class="mood-card-foot">
         <div class="mood-label" style="padding:0">${escapeHtml(img.label)}</div>
-        <div style="display:flex;gap:0.3rem;flex-shrink:0;">
+        ${moodOpen.has(img.id) ? `<div style="display:flex;gap:0.3rem;flex-shrink:0;">
           <button class="btn btn-secondary mood-adjust-btn" onclick="moodAdjust(${img.id})" aria-label="Adjust crop">⛶</button>
           <button class="btn btn-secondary mood-edit-btn" onclick="startEditMoodImage(${img.id})" aria-label="Edit label and tags">✎</button>
           <button class="btn btn-danger mood-del" onclick="removeMoodImage(${img.id})" aria-label="Delete image">✕</button>
-        </div>
+        </div>` : ''}
       </div>
     </div>
   `).join('');
@@ -6443,7 +6546,7 @@ function updateDashboard() {
   const invited = Array.isArray(guests) ? guests.filter(g => g.status === 'invited').length : 0;
   const maybe = Array.isArray(guests) ? guests.filter(g => g.status === 'maybe').length : 0;
   const gEl = document.getElementById('dash-guests');
-  if (gEl) gEl.textContent = invited + (maybe > 0 ? ' (+' + maybe + ')' : '');
+  if (gEl) gEl.textContent = guestStats().expected;
 
   // Update budget stat
   const total = budgetItems.reduce((s,i) => s + (parseFloat(i.amount)||0), 0);
