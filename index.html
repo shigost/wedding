@@ -1211,6 +1211,36 @@ textarea.inline-edit { min-height: 56px; resize: vertical; line-height: 1.4; }
 .crop-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; pointer-events: none; }
 .crop-zoom-l { display: block; font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0.8rem 0 0.3rem; }
 .crop-zoom { width: 100%; accent-color: var(--gold); }
+
+/* ── Venue videos: form rows, profile players, trim editor ── */
+.vf-video-note { font-size: 0.66rem; color: var(--muted-light); line-height: 1.5; margin-bottom: 0.5rem; }
+.vf-video-note strong { color: var(--gold); }
+.vf-video-progress { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.vf-video-bar { flex: 1; height: 6px; background: var(--bg2); border-radius: 3px; overflow: hidden; }
+.vf-video-bar > span { display: block; height: 100%; width: 0; background: var(--gold); transition: width 0.15s; }
+.vf-video-pct { font-size: 0.64rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.vf-v-main { display: flex; align-items: center; gap: 0.5rem; }
+.vf-v-badge { flex: 0 0 auto; font-size: 0.52rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.15rem 0.45rem; border-radius: 20px; border: 1px solid var(--border); color: var(--muted); }
+.vf-v-upload { background: var(--gold-pale); color: var(--gold); border-color: var(--gold); }
+.vf-v-youtube { background: var(--love-light); color: var(--love); border-color: var(--love); }
+.vf-v-vimeo { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+.vf-v-note { font-size: 0.62rem; color: var(--muted-light); margin-top: 0.3rem; }
+.vf-v-actions { margin-top: 0.4rem; }
+.vv-list { display: flex; flex-direction: column; gap: 1rem; }
+.vv-frame { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 10px; }
+.vv-frame video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vv-embed { position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 10px; overflow: hidden; background: #000; }
+.vv-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.vv-cap { font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; }
+#vv-editor { position: fixed; inset: 0; z-index: 1350; background: rgba(0,0,0,0.6); display: none; align-items: stretch; justify-content: center; }
+#vv-editor.open { display: flex; }
+.vve-sheet { background: var(--bg); width: 100%; max-width: 520px; display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: contain; }
+@media (min-width: 521px) { #vv-editor { align-items: center; } .vve-sheet { max-height: 92vh; border-radius: 16px; } }
+#vve-video { width: 100%; max-height: 42vh; background: #000; border-radius: 8px; display: block; }
+.vve-scrub { width: 100%; accent-color: var(--gold); margin-top: 0.6rem; }
+.vve-times { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; margin: 0.3rem 0 0.5rem; }
+.vve-btns, .vve-poster-row { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.5rem; }
+.vve-poster-prev { width: 72px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
 .vf-photo-adjust { flex: 0 0 auto; background: none; border: 1px solid var(--border); color: var(--muted); font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.4rem 0.6rem; border-radius: 7px; cursor: pointer; font-family: 'Jost', sans-serif; }
 .vf-photo-adjust:hover { border-color: var(--gold); color: var(--gold); }
 /* Broken / non-image URL fallback */
@@ -2755,6 +2785,7 @@ input:focus, select:focus, textarea:focus {
 #swipe-overlay.open { display: flex; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
 <script>
 const SUPABASE_URL = 'https://zcyomgflbojqplxuilre.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjeW9tZ2ZsYm9qcXBseHVpbHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NTk5ODMsImV4cCI6MjA5NjAzNTk4M30.W4oEgzlKUq0X8f4fxHu99T4Xl1rHeFZXEQsQhsEuf5k';
@@ -4103,6 +4134,7 @@ function venueRowToProfile(row) {
     images:           images,
     thumbs:           thumbs,
     focals:           focals,
+    videos:           Array.isArray(row.videos) ? row.videos : [],
     liked:            !!row.liked,
     archived:         !!row.archived,
   };
@@ -4294,6 +4326,8 @@ function venueRenderProfile(idx) {
       </div>
       <div class="tag-row">${v.tags.map(t => `<span class="vtag">${t}</span>`).join('')}</div>
 
+      ${venueVideosHtml(v)}
+
       <div class="info-grid">
         <div class="info-card"><div class="info-label">Est. Cost</div><div class="info-value gold">${v.budget}</div></div>
         <div class="info-card"><div class="info-label">Guests</div><div class="info-value">${v.guests}</div></div>
@@ -4380,6 +4414,7 @@ function venueRenderProfile(idx) {
     </div>
   `;
     startHeroAuto(idx);
+    hydrateVenueVideos(v);
   } catch (e) {
     console.error('venueRenderProfile failed for', (v && v.name) || idx, e);
     inner.innerHTML = venueEmptyStateHtml((v && v.name ? v.name + ' — ' : '') + 'could not be displayed.');
@@ -8139,6 +8174,208 @@ function vfAddTag(v) { vfAppend('vf-tags-list', `<input type="text" class="vf-it
 function vfAddPro(v) { vfAppend('vf-pros-list', `<input type="text" class="vf-item" placeholder="Strength" value="${vfEsc(v)}">`); }
 function vfAddCon(v) { vfAppend('vf-cons-list', `<input type="text" class="vf-item" placeholder="Watch-out" value="${vfEsc(v)}">`); }
 function vfAddLocalTag(v) { vfAppend('vf-la-tags-list', `<input type="text" class="vf-item" placeholder="Nearby spot" value="${vfEsc(v)}">`); }
+// ══════════════════════════════════════════════════════════════════
+//  VENUE VIDEOS — private bucket + resumable upload; embeds (YouTube/Vimeo);
+//  stored trim range + poster + focal (no re-encoding). Reference only.
+// ══════════════════════════════════════════════════════════════════
+const VVID_BUCKET = 'venue-videos';
+const VIDEO_MAX_BYTES = 500 * 1024 * 1024; // 500MB
+function vfVideoError(m) { const el = document.getElementById('vf-video-error'); if (el) el.textContent = m || ''; }
+function parseVideoUrl(u) {
+  u = (u || '').trim(); let m;
+  if ((m = u.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/i))) return { provider: 'youtube', id: m[1] };
+  if ((m = u.match(/vimeo\.com\/(?:video\/)?(\d+)/i))) return { provider: 'vimeo', id: m[1] };
+  return null;
+}
+function videoEmbedSrc(provider, id) {
+  if (provider === 'youtube') return `https://www.youtube-nocookie.com/embed/${id}?rel=0`;
+  if (provider === 'vimeo') return `https://player.vimeo.com/video/${id}`;
+  return '';
+}
+// Resumable (TUS) upload to the private bucket — survives dropped connections on large clips.
+async function vfUploadVideo(event) {
+  const input = event.target; const file = input.files && input.files[0];
+  if (!file) return;
+  vfVideoError('');
+  const okType = /^(video\/mp4|video\/quicktime)$/i.test(file.type) || /\.(mp4|mov)$/i.test(file.name);
+  if (!okType) { vfVideoError('Please choose an .mp4 or .mov video.'); input.value = ''; return; }
+  if (file.size > VIDEO_MAX_BYTES) { vfVideoError('Video is over 500MB — trim it on your phone first.'); input.value = ''; return; }
+  if (typeof tus === 'undefined') { vfVideoError('Uploader not loaded — check your connection and reload.'); input.value = ''; return; }
+  const sess = (await sb.auth.getSession()).data.session;
+  if (!sess) { vfVideoError('Not signed in.'); input.value = ''; return; }
+  const base = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const ext = (file.name.split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp4';
+  const path = `videos/${base}.${ext}`;
+  const prog = document.getElementById('vf-video-progress'), fill = document.getElementById('vf-video-bar-fill'), pct = document.getElementById('vf-video-pct'), btn = document.getElementById('vf-video-upload-btn');
+  prog.hidden = false; if (fill) fill.style.width = '0%'; if (pct) pct.textContent = '0%'; if (btn) btn.disabled = true;
+  setSyncStatus('', 'Uploading video…');
+  const up = new tus.Upload(file, {
+    endpoint: `${SUPABASE_URL}/storage/v1/upload/resumable`,
+    retryDelays: [0, 1000, 3000, 5000, 10000],
+    headers: { authorization: `Bearer ${sess.access_token}`, 'x-upsert': 'false' },
+    uploadDataDuringCreation: true,
+    removeFingerprintOnSuccess: true,
+    chunkSize: 6 * 1024 * 1024,
+    metadata: { bucketName: VVID_BUCKET, objectName: path, contentType: file.type || 'video/mp4', cacheControl: '3600' },
+    onError: (err) => { console.error('video upload error', err); vfVideoError('Upload failed — check your connection and retry (it can resume).'); prog.hidden = true; if (btn) btn.disabled = false; setSyncStatus('error', 'Error'); },
+    onProgress: (sent, total) => { const p = total ? Math.round(sent / total * 100) : 0; if (fill) fill.style.width = p + '%'; if (pct) pct.textContent = p + '%'; },
+    onSuccess: () => {
+      prog.hidden = true; if (btn) btn.disabled = false; setSyncStatus('ok', 'Live'); setTimeout(() => setSyncStatus('ok', 'Live'), 800);
+      vfAddVideo({ kind: 'upload', url: path, label: '', trim_start: 0, trim_end: null, poster_url: null, focal_x: 50, focal_y: 50, focal_zoom: 1, _localUrl: URL.createObjectURL(file) });
+    }
+  });
+  up.findPreviousUploads().then(prev => { if (prev && prev.length) up.resumeFromPreviousUpload(prev[0]); up.start(); }).catch(() => up.start());
+  input.value = '';
+}
+function vfAddVideoEmbed() {
+  const el = document.getElementById('vf-video-url-input'); const url = (el.value || '').trim();
+  vfVideoError('');
+  if (!url) return;
+  const p = parseVideoUrl(url);
+  if (!p) { vfVideoError('Enter a YouTube or Vimeo link.'); return; }
+  el.value = '';
+  vfAddVideo({ kind: 'embed', provider: p.provider, video_id: p.id, url, label: '' });
+}
+function vfAddVideo(o) {
+  o = o || {};
+  const kind = o.kind === 'embed' ? 'embed' : 'upload';
+  if (kind === 'embed') {
+    const provider = o.provider || 'youtube';
+    vfAppend('vf-videos-list',
+      `<input type="hidden" class="vf-v-kind" value="embed"><input type="hidden" class="vf-v-provider" value="${vfEsc(provider)}"><input type="hidden" class="vf-v-id" value="${vfEsc(o.video_id || '')}"><input type="hidden" class="vf-v-url" value="${vfEsc(o.url || '')}">`
+      + `<div class="vf-v-main"><span class="vf-v-badge vf-v-${provider}">${provider === 'youtube' ? 'YouTube' : 'Vimeo'}</span><input type="text" class="vf-v-label vf-item" placeholder="Label" value="${vfEsc(o.label || '')}"></div>`
+      + `<div class="vf-v-note">Trim, poster &amp; framing aren't available for embeds.</div>`);
+  } else {
+    vfAppend('vf-videos-list',
+      `<input type="hidden" class="vf-v-kind" value="upload"><input type="hidden" class="vf-v-url" value="${vfEsc(o.url || '')}"><input type="hidden" class="vf-v-ts" value="${o.trim_start == null ? 0 : o.trim_start}"><input type="hidden" class="vf-v-te" value="${o.trim_end == null ? '' : o.trim_end}"><input type="hidden" class="vf-v-poster" value="${vfEsc(o.poster_url || '')}"><input type="hidden" class="vf-v-fx" value="${o.focal_x == null ? 50 : o.focal_x}"><input type="hidden" class="vf-v-fy" value="${o.focal_y == null ? 50 : o.focal_y}"><input type="hidden" class="vf-v-zoom" value="${o.focal_zoom == null ? 1 : o.focal_zoom}"><input type="hidden" class="vf-v-local" value="${vfEsc(o._localUrl || '')}">`
+      + `<div class="vf-v-main"><span class="vf-v-badge vf-v-upload">Upload</span><input type="text" class="vf-v-label vf-item" placeholder="Label" value="${vfEsc(o.label || '')}"></div>`
+      + `<div class="vf-v-actions"><button type="button" class="btn btn-secondary btn-sm" onclick="vvEditRow(this)">✎ Trim · poster · crop</button></div>`);
+  }
+}
+function vfCollectVideos() {
+  const num = (el, d) => { const n = el ? Number(el.value) : NaN; return isNaN(n) ? d : n; };
+  const gv = (r, c) => { const e = r.querySelector(c); return e ? e.value : ''; };
+  return [...document.querySelectorAll('#vf-videos-list .vf-row')].map(r => {
+    const kind = gv(r, '.vf-v-kind') === 'embed' ? 'embed' : 'upload';
+    const label = (gv(r, '.vf-v-label') || '').trim();
+    if (kind === 'embed') return { kind: 'embed', provider: gv(r, '.vf-v-provider'), video_id: gv(r, '.vf-v-id'), url: gv(r, '.vf-v-url'), label };
+    const teRaw = gv(r, '.vf-v-te');
+    return { kind: 'upload', url: gv(r, '.vf-v-url'), label,
+      trim_start: num(r.querySelector('.vf-v-ts'), 0),
+      trim_end: teRaw === '' ? null : (isNaN(Number(teRaw)) ? null : Number(teRaw)),
+      poster_url: gv(r, '.vf-v-poster') || null,
+      focal_x: num(r.querySelector('.vf-v-fx'), 50), focal_y: num(r.querySelector('.vf-v-fy'), 50), focal_zoom: num(r.querySelector('.vf-v-zoom'), 1) };
+  }).filter(v => v.url || v.video_id);
+}
+
+// ── Video editor overlay: trim (stored range), poster capture, framing ──
+let vveCtx = null, vvePreviewStop = null;
+async function vvEditRow(btn) {
+  const rowEl = btn.closest('.vf-row'); if (!rowEl) return;
+  vfVideoError('');
+  const path = (rowEl.querySelector('.vf-v-url') || {}).value;
+  const local = (rowEl.querySelector('.vf-v-local') || {}).value;
+  let src = local;
+  if (!src && path) { const { data } = await sb.storage.from(VVID_BUCKET).createSignedUrl(path, 3600); src = data && data.signedUrl; }
+  if (!src) { vfVideoError('Could not load the video for editing.'); return; }
+  vveCtx = { rowEl, ts: Number((rowEl.querySelector('.vf-v-ts') || {}).value) || 0,
+    te: ((rowEl.querySelector('.vf-v-te') || {}).value === '' ? null : Number((rowEl.querySelector('.vf-v-te') || {}).value)),
+    posterPath: (rowEl.querySelector('.vf-v-poster') || {}).value || null, posterBlob: null,
+    fx: Number((rowEl.querySelector('.vf-v-fx') || {}).value) || 50, fy: Number((rowEl.querySelector('.vf-v-fy') || {}).value) || 50, zoom: Number((rowEl.querySelector('.vf-v-zoom') || {}).value) || 1 };
+  const vid = document.getElementById('vve-video'); vid.src = src;
+  const prev = document.getElementById('vve-poster-prev'); if (prev) { prev.hidden = true; prev.removeAttribute('src'); }
+  document.getElementById('vv-editor').classList.add('open');
+  lockBackgroundScroll();
+  document.addEventListener('keydown', vveKey);
+  vid.onloadedmetadata = vveInit;
+}
+function vveInit() {
+  const vid = document.getElementById('vve-video'); const dur = vid.duration || 0;
+  vveCtx.dur = dur;
+  if (vveCtx.te == null || vveCtx.te > dur + 0.5) vveCtx.te = null;
+  const scrub = document.getElementById('vve-scrub'); scrub.max = dur || 0; scrub.step = 0.05; scrub.value = vveCtx.ts;
+  try { vid.currentTime = vveCtx.ts; } catch (e) {}
+  vveUpdateTimes();
+}
+function vveKey(e) { if (e.key === 'Escape') vvCloseEditor(); }
+function vvCloseEditor() { const vid = document.getElementById('vve-video'); if (vvePreviewStop) { clearInterval(vvePreviewStop); vvePreviewStop = null; } vid.pause(); vid.removeAttribute('src'); vid.load(); document.getElementById('vv-editor').classList.remove('open'); unlockBackgroundScroll(); document.removeEventListener('keydown', vveKey); vveCtx = null; }
+function vveScrub(v) { const vid = document.getElementById('vve-video'); try { vid.currentTime = Number(v); } catch (e) {} vveUpdateTimes(); }
+function vveSetIn() { const vid = document.getElementById('vve-video'); vveCtx.ts = Math.min(vid.currentTime, (vveCtx.te == null ? vveCtx.dur : vveCtx.te) - 0.1); if (vveCtx.ts < 0) vveCtx.ts = 0; vveUpdateTimes(); }
+function vveSetOut() { const vid = document.getElementById('vve-video'); vveCtx.te = Math.max(vid.currentTime, vveCtx.ts + 0.1); vveUpdateTimes(); }
+function vveResetTrim() { vveCtx.ts = 0; vveCtx.te = null; const s = document.getElementById('vve-scrub'); s.value = 0; const vid = document.getElementById('vve-video'); try { vid.currentTime = 0; } catch (e) {} vveUpdateTimes(); }
+function _vfmt(t) { t = Math.max(0, t || 0); const m = Math.floor(t / 60), s = Math.floor(t % 60); return `${m}:${String(s).padStart(2, '0')}`; }
+function vveUpdateTimes() { const el = document.getElementById('vve-times'); if (el) el.textContent = `In ${_vfmt(vveCtx.ts)} · Out ${vveCtx.te == null ? _vfmt(vveCtx.dur) + ' (end)' : _vfmt(vveCtx.te)}`; }
+function vvePreview() {
+  const vid = document.getElementById('vve-video');
+  try { vid.currentTime = vveCtx.ts; } catch (e) {}
+  vid.play();
+  if (vvePreviewStop) clearInterval(vvePreviewStop);
+  vvePreviewStop = setInterval(() => { const end = vveCtx.te == null ? vveCtx.dur : vveCtx.te; if (vid.currentTime >= end) { vid.pause(); clearInterval(vvePreviewStop); vvePreviewStop = null; } }, 60);
+}
+async function vveCapturePoster() {
+  const vid = document.getElementById('vve-video');
+  const c = document.createElement('canvas'); c.width = vid.videoWidth || 1280; c.height = vid.videoHeight || 720;
+  try { c.getContext('2d').drawImage(vid, 0, 0, c.width, c.height); } catch (e) { vfVideoError('Could not capture this frame (HEVC video may not be decodable here).'); return; }
+  const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.82));
+  if (!blob) return;
+  vveCtx.posterBlob = blob;
+  const prev = document.getElementById('vve-poster-prev'); if (prev) { prev.src = URL.createObjectURL(blob); prev.hidden = false; }
+}
+function vveAdjustCrop() {
+  const prev = document.getElementById('vve-poster-prev');
+  const url = (prev && !prev.hidden && prev.getAttribute('src')) ? prev.src : null;
+  if (!url) { vfVideoError('Capture a poster first, then adjust framing.'); return; }
+  openCropEditor({ imageUrl: url, fx: vveCtx.fx, fy: vveCtx.fy, zoom: vveCtx.zoom, onSave: f => { vveCtx.fx = f.focal_x; vveCtx.fy = f.focal_y; vveCtx.zoom = f.focal_zoom; } });
+}
+async function vveSave() {
+  const r = vveCtx.rowEl;
+  if (vveCtx.posterBlob) {
+    const ppath = `posters/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const { error } = await sb.storage.from(VVID_BUCKET).upload(ppath, vveCtx.posterBlob, { contentType: 'image/jpeg', upsert: false });
+    if (!error) vveCtx.posterPath = ppath; else console.error('poster upload', error);
+  }
+  r.querySelector('.vf-v-ts').value = Math.round(vveCtx.ts * 100) / 100;
+  r.querySelector('.vf-v-te').value = vveCtx.te == null ? '' : Math.round(vveCtx.te * 100) / 100;
+  r.querySelector('.vf-v-poster').value = vveCtx.posterPath || '';
+  r.querySelector('.vf-v-fx').value = vveCtx.fx; r.querySelector('.vf-v-fy').value = vveCtx.fy; r.querySelector('.vf-v-zoom').value = vveCtx.zoom;
+  vvCloseEditor();
+}
+
+// ── Profile render ──
+function venueVideosHtml(v) {
+  if (!v.videos || !v.videos.length) return '';
+  const items = v.videos.map((vid, i) => {
+    if (vid.kind === 'embed') {
+      return `<div class="vv-item"><div class="vv-embed"><iframe src="${escapeHtml(videoEmbedSrc(vid.provider, vid.video_id))}" title="${escapeHtml(vid.label || 'Video')}" loading="lazy" frameborder="0" allow="fullscreen; picture-in-picture" allowfullscreen></iframe></div>${vid.label ? `<div class="vv-cap">${escapeHtml(vid.label)}</div>` : ''}</div>`;
+    }
+    return `<div class="vv-item"><div class="pcrop vv-frame" data-vvidx="${i}"><video class="vv-video" playsinline controls preload="metadata" controlsList="nodownload noremoteplayback" disablePictureInPicture></video></div>${vid.label ? `<div class="vv-cap">${escapeHtml(vid.label)}</div>` : ''}</div>`;
+  }).join('');
+  return `<div class="psec"><div class="psec-title">Walkthrough Videos</div><div class="vv-list">${items}</div></div>`;
+}
+async function hydrateVenueVideos(v) {
+  if (!v.videos || !v.videos.length) return;
+  for (let i = 0; i < v.videos.length; i++) {
+    const vid = v.videos[i]; if (vid.kind === 'embed') continue;
+    const frame = document.querySelector(`.vv-frame[data-vvidx="${i}"]`); if (!frame) continue;
+    const el = frame.querySelector('video'); if (!el) continue;
+    let src = null, poster = null;
+    if (vid.url) { const { data } = await sb.storage.from(VVID_BUCKET).createSignedUrl(vid.url, 7200); src = data && data.signedUrl; }
+    if (vid.poster_url) { const { data } = await sb.storage.from(VVID_BUCKET).createSignedUrl(vid.poster_url, 7200); poster = data && data.signedUrl; }
+    if (poster) el.poster = poster;
+    applyFocal(el, vid);
+    if (src) {
+      const ts = Number(vid.trim_start) || 0;
+      const te = (vid.trim_end == null || vid.trim_end === '') ? null : Number(vid.trim_end);
+      el.addEventListener('loadedmetadata', () => { if (ts > 0) { try { el.currentTime = ts; } catch (e) {} } });
+      if (te != null) el.addEventListener('timeupdate', () => { if (el.currentTime >= te) el.pause(); });
+      el.addEventListener('play', () => { if (el.currentTime < ts || (te != null && el.currentTime >= te)) { try { el.currentTime = ts; } catch (e) {} } });
+      el.src = src;
+    }
+  }
+}
+window.vfUploadVideo = vfUploadVideo; window.vfAddVideoEmbed = vfAddVideoEmbed; window.vfAddVideo = vfAddVideo;
+window.vvEditRow = vvEditRow; window.vvCloseEditor = vvCloseEditor; window.vveScrub = vveScrub; window.vveSetIn = vveSetIn; window.vveSetOut = vveSetOut; window.vveResetTrim = vveResetTrim; window.vvePreview = vvePreview; window.vveCapturePoster = vveCapturePoster; window.vveAdjustCrop = vveAdjustCrop; window.vveSave = vveSave;
+
 function vfAddPhoto(o) {
   o = o || {};
   const url = o.url || '';
@@ -8297,6 +8534,19 @@ function renderVenueForm(row) {
     <div id="vf-photos-list"></div>
     <button type="button" class="btn btn-secondary vf-add-btn" onclick="vfAddPhoto()">+ Add photo</button>
 
+    <div class="vf-section-title">Walkthrough videos</div>
+    <div class="vf-video-note">Private reference — not shareable or downloadable. iPhone .mov works; if a clip won't play on desktop Chrome it's HEVC — record in <strong>Settings → Camera → Formats → Most Compatible</strong> for universal playback.</div>
+    <input type="file" id="vf-video-file" accept="video/mp4,video/quicktime,.mov,.mp4" style="display:none" onchange="vfUploadVideo(event)">
+    <button type="button" class="btn btn-secondary btn-sm" id="vf-video-upload-btn" onclick="document.getElementById('vf-video-file').click()" style="width:100%;justify-content:center;margin-bottom:0.5rem;">⬆ Upload video (up to 500MB)</button>
+    <div id="vf-video-progress" class="vf-video-progress" hidden><div class="vf-video-bar"><span id="vf-video-bar-fill"></span></div><span id="vf-video-pct">0%</span></div>
+    <div style="display:flex;gap:0.4rem;margin-bottom:0.35rem;">
+      <input type="text" id="vf-video-url-input" placeholder="YouTube or Vimeo link…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();vfAddVideoEmbed();}">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="vfAddVideoEmbed()">Add link</button>
+    </div>
+    <div class="vf-video-note">Embeds play in YouTube/Vimeo's own player — their privacy is whatever you set there (mark Unlisted/Private). No trim, poster, or framing on embeds.</div>
+    <div class="vf-error" id="vf-video-error"></div>
+    <div id="vf-videos-list"></div>
+
     <div class="vf-section-title">Nearby hotels</div>
     <div id="vf-hotels-list"></div>
     <button type="button" class="btn btn-secondary vf-add-btn" onclick="vfAddHotel()">+ Add hotel</button>
@@ -8331,6 +8581,8 @@ function renderVenueForm(row) {
   (Array.isArray(r.tags) ? r.tags : []).forEach(vfAddTag);
   (Array.isArray(r.inclusions) ? r.inclusions : []).forEach(vfAddInclusion);
   (Array.isArray(r.photos) ? r.photos : []).forEach(vfAddPhoto);
+  document.getElementById('vf-videos-list').innerHTML = '';
+  (Array.isArray(r.videos) ? r.videos : []).forEach(vfAddVideo);
   (Array.isArray(r.hotels) ? r.hotels : []).forEach(vfAddHotel);
   (Array.isArray(la.tags) ? la.tags : []).forEach(vfAddLocalTag);
   (Array.isArray(r.pros) ? r.pros : []).forEach(vfAddPro);
@@ -8372,6 +8624,8 @@ async function saveVenueForm() {
     focal_zoom: vfNum(row.querySelector('.vf-photo-zoom'), 1),
   })).filter(p => p.url);
 
+  const videos = vfCollectVideos();
+
   const laText = vfText('vf-la-text');
   const laPhoto = vfText('vf-la-photo');
   const laTags = vfSimpleList('vf-la-tags-list');
@@ -8403,6 +8657,7 @@ async function saveVenueForm() {
     inclusions,
     hotels,
     photos,
+    videos,
     pros:              vfSimpleList('vf-pros-list'),
     cons:              vfSimpleList('vf-cons-list'),
     local_area:        { photo: laPhoto, text: laText || '', tags: laTags },
@@ -8671,6 +8926,31 @@ window.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- Wedding dates overlay -->
+<!-- Venue video editor: trim range (stored, no re-encode) + poster capture + framing -->
+<div id="vv-editor" onclick="if(event.target===this)vvCloseEditor()">
+  <div class="vve-sheet">
+    <div class="sce-head"><span class="sce-title">Trim &amp; poster</span><button class="sce-close" onclick="vvCloseEditor()" aria-label="Close">✕</button></div>
+    <div class="sce-body">
+      <video id="vve-video" playsinline preload="metadata" controls controlsList="nodownload noremoteplayback" disablePictureInPicture></video>
+      <input type="range" id="vve-scrub" class="vve-scrub" min="0" max="100" step="0.05" value="0" oninput="vveScrub(this.value)">
+      <div class="vve-times" id="vve-times">In 0:00 · Out (end)</div>
+      <div class="vve-btns">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="vveSetIn()">Set in</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="vveSetOut()">Set out</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="vvePreview()">▶ Preview trim</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="vveResetTrim()">Reset</button>
+      </div>
+      <div class="vve-poster-row">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="vveCapturePoster()">📷 Capture poster</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="vveAdjustCrop()">⛶ Framing</button>
+        <img id="vve-poster-prev" class="vve-poster-prev" alt="" hidden>
+      </div>
+      <div class="sce-note">Trim sets a stored playback range — the original file is never changed. Poster capture needs a decodable frame (HEVC .mov may not capture on desktop Chrome).</div>
+      <div class="sce-actions"><button type="button" class="btn btn-secondary" onclick="vvCloseEditor()">Cancel</button><button type="button" class="btn btn-primary" onclick="vveSave()">Save</button></div>
+    </div>
+  </div>
+</div>
+
 <!-- Photo display-crop editor (a stored view transform; the original file is never modified) -->
 <div id="crop-overlay" onclick="if(event.target===this)closeCropEditor()">
   <div class="crop-sheet">
