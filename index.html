@@ -503,6 +503,11 @@ label {
 .sc-fval.empty { color: var(--muted-light); }
 .sc-fval-block { text-align: left; white-space: pre-wrap; margin-top: 0.25rem; }
 .sc-input { width: 100%; box-sizing: border-box; font-family: var(--font-body, 'Jost', sans-serif); font-size: 16px; padding: 0.4rem 0.5rem; border: 1px solid var(--gold); border-radius: 7px; color: var(--text); background: var(--surface); outline: none; }
+/* Generic tap-to-edit (vendors + itinerary), matching the scenario pattern */
+.inline-tap { cursor: pointer; }
+.inline-tap.empty { color: var(--muted-light); font-style: italic; }
+.inline-edit { width: 100%; box-sizing: border-box; font-family: var(--font-body, 'Jost', sans-serif); font-size: 16px; padding: 0.4rem 0.5rem; border: 1px solid var(--gold); border-radius: 7px; color: var(--text); background: var(--surface); outline: none; }
+textarea.inline-edit { min-height: 56px; resize: vertical; line-height: 1.4; }
 .sc-textarea { min-height: 72px; resize: vertical; }
 .sc-foot { margin-top: 0.6rem; font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted-light); }
 
@@ -5741,6 +5746,53 @@ async function updateVendorStatus(id, status) {
   if (v) { v.status = status; await dbUpdate('vendors', id, { status }); renderVendors(); }
 }
 
+// Generic tap-to-edit cell: swaps the value for the right input; commits on blur/Enter, Esc cancels.
+// spec = { type:'text'|'textarea'|'select'|'date', value, options?:[[val,label]], placeholder?, onSave:(raw)=>{} }
+function inlineEditCell(cell, spec) {
+  if (!cell || cell.querySelector('input,select,textarea')) return; // already editing
+  const prev = cell.innerHTML;
+  let html;
+  if (spec.type === 'select') html = `<select class="inline-edit">${spec.options.map(([v, l]) => `<option value="${escapeHtml(String(v))}"${String(v) === String(spec.value == null ? '' : spec.value) ? ' selected' : ''}>${escapeHtml(l)}</option>`).join('')}</select>`;
+  else if (spec.type === 'textarea') html = `<textarea class="inline-edit" rows="2" placeholder="${escapeHtml(spec.placeholder || '')}"></textarea>`;
+  else if (spec.type === 'date') html = `<input class="inline-edit" type="date">`;
+  else html = `<input class="inline-edit" type="text" placeholder="${escapeHtml(spec.placeholder || '')}">`;
+  cell.innerHTML = html;
+  const inp = cell.querySelector('.inline-edit');
+  if (spec.type === 'select') inp.value = spec.value == null ? '' : String(spec.value);
+  else if (spec.value != null) inp.value = spec.value;
+  inp.focus();
+  let done = false;
+  const commit = () => { if (done) return; done = true; spec.onSave(inp.value); };
+  const cancel = () => { if (done) return; done = true; cell.innerHTML = prev; };
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && spec.type !== 'textarea') { e.preventDefault(); inp.blur(); }
+    else if (e.key === 'Escape') { inp.removeEventListener('blur', commit); cancel(); }
+  });
+  if (spec.type === 'select' || spec.type === 'date') inp.addEventListener('change', () => inp.blur());
+}
+
+// ── Vendor inline editing (tap a field → edit; status keeps its own select) ──
+const VENDOR_CATS = ['Photographer', 'Videographer', 'Florist', 'Caterer', 'Band / DJ', 'Wedding Planner', 'Hair & Makeup', 'Transport', 'Cake', 'Officiant', 'Other'];
+function venEdit(id, key) {
+  const v = vendors.find(x => x.id === id); if (!v) return;
+  const cell = document.querySelector(`#vendor-card-${id} [data-vf="${key}"]`); if (!cell) return;
+  const spec = { value: v[key] == null ? '' : v[key], onSave: raw => venSave(id, key, raw) };
+  if (key === 'cat') { spec.type = 'select'; spec.options = VENDOR_CATS.map(c => [c, c]); }
+  else if (key === 'notes') { spec.type = 'textarea'; spec.placeholder = 'Notes'; }
+  else { spec.type = 'text'; spec.placeholder = key === 'contact' ? 'Email or phone' : 'Vendor name'; }
+  inlineEditCell(cell, spec);
+}
+async function venSave(id, key, raw) {
+  const v = vendors.find(x => x.id === id); if (!v) return;
+  const t = (raw == null ? '' : String(raw)).trim();
+  if (key === 'name' && !t) { renderVendors(); return; } // name is required — revert
+  v[key] = t;
+  await dbUpdate('vendors', id, { [key]: t });
+  renderVendors();
+}
+window.venEdit = venEdit;
+
 function renderVendors() {
   document.getElementById('vendor-sub').textContent = `${vendors.length} vendors · ${vendors.filter(v=>v.status==='booked'||v.status==='paid').length} booked`;
   document.getElementById('ql-vendors').textContent = vendors.length + ' tracked';
@@ -5751,16 +5803,16 @@ function renderVendors() {
     return;
   }
   document.getElementById('vendor-list').innerHTML = vendors.map(v => `
-    <div class="vendor-card">
+    <div class="vendor-card" id="vendor-card-${v.id}">
       <div class="vendor-header">
-        <div>
-          <div class="vendor-name">${escapeHtml(v.name)}</div>
-          <div class="vendor-cat">${escapeHtml(v.cat)}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="vendor-name inline-tap" data-vf="name" onclick="venEdit(${v.id},'name')">${escapeHtml(v.name)}</div>
+          <div class="vendor-cat inline-tap" data-vf="cat" onclick="venEdit(${v.id},'cat')">${escapeHtml(v.cat)}</div>
         </div>
         <span class="pill pill-${STATUS_COLORS[v.status]||'muted'} vendor-status">${escapeHtml(v.status)}</span>
       </div>
-      ${v.contact ? `<div class="vendor-details">📧 ${escapeHtml(v.contact)}</div>` : ''}
-      ${v.notes ? `<div class="vendor-details" style="margin-top:0.3rem">${escapeHtml(v.notes)}</div>` : ''}
+      <div class="vendor-details inline-tap${v.contact ? '' : ' empty'}" data-vf="contact" onclick="venEdit(${v.id},'contact')">${v.contact ? '📧 ' + escapeHtml(v.contact) : '＋ Add contact'}</div>
+      <div class="vendor-details inline-tap${v.notes ? '' : ' empty'}" data-vf="notes" onclick="venEdit(${v.id},'notes')" style="margin-top:0.3rem">${v.notes ? escapeHtml(v.notes) : '＋ Add notes'}</div>
       <div style="margin-top:0.6rem;display:flex;gap:0.35rem;flex-wrap:wrap">
         <select class="btn btn-secondary btn-sm" style="padding:0.3rem 0.5rem;font-size:0.55rem" onchange="updateVendorStatus(${v.id},this.value)">
           ${['researching','contacted','quoted','booked','paid'].map(s=>`<option value="${s}"${v.status===s?' selected':''}>${s}</option>`).join('')}
@@ -6807,6 +6859,30 @@ const ITIN_TAG_CLASS = {
   Reception: 'ceremony', Dinner: 'ceremony',
 };
 
+// ── Itinerary inline editing (tap a field → edit) ──
+const ITIN_CATS = ['Ceremony', 'Reception', 'Guests', 'Travel', 'Getting Ready', 'Photos', 'Dinner', 'Party', 'Accommodation', 'General'];
+const ITIN_ASSIGNED = [['Both', 'Both of us'], ['Alyssa', 'Alyssa'], ['Taleran', 'Taleran'], ['Guests', 'Guests'], ['Planner', 'Wedding planner']];
+function itinEdit(id, key) {
+  const it = itinItems.find(x => x.id === id); if (!it) return;
+  const cell = document.querySelector(`#itin-item-${id} [data-if="${key}"]`); if (!cell) return;
+  const spec = { value: it[key] == null ? '' : it[key], onSave: raw => itinSave(id, key, raw) };
+  if (key === 'category') { spec.type = 'select'; spec.options = ITIN_CATS.map(c => [c, c]); }
+  else if (key === 'assigned_to') { spec.type = 'select'; spec.options = ITIN_ASSIGNED; }
+  else if (key === 'date') { spec.type = 'date'; }
+  else if (key === 'description') { spec.type = 'textarea'; spec.placeholder = 'Description'; }
+  else { spec.type = 'text'; spec.placeholder = key === 'time_label' ? 'Time' : (key === 'location' ? 'Location' : 'Title'); }
+  inlineEditCell(cell, spec);
+}
+async function itinSave(id, key, raw) {
+  const it = itinItems.find(x => x.id === id); if (!it) return;
+  const t = (raw == null ? '' : String(raw)).trim();
+  if ((key === 'title' || key === 'date') && !t) { renderItinerary(); return; } // required — revert
+  it[key] = t;
+  await dbUpdate('itinerary_items', id, { [key]: t });
+  renderItinerary();
+}
+window.itinEdit = itinEdit;
+
 function renderItinerary() {
   const filtered = itinDayFilter === 'all' ? itinItems : itinItems.filter(x => x.date === itinDayFilter);
   const total = itinItems.length;
@@ -6845,21 +6921,22 @@ function renderItinerary() {
     <div class="itin-group">
       <div class="itin-group-header">${escapeHtml(date)}</div>
       ${items.map((item, i) => `
-        <div class="itin-item ${item.done ? 'done' : ''}">
+        <div class="itin-item ${item.done ? 'done' : ''}" id="itin-item-${item.id}">
           <div class="itin-time-col">
-            <div class="itin-time">${escapeHtml(item.time_label || '—')}</div>
+            <div class="itin-time inline-tap" data-if="time_label" onclick="itinEdit(${item.id},'time_label')">${escapeHtml(item.time_label || '—')}</div>
           </div>
           <div class="itin-dot-col">
             <div class="itin-dot ${item.done ? 'done' : ''}" onclick="toggleItinItem(${item.id})"></div>
             ${i < items.length - 1 ? '<div class="itin-line"></div>' : ''}
           </div>
           <div class="itin-content">
-            <div class="itin-title ${item.done ? 'done-text' : ''}">${escapeHtml(item.title)}</div>
-            ${item.description ? `<div class="itin-desc">${escapeHtml(item.description)}</div>` : ''}
+            <div class="itin-title ${item.done ? 'done-text' : ''} inline-tap" data-if="title" onclick="itinEdit(${item.id},'title')">${escapeHtml(item.title)}</div>
+            <div class="itin-desc inline-tap${item.description ? '' : ' empty'}" data-if="description" onclick="itinEdit(${item.id},'description')">${item.description ? escapeHtml(item.description) : '＋ Add description'}</div>
             <div class="itin-meta">
-              ${item.location ? `<span class="itin-tag">📍 ${escapeHtml(item.location)}</span>` : ''}
-              <span class="itin-tag ${ITIN_TAG_CLASS[item.category] || ''}">${escapeHtml(item.category)}</span>
-              <span class="itin-tag">👤 ${escapeHtml(item.assigned_to)}</span>
+              <span class="itin-tag inline-tap${item.location ? '' : ' empty'}" data-if="location" onclick="itinEdit(${item.id},'location')">📍 ${item.location ? escapeHtml(item.location) : 'Add location'}</span>
+              <span class="itin-tag ${ITIN_TAG_CLASS[item.category] || ''} inline-tap" data-if="category" onclick="itinEdit(${item.id},'category')">${escapeHtml(item.category)}</span>
+              <span class="itin-tag inline-tap" data-if="assigned_to" onclick="itinEdit(${item.id},'assigned_to')">👤 ${escapeHtml(item.assigned_to)}</span>
+              <span class="itin-tag inline-tap" data-if="date" onclick="itinEdit(${item.id},'date')">📅 ${escapeHtml(item.date)}</span>
             </div>
           </div>
           <div class="itin-actions">
