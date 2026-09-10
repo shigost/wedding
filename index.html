@@ -3249,7 +3249,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
           <label>Label (optional)</label>
           <input type="text" id="mood-label" placeholder="e.g. Ceremony inspo · Florals · Dress">
         </div>
-        <input type="file" id="mood-file" accept="image/*" style="display:none" onchange="uploadMoodImage(event)">
+        <input type="file" id="mood-file" accept="image/*" multiple style="display:none" onchange="uploadMoodImage(event)">
         <button class="btn btn-primary mood-upload-btn" id="mood-upload-btn" onclick="document.getElementById('mood-file').click()">
           <span id="mood-upload-label">📷 Upload from device</span>
         </button>
@@ -5847,40 +5847,62 @@ function moodError(msg) {
   if (el) el.textContent = msg || '';
 }
 
-// Upload a device image to Storage, then save its public URL to mood_images.
+// Sequential batch upload: one file at a time (gentle on the connection / Supabase rate limits),
+// per-file validation preserved, failures collected — a bad file never aborts the batch.
+async function uploadBatch(files, opts) {
+  const list = Array.from(files || []);
+  const failed = [];
+  let ok = 0;
+  for (let i = 0; i < list.length; i++) {
+    const file = list[i];
+    if (opts.progress) opts.progress(i + 1, list.length, file.name);
+    if (!file.type || !file.type.startsWith('image/')) { failed.push({ name: file.name || 'file', reason: 'not an image' }); continue; }
+    if (file.size > 10 * 1024 * 1024) { failed.push({ name: file.name || 'file', reason: 'over 10 MB' }); continue; }
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await sb.storage.from(opts.bucket).upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = sb.storage.from(opts.bucket).getPublicUrl(path);
+      await opts.onSuccess(pub.publicUrl, file);
+      ok++;
+    } catch (e) {
+      console.error('batch upload error', file.name, JSON.stringify(e), e.message || e);
+      failed.push({ name: file.name || 'file', reason: 'upload failed' });
+    }
+  }
+  return { ok, failed };
+}
+
+// Upload one or more device images to Storage, then save each to mood_images.
 async function uploadMoodImage(event) {
   const input = event.target;
-  const file = input.files && input.files[0];
-  if (!file) return;
+  const files = input.files;
+  if (!files || !files.length) return;
   moodError('');
-  if (!file.type.startsWith('image/')) { moodError('Please choose an image file.'); input.value = ''; return; }
-  if (file.size > 10 * 1024 * 1024) { moodError('Image is too large (max 10 MB).'); input.value = ''; return; }
-
   const label = document.getElementById('mood-label').value.trim();
   const themes = collectMoodThemes(document.getElementById('mood-add-themes'));
   setMoodUploadState(true);
   setSyncStatus('', 'Uploading...');
-  try {
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error: upErr } = await sb.storage.from(MOOD_BUCKET).upload(path, file, { contentType: file.type, upsert: false });
-    if (upErr) throw upErr;
-    const { data: pub } = sb.storage.from(MOOD_BUCKET).getPublicUrl(path);
-    const row = await dbInsert('mood_images', { url: pub.publicUrl, label: label || 'Inspo', themes });
-    if (row) {
-      moodImages.push(row);
-      document.getElementById('mood-label').value = '';
-      resetMoodAddThemes();
-      renderMoodBoard();
-    }
-  } catch(e) {
-    console.error('mood upload error', JSON.stringify(e), e.message || e);
-    moodError('Upload failed. Please try again.');
-    setSyncStatus('error', 'Error saving');
-  } finally {
-    setMoodUploadState(false);
-    input.value = ''; // allow re-selecting the same file
-  }
+  const { ok, failed } = await uploadBatch(files, {
+    bucket: MOOD_BUCKET,
+    progress: (n, total) => { const lbl = document.getElementById('mood-upload-label'); if (lbl) lbl.innerHTML = `<span class="mood-spinner"></span> Uploading ${n}/${total}…`; },
+    onSuccess: async (url) => { const row = await dbInsert('mood_images', { url, label: label || 'Inspo', themes }); if (row) { moodImages.push(row); renderMoodBoard(); } },
+  });
+  if (ok > 0) { document.getElementById('mood-label').value = ''; resetMoodAddThemes(); }
+  batchReport('mood-upload-error', ok, failed);
+  setSyncStatus(failed.length ? 'error' : 'ok', failed.length ? 'Some failed' : 'Live');
+  if (!failed.length) setTimeout(() => setSyncStatus('ok', 'Live'), 1200);
+  setMoodUploadState(false);
+  input.value = ''; // allow re-selecting the same files
+}
+
+// Shared batch result line: green when all succeeded, red (with the failures) otherwise.
+function batchReport(elId, ok, failed) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!failed.length) { el.style.color = 'var(--sage)'; el.textContent = ok ? `Added ${ok} photo${ok === 1 ? '' : 's'}.` : ''; }
+  else { el.style.color = 'var(--love)'; el.textContent = `${ok} added, ${failed.length} failed — ` + failed.map(f => `${f.name} (${f.reason})`).join(', '); }
 }
 
 // Add by direct image URL — validates it's a real image first.
@@ -7679,33 +7701,24 @@ function vfPhotoUploadState(loading) {
   const btn = document.getElementById('vf-photo-upload-btn');
   if (btn) { btn.disabled = loading; btn.innerHTML = loading ? '<span class="mood-spinner"></span> Uploading…' : '📷 Upload from device'; }
 }
-// Upload a device image → venue-images bucket → append a photo row with the public URL.
+// Upload one or more device images → venue-images bucket → append a photo row for each.
 async function vfUploadPhoto(event) {
   const input = event.target;
-  const file = input.files && input.files[0];
-  if (!file) return;
+  const files = input.files;
+  if (!files || !files.length) return;
   vfPhotoError('');
-  if (!file.type.startsWith('image/')) { vfPhotoError('Please choose an image file.'); input.value = ''; return; }
-  if (file.size > 10 * 1024 * 1024) { vfPhotoError('Image is too large (max 10 MB).'); input.value = ''; return; }
   vfPhotoUploadState(true);
   setSyncStatus('', 'Uploading...');
-  try {
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error: upErr } = await sb.storage.from(VENUE_BUCKET).upload(path, file, { contentType: file.type, upsert: false });
-    if (upErr) throw upErr;
-    const { data: pub } = sb.storage.from(VENUE_BUCKET).getPublicUrl(path);
-    vfAddPhoto({ url: pub.publicUrl, caption: '' });
-    setSyncStatus('ok', 'Saved');
-    setTimeout(() => setSyncStatus('ok', 'Live'), 1200);
-  } catch(e) {
-    console.error('venue photo upload error', JSON.stringify(e), e.message || e);
-    vfPhotoError('Upload failed. Please try again.');
-    setSyncStatus('error', 'Error saving');
-  } finally {
-    vfPhotoUploadState(false);
-    input.value = ''; // allow re-selecting the same file
-  }
+  const { ok, failed } = await uploadBatch(files, {
+    bucket: VENUE_BUCKET,
+    progress: (n, total) => { const btn = document.getElementById('vf-photo-upload-btn'); if (btn) btn.innerHTML = `<span class="mood-spinner"></span> Uploading ${n}/${total}…`; },
+    onSuccess: async (url) => { vfAddPhoto({ url, caption: '' }); },
+  });
+  batchReport('vf-photo-error', ok, failed);
+  setSyncStatus(failed.length ? 'error' : 'ok', failed.length ? 'Some failed' : 'Live');
+  if (!failed.length) setTimeout(() => setSyncStatus('ok', 'Live'), 1200);
+  vfPhotoUploadState(false);
+  input.value = ''; // allow re-selecting the same files
 }
 // Add a photo by direct URL — validates it's a real image first (mood-board style).
 async function vfAddPhotoByUrl() {
@@ -7792,7 +7805,7 @@ function renderVenueForm(row) {
     <button type="button" class="btn btn-secondary vf-add-btn" onclick="vfAddInclusion()">+ Add inclusion</button>
 
     <div class="vf-section-title">Photos</div>
-    <input type="file" id="vf-photo-file" accept="image/*" style="display:none" onchange="vfUploadPhoto(event)">
+    <input type="file" id="vf-photo-file" accept="image/*" multiple style="display:none" onchange="vfUploadPhoto(event)">
     <button type="button" class="btn btn-secondary btn-sm" id="vf-photo-upload-btn" onclick="document.getElementById('vf-photo-file').click()" style="width:100%;justify-content:center;margin-bottom:0.5rem;">📷 Upload from device</button>
     <div style="display:flex;gap:0.4rem;margin-bottom:0.4rem;">
       <input type="text" id="vf-photo-url-input" placeholder="Paste image URL…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();vfAddPhotoByUrl();}">
