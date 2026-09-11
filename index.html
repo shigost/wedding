@@ -2861,6 +2861,14 @@ input:focus, select:focus, textarea:focus {
 /* ── SWIPE OVERLAY ── */
 #swipe-overlay { display: none; }
 #swipe-overlay.open { display: flex; }
+/* Inline-SVG icon set — inherits text colour (currentColor) so it follows the theme */
+.ico { width: 1em; height: 1em; display: inline-block; vertical-align: -0.125em; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.ico--fill { fill: currentColor; stroke: none; }
+.ico--danger { color: var(--love); }
+.ico--up { transform: rotate(-90deg); }
+.ico--down { transform: rotate(90deg); }
+.ico--left { transform: rotate(180deg); }
+.nav-icon .ico { vertical-align: -0.15em; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
@@ -2873,6 +2881,37 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
 </script>
 </head>
 <body data-theme="beira">
+<!-- Icon sprite: one consistent thin/editorial set. Referenced via <use>; inherits currentColor. -->
+<svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></symbol>
+  <symbol id="i-volume" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></symbol>
+  <symbol id="i-mute" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></symbol>
+  <symbol id="i-frame" viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
+  <symbol id="i-nav-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+  <symbol id="i-nav-venues" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V8l7-4 7 4v13"/><line x1="9" y1="21" x2="9" y2="12"/><line x1="15" y1="21" x2="15" y2="12"/></symbol>
+  <symbol id="i-nav-guests" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-nav-budget" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></symbol>
+  <symbol id="i-nav-tasks" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
+  <symbol id="i-nav-vendors" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
+  <symbol id="i-nav-itinerary" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+  <symbol id="i-nav-mood" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+  <symbol id="i-nav-scenarios" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+</defs></svg>
 
 <!-- TOP BAR -->
 <div id="topbar">
@@ -2885,22 +2924,22 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     <div class="theme-dot" data-t="jardim" onclick="setTheme('jardim')" title="Blanca"></div>
     <div class="theme-dot" data-t="editorial" onclick="setTheme('editorial')" title="Arena"></div>
     <div class="theme-dot" data-t="noite" onclick="setTheme('noite')" title="Noche"></div>
-    <button class="theme-edit-btn" onclick="openThemeEditor()" title="Edit colours" aria-label="Edit theme colours">✎</button>
+    <button class="theme-edit-btn" onclick="openThemeEditor()" title="Edit colours" aria-label="Edit theme colours"><svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg></button>
   </div>
 </div>
 
 <!-- NAV -->
 <div id="nav">
-  <button id="nav-hamburger" onclick="openNavMenu()" aria-label="Open navigation menu">☰ Menu</button>
-  <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><span class="nav-icon">✦</span> Home</div>
-  <div class="nav-item" data-page="venues" onclick="showPage('venues')"><span class="nav-icon">🏛</span> Venues</div>
-  <div class="nav-item" data-page="guests" onclick="showPage('guests')"><span class="nav-icon">♡</span> Guests</div>
-  <div class="nav-item" data-page="budget" onclick="showPage('budget')"><span class="nav-icon">◈</span> Budget</div>
-  <div class="nav-item" data-page="timeline" onclick="showPage('timeline')"><span class="nav-icon">✓</span> Tasks</div>
-  <div class="nav-item" data-page="vendors" onclick="showPage('vendors')"><span class="nav-icon">✧</span> Vendors</div>
-  <div class="nav-item" data-page="itinerary" onclick="showPage('itinerary')"><span class="nav-icon">📅</span> Itinerary</div>
-  <div class="nav-item" data-page="moodboard" onclick="showPage('moodboard')"><span class="nav-icon">◉</span> Mood Board</div>
-  <div class="nav-item" data-page="scenarios" onclick="showPage('scenarios')"><span class="nav-icon">◇</span> Scenarios</div>
+  <button id="nav-hamburger" onclick="openNavMenu()" aria-label="Open navigation menu"><svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg> Menu</button>
+  <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-home"/></svg></span> Home</div>
+  <div class="nav-item" data-page="venues" onclick="showPage('venues')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-venues"/></svg></span> Venues</div>
+  <div class="nav-item" data-page="guests" onclick="showPage('guests')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-guests"/></svg></span> Guests</div>
+  <div class="nav-item" data-page="budget" onclick="showPage('budget')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-budget"/></svg></span> Budget</div>
+  <div class="nav-item" data-page="timeline" onclick="showPage('timeline')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-tasks"/></svg></span> Tasks</div>
+  <div class="nav-item" data-page="vendors" onclick="showPage('vendors')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-vendors"/></svg></span> Vendors</div>
+  <div class="nav-item" data-page="itinerary" onclick="showPage('itinerary')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-itinerary"/></svg></span> Itinerary</div>
+  <div class="nav-item" data-page="moodboard" onclick="showPage('moodboard')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-mood"/></svg></span> Mood Board</div>
+  <div class="nav-item" data-page="scenarios" onclick="showPage('scenarios')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-scenarios"/></svg></span> Scenarios</div>
 </div>
 
 <!-- Hamburger nav menu (narrow widths) -->
@@ -2908,18 +2947,18 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   <div class="nav-menu-sheet">
     <div class="nav-menu-head">
       <span class="nav-menu-title">Menu</span>
-      <button class="nav-menu-close" onclick="closeNavMenu()" aria-label="Close">✕</button>
+      <button class="nav-menu-close" onclick="closeNavMenu()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     </div>
     <div class="nav-menu-list">
-      <button class="nav-menu-item active" data-page="dashboard" onclick="navMenuGo('dashboard')"><span class="nav-icon">✦</span> Home</button>
-      <button class="nav-menu-item" data-page="venues" onclick="navMenuGo('venues')"><span class="nav-icon">🏛</span> Venues</button>
-      <button class="nav-menu-item" data-page="guests" onclick="navMenuGo('guests')"><span class="nav-icon">♡</span> Guests</button>
-      <button class="nav-menu-item" data-page="budget" onclick="navMenuGo('budget')"><span class="nav-icon">◈</span> Budget</button>
-      <button class="nav-menu-item" data-page="timeline" onclick="navMenuGo('timeline')"><span class="nav-icon">✓</span> Tasks</button>
-      <button class="nav-menu-item" data-page="vendors" onclick="navMenuGo('vendors')"><span class="nav-icon">✧</span> Vendors</button>
-      <button class="nav-menu-item" data-page="itinerary" onclick="navMenuGo('itinerary')"><span class="nav-icon">📅</span> Itinerary</button>
-      <button class="nav-menu-item" data-page="moodboard" onclick="navMenuGo('moodboard')"><span class="nav-icon">◉</span> Mood Board</button>
-      <button class="nav-menu-item" data-page="scenarios" onclick="navMenuGo('scenarios')"><span class="nav-icon">◇</span> Scenarios</button>
+      <button class="nav-menu-item active" data-page="dashboard" onclick="navMenuGo('dashboard')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-home"/></svg></span> Home</button>
+      <button class="nav-menu-item" data-page="venues" onclick="navMenuGo('venues')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-venues"/></svg></span> Venues</button>
+      <button class="nav-menu-item" data-page="guests" onclick="navMenuGo('guests')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-guests"/></svg></span> Guests</button>
+      <button class="nav-menu-item" data-page="budget" onclick="navMenuGo('budget')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-budget"/></svg></span> Budget</button>
+      <button class="nav-menu-item" data-page="timeline" onclick="navMenuGo('timeline')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-tasks"/></svg></span> Tasks</button>
+      <button class="nav-menu-item" data-page="vendors" onclick="navMenuGo('vendors')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-vendors"/></svg></span> Vendors</button>
+      <button class="nav-menu-item" data-page="itinerary" onclick="navMenuGo('itinerary')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-itinerary"/></svg></span> Itinerary</button>
+      <button class="nav-menu-item" data-page="moodboard" onclick="navMenuGo('moodboard')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-mood"/></svg></span> Mood Board</button>
+      <button class="nav-menu-item" data-page="scenarios" onclick="navMenuGo('scenarios')"><span class="nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-nav-scenarios"/></svg></span> Scenarios</button>
     </div>
   </div>
 </div>
@@ -3054,7 +3093,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         <div class="venue-grid" id="venue-archived-grid"></div>
         <div class="venue-archived-bar">
           <span id="venue-archived-count" style="font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);">0 selected</span>
-          <button class="btn btn-primary btn-sm" id="venue-unarchive-btn" onclick="unarchiveSelected()" disabled>↩ Unarchive selected</button>
+          <button class="btn btn-primary btn-sm" id="venue-unarchive-btn" onclick="unarchiveSelected()" disabled><svg class="ico" aria-hidden="true"><use href="#i-undo"/></svg> Unarchive selected</button>
         </div>
       </div>
     </div>
@@ -3087,9 +3126,9 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
 
       <div class="guest-filters">
         <button class="gf-btn active" data-filter="all" onclick="filterGuests('all')">All</button>
-        <button class="gf-btn" data-filter="invited" onclick="filterGuests('invited')">✓ Invited</button>
+        <button class="gf-btn" data-filter="invited" onclick="filterGuests('invited')">Invited</button>
         <button class="gf-btn" data-filter="maybe" onclick="filterGuests('maybe')">? Maybe</button>
-        <button class="gf-btn" data-filter="cut" onclick="filterGuests('cut')">✕ Cut</button>
+        <button class="gf-btn" data-filter="cut" onclick="filterGuests('cut')">Cut</button>
         <button class="gf-btn" data-filter="Alyssa" onclick="filterGuests('Alyssa')">Alyssa's side</button>
         <button class="gf-btn" data-filter="Taleran" onclick="filterGuests('Taleran')">Taleran's side</button>
       </div>
@@ -3120,7 +3159,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
       </div>
 
       <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap">
-        <button class="btn btn-secondary btn-sm" onclick="exportGuests()">↓ Export CSV</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportGuests()"<svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Export CSV</button>
         <button class="btn btn-danger btn-sm" onclick="clearCutGuests()">Clear all cut</button>
       </div>
     </div>
@@ -3162,7 +3201,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         <div style="margin-top:0.8rem;display:flex;align-items:center;gap:0.5rem;">
           <span style="font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">Master budget:</span>
           <span id="b-master-display" style="font-family:var(--font-display);font-size:1rem;color:var(--dark);"></span>
-          <button class="btn btn-secondary btn-sm" onclick="openEditBudget()" style="margin-left:auto">✎ Edit budget</button>
+          <button class="btn btn-secondary btn-sm" onclick="openEditBudget()" style="margin-left:auto"><svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg> Edit budget</button>
         </div>
       </div>
 
@@ -3236,7 +3275,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
       </div>
 
       <div style="margin-top:0.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
-        <button class="btn btn-secondary btn-sm" onclick="exportBudget()">↓ Export CSV</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportBudget()"<svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Export CSV</button>
         <button class="btn btn-secondary btn-sm" onclick="toggleChangelog()">◷ Change Log</button>
       </div>
     </div>
@@ -3255,7 +3294,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         <button class="gf-btn" data-tf="urgent" onclick="filterTasks('urgent')">🔴 Urgent</button>
         <button class="gf-btn" data-tf="inprogress" onclick="filterTasks('inprogress')">◑ In Progress</button>
         <button class="gf-btn" data-tf="upcoming" onclick="filterTasks('upcoming')">○ Not Started</button>
-        <button class="gf-btn" data-tf="done" onclick="filterTasks('done')">✓ Done</button>
+        <button class="gf-btn" data-tf="done" onclick="filterTasks('done')">Done</button>
       </div>
 
       <div id="timeline-wrap"></div>
@@ -3409,7 +3448,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
 
       <div id="itinerary-list"></div>
       <div style="margin-top:0.5rem">
-        <button class="btn btn-secondary btn-sm" onclick="exportItinerary()">↓ Export CSV</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportItinerary()"<svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Export CSV</button>
       </div>
     </div>
   </div>
@@ -3439,7 +3478,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
       <div id="mood-hero-empty" class="mood-hero-empty">
         <div class="mhe-title">Mood Board</div>
         <div class="mhe-actions">
-          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();moodSetCover()">＋ Set cover photo</button>
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();moodSetCover()"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Set cover photo</button>
           <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();moodOpenThemePanel()">Theme details</button>
         </div>
       </div>
@@ -3482,7 +3521,10 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   </div>
 </div>
 
-<script>// ── STORAGE (localStorage fallback for venues/theme only)
+<script>// ── ICONS: reference a sprite symbol; inherits currentColor. extra = extra classes.
+function ico(name, extra) { return `<svg class="ico${extra ? ' ' + extra : ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`; }
+window.ico = ico;
+// ── STORAGE (localStorage fallback for venues/theme only)
 const S = {
   get: (k) => { try { return JSON.parse(localStorage.getItem('at2027_'+k)||'null'); } catch(e) { return null; } },
   set: (k,v) => { try { localStorage.setItem('at2027_'+k, JSON.stringify(v)); } catch(e) {} },
@@ -4387,8 +4429,8 @@ function venueRenderProfile(idx) {
     inner.innerHTML = `
     <div class="profile-hero" id="hero-area" onclick="openLightbox(VENUES[${idx}].images, heroIdx, VENUES[${idx}].name, ${idx})">
       <img id="hero-img" src="${v.images[0]}" style="${focalStyle(v.focals && v.focals[0])}" alt="${v.name}">
-      <div class="hero-nav left" onclick="event.stopPropagation();cycleHero(${idx}, -1)"><div class="hn-arrow">‹</div></div>
-      <div class="hero-nav right" onclick="event.stopPropagation();cycleHero(${idx}, 1)"><div class="hn-arrow">›</div></div>
+      <div class="hero-nav left" onclick="event.stopPropagation();cycleHero(${idx}, -1)"><div class="hn-arrow">${ico('chevron', 'ico--left')}</div></div>
+      <div class="hero-nav right" onclick="event.stopPropagation();cycleHero(${idx}, 1)"><div class="hn-arrow">${ico('chevron')}</div></div>
       <div class="hero-dots">${v.images.map((_, i) => `<div class="hdot ${i===0?'active':''}" id="hdot-${i}"></div>`).join('')}</div>
     </div>
 
@@ -4486,8 +4528,8 @@ function venueRenderProfile(idx) {
         <a class="cta-btn cta-primary" href="${v.website}" target="_blank">↗ Website</a>
         <button class="cta-btn cta-secondary" onclick="setVenueView('map')">📍 Map</button>
         <button class="cta-btn cta-secondary" onclick="setVenueView('compare')">⇄ Compare</button>
-        <button class="cta-btn cta-secondary" onclick="openSwipe(${idx})" style="color:var(--sage)">♥ Swipe</button>
-        <button class="cta-btn cta-secondary" onclick="openVenueForm(${idx})">✎ Edit</button>
+        <button class="cta-btn cta-secondary" onclick="openSwipe(${idx})" style="color:var(--sage)">${ico('heart', 'ico--fill')} Swipe</button>
+        <button class="cta-btn cta-secondary" onclick="openVenueForm(${idx})"<svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg> Edit</button>
         <button class="cta-btn btn-danger" onclick="openArchiveModal(${idx})">Archive</button>
       </div>
     </div>
@@ -5499,14 +5541,14 @@ function gsExpandedHtml(g) {
   return `<div class="guest-tile expanded" id="guest-item-${g.id}">
     <div class="gt-top">
       <div class="guest-name inline-tap" data-gf="name" onclick="guestEdit(${g.id},'name')">${escapeHtml(g.name)}</div>
-      <button class="vt-collapse" onclick="gsCollapse(${g.id})" aria-label="Collapse">▲</button>
+      <button class="vt-collapse" onclick="gsCollapse(${g.id})" aria-label="Collapse"><svg class="ico ico--up" aria-hidden="true"><use href="#i-chevron"/></svg></button>
     </div>
     ${gfRow(g, 'Side', 'side', escapeHtml(_optLbl(GUEST_SIDES, g.side)))}
-    ${gfRow(g, 'Party', 'party_name', g.party_name ? escapeHtml(g.party_name) : '<span class="gt-empty">＋ Add party</span>')}
+    ${gfRow(g, 'Party', 'party_name', g.party_name ? escapeHtml(g.party_name) : `<span class="gt-empty">${ico('plus')} Add party</span>`)}
     ${gfRow(g, 'Invite', 'status', escapeHtml(_optLbl(GUEST_STATUSES, g.status)))}
     ${gfRow(g, 'RSVP', 'rsvp_status', escapeHtml(_optLbl(RSVP_OPTS, rsvp)))}
     ${gfRow(g, 'Likelihood', 'likelihood', escapeHtml(_optLbl(LIKELIHOOD_OPTS, lk)))}
-    <div class="gt-actions"><button class="btn btn-danger btn-sm" onclick="removeGuest(${g.id})">🗑 Remove</button></div>
+    <div class="gt-actions"><button class="btn btn-danger btn-sm" onclick="removeGuest(${g.id})"<svg class="ico ico--danger" aria-hidden="true"><use href="#i-trash"/></svg> Remove</button></div>
   </div>`;
 }
 
@@ -5662,7 +5704,7 @@ function startEditBudgetItem(id) {
           ${['estimated','quoted','booked','paid'].map(s => `<option value="${s}"${item.status===s?' selected':''}>${s}</option>`).join('')}
         </select>
         <button class="btn btn-gold btn-sm" onclick="saveEditBudgetItem(${id})">Save</button>
-        <button class="btn btn-secondary btn-sm" onclick="renderBudget()">✕</button>
+        <button class="btn btn-secondary btn-sm" onclick="renderBudget()" aria-label="Cancel">${ico('close')}</button>
       </div>
     </div>
   `;
@@ -5755,8 +5797,8 @@ function renderBudget() {
             </div>
             <span class="pill pill-${item.status==='paid'?'sage':item.status==='booked'?'gold':'muted'} bi-status">${item.status}</span>
             <div class="bi-amount">${fmtMoney(item.amount)}</div>
-            <button class="btn btn-secondary btn-sm" onclick="startEditBudgetItem(${item.id})">✎</button>
-            <button class="btn btn-danger btn-sm" onclick="removeBudgetItem(${item.id})">✕</button>
+            <button class="btn btn-secondary btn-sm" onclick="startEditBudgetItem(${item.id})" aria-label="Edit">${ico('edit')}</button>
+            <button class="btn btn-danger btn-sm" onclick="removeBudgetItem(${item.id})" aria-label="Remove">${ico('trash', 'ico--danger')}</button>
           </div>
         `).join('')}
       </div>`;
@@ -5963,10 +6005,10 @@ function renderTimeline() {
       <div class="tl-menu" id="tl-menu-${t.id}">
         <button class="tl-menu-item ${isNotStarted ? 'current' : ''}" onclick="setTaskStatus(${t.id},'upcoming')">○ Not Started</button>
         <button class="tl-menu-item ${isInprogress ? 'current' : ''}" onclick="setTaskStatus(${t.id},'inprogress')">◑ In Progress</button>
-        <button class="tl-menu-item ${t.done ? 'current' : ''}" onclick="setTaskStatus(${t.id},'done')">✓ Done</button>
+        <button class="tl-menu-item ${t.done ? 'current' : ''}" onclick="setTaskStatus(${t.id},'done')">Done</button>
         <div class="tl-menu-sep"></div>
-        <button class="tl-menu-item" onclick="startEditTask(${t.id})">✎ Edit</button>
-        <button class="tl-menu-item danger" onclick="removeTimelineTask(${t.id})">✕ Delete</button>
+        <button class="tl-menu-item" onclick="startEditTask(${t.id})"<svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg> Edit</button>
+        <button class="tl-menu-item danger" onclick="removeTimelineTask(${t.id})">${ico('trash')} Delete</button>
       </div>
     </div>
   `;
@@ -6072,15 +6114,15 @@ function vendorExpandedHtml(v) {
         <div class="vt-name inline-tap" data-vf="name" onclick="venEdit(${v.id},'name')">${escapeHtml(v.name)}</div>
         <div class="vt-cat inline-tap" data-vf="cat" onclick="venEdit(${v.id},'cat')">${escapeHtml(v.cat)}</div>
       </div>
-      <button class="vt-collapse" onclick="venCollapse(${v.id})" aria-label="Collapse">▲</button>
+      <button class="vt-collapse" onclick="venCollapse(${v.id})" aria-label="Collapse"><svg class="ico ico--up" aria-hidden="true"><use href="#i-chevron"/></svg></button>
     </div>
-    <div class="vendor-details inline-tap${v.contact ? '' : ' empty'}" data-vf="contact" onclick="venEdit(${v.id},'contact')">${v.contact ? '📧 ' + escapeHtml(v.contact) : '＋ Add contact'}</div>
-    <div class="vendor-details inline-tap${v.notes ? '' : ' empty'}" data-vf="notes" onclick="venEdit(${v.id},'notes')" style="margin-top:0.3rem">${v.notes ? escapeHtml(v.notes) : '＋ Add notes'}</div>
+    <div class="vendor-details inline-tap${v.contact ? '' : ' empty'}" data-vf="contact" onclick="venEdit(${v.id},'contact')">${v.contact ? '📧 ' + escapeHtml(v.contact) : ico('plus') + ' Add contact'}</div>
+    <div class="vendor-details inline-tap${v.notes ? '' : ' empty'}" data-vf="notes" onclick="venEdit(${v.id},'notes')" style="margin-top:0.3rem">${v.notes ? escapeHtml(v.notes) : ico('plus') + ' Add notes'}</div>
     <div class="vt-actions">
       <select class="btn btn-secondary btn-sm vt-status-select" onchange="updateVendorStatus(${v.id},this.value)">
         ${['researching','contacted','quoted','booked','paid'].map(s => `<option value="${s}"${v.status===s?' selected':''}>${s}</option>`).join('')}
       </select>
-      <button class="btn btn-danger btn-sm" onclick="removeVendor(${v.id})">🗑 Remove</button>
+      <button class="btn btn-danger btn-sm" onclick="removeVendor(${v.id})"<svg class="ico ico--danger" aria-hidden="true"><use href="#i-trash"/></svg> Remove</button>
     </div>
   </div>`;
 }
@@ -6193,7 +6235,7 @@ function setMoodUploadState(loading) {
   const btn = document.getElementById('mood-upload-btn');
   const lbl = document.getElementById('mood-upload-label');
   if (btn) btn.disabled = loading;
-  if (lbl) lbl.innerHTML = loading ? '<span class="mood-spinner"></span> Uploading…' : '📷 Upload from device';
+  if (lbl) lbl.innerHTML = loading ? '<span class="mood-spinner"></span> Uploading…' : ico('camera') + ' Upload from device';
 }
 
 function moodError(msg) {
@@ -6533,7 +6575,7 @@ function renderMoodToolbar() {
       <span class="mood-sel-count">Archived · ${moodSel.size} selected</span>
       <button class="mood-tb-btn" onclick="moodSelectAll()">All</button>
       <button class="mood-tb-btn" onclick="moodDeselectAll()">None</button>
-      <button class="mood-tb-btn mood-tb-primary" onclick="moodUnarchiveSelected()"${moodSel.size ? '' : ' disabled'}>↩ Unarchive</button>
+      <button class="mood-tb-btn mood-tb-primary" onclick="moodUnarchiveSelected()"${moodSel.size ? '' : ' disabled'}>${ico('undo')} Unarchive</button>
       <button class="mood-tb-btn" onclick="moodCloseArchive()">Done</button></div>`;
   } else if (moodSelect) {
     tb.innerHTML = `<div class="mood-tb mood-tb-sel">
@@ -6547,7 +6589,7 @@ function renderMoodToolbar() {
     const archived = moodImages.filter(x => x.archived).length;
     const toolsOpen = !document.getElementById('mood-tools').hidden;
     tb.innerHTML = `<div class="mood-tb">
-      <button class="mood-tb-btn mood-tb-add${toolsOpen ? ' on' : ''}" onclick="moodToolsToggle()" aria-label="Add photos and filters">＋</button>
+      <button class="mood-tb-btn mood-tb-add${toolsOpen ? ' on' : ''}" onclick="moodToolsToggle()" aria-label="Add photos and filters">${ico('plus')}</button>
       <button class="mood-tb-btn" onclick="moodEnterSelect()">Edit gallery</button>
       ${archived ? `<button class="mood-tb-link" onclick="moodOpenArchive()">Archived (${archived})</button>` : ''}</div>`;
   }
@@ -6767,7 +6809,7 @@ function updateDashboard() {
   if (el) {
     if (!weddingDate) {
       // No date set → prompt to set one (tap to flip), never a broken number.
-      el.textContent = '＋';
+      el.innerHTML = ico('plus');
       if (labelEl) labelEl.textContent = 'Set date';
     } else {
       const now = new Date();
@@ -6871,7 +6913,7 @@ function renderDateCandidates() {
         <select class="dc-status" data-id="${escapeHtml(d.id)}" onchange="setCandidateStatus('${d.id}', this.value)">
           ${DC_STATUSES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
         </select>
-        <button class="dc-remove" onclick="removeCandidate('${d.id}')" aria-label="Remove date">🗑</button>
+        <button class="dc-remove" onclick="removeCandidate('${d.id}')" aria-label="Remove date">${ico('trash', 'ico--danger')}</button>
       </div>
       <input class="dc-note" type="text" placeholder="Note (optional)" value="${escapeHtml(d.note || '')}" onchange="setCandidateNote('${d.id}', this.value)">
     </div>`).join('');
@@ -7312,7 +7354,7 @@ function renderItinerary() {
           </div>
           <div class="itin-content">
             <div class="itin-title ${item.done ? 'done-text' : ''} inline-tap" data-if="title" onclick="itinEdit(${item.id},'title')">${escapeHtml(item.title)}</div>
-            <div class="itin-desc inline-tap${item.description ? '' : ' empty'}" data-if="description" onclick="itinEdit(${item.id},'description')">${item.description ? escapeHtml(item.description) : '＋ Add description'}</div>
+            <div class="itin-desc inline-tap${item.description ? '' : ' empty'}" data-if="description" onclick="itinEdit(${item.id},'description')">${item.description ? escapeHtml(item.description) : ico('plus') + ' Add description'}</div>
             <div class="itin-meta">
               <span class="itin-tag inline-tap${item.location ? '' : ' empty'}" data-if="location" onclick="itinEdit(${item.id},'location')">📍 ${item.location ? escapeHtml(item.location) : 'Add location'}</span>
               <span class="itin-tag ${ITIN_TAG_CLASS[item.category] || ''} inline-tap" data-if="category" onclick="itinEdit(${item.id},'category')">${escapeHtml(item.category)}</span>
@@ -7321,7 +7363,7 @@ function renderItinerary() {
             </div>
           </div>
           <div class="itin-actions">
-            <button class="btn btn-danger btn-sm" onclick="removeItinItem(${item.id})">✕</button>
+            <button class="btn btn-danger btn-sm" onclick="removeItinItem(${item.id})" aria-label="Remove">${ico('trash', 'ico--danger')}</button>
           </div>
         </div>
       `).join('')}
@@ -7479,9 +7521,9 @@ function renderTypesManager() {
         <div class="st-row-top">
           <span class="sc-type-badge" style="background:var(--type${n}-bg);color:var(--type${n});border-color:var(--type${n})">${escapeHtml(t.name || 'Type')}</span>
           <div class="st-reorder">
-            <button class="st-mv" onclick="stMove('${t.id}',-1)"${i === 0 ? ' disabled' : ''} aria-label="Move up">↑</button>
-            <button class="st-mv" onclick="stMove('${t.id}',1)"${i === list.length - 1 ? ' disabled' : ''} aria-label="Move down">↓</button>
-            <button class="st-del" onclick="stDelete('${t.id}')" aria-label="Delete type">✕</button>
+            <button class="st-mv" onclick="stMove('${t.id}',-1)"${i === 0 ? ' disabled' : ''} aria-label="Move up">${ico('chevron', 'ico--up')}</button>
+            <button class="st-mv" onclick="stMove('${t.id}',1)"${i === list.length - 1 ? ' disabled' : ''} aria-label="Move down">${ico('chevron', 'ico--down')}</button>
+            <button class="st-del" onclick="stDelete('${t.id}')" aria-label="Delete type">${ico('trash')}</button>
           </div>
         </div>
         <input class="st-name" type="text" value="${escapeHtml(t.name || '')}" onchange="stRename('${t.id}',this.value)" placeholder="Type name">
@@ -7572,11 +7614,11 @@ function scCardHtml(s) {
     <div class="sc-card-head">
       <div class="sc-name" onclick="scEdit('${s.id}','name','text')">${nameDisp}</div>
       <button class="sc-email" onclick="scEmailDraft('${s.id}')" aria-label="Draft questions email" title="Draft questions email">✉</button>
-      <button class="sc-del" onclick="deleteScenario('${s.id}')" aria-label="Delete scenario">🗑</button>
+      <button class="sc-del" onclick="deleteScenario('${s.id}')" aria-label="Delete scenario">${ico('trash')}</button>
     </div>
     <div class="sc-actions-row">
-      <button class="sc-actbtn sc-star-btn${s.starred ? ' on' : ''}" onclick="scToggleStar('${s.id}')">${s.starred ? '★ Starred' : '☆ Star'}</button>
-      <button class="sc-actbtn sc-choose-btn${s.is_chosen ? ' on' : ''}" onclick="scChoose('${s.id}')">${s.is_chosen ? '✓ Chosen' : 'Choose this scenario'}</button>
+      <button class="sc-actbtn sc-star-btn${s.starred ? ' on' : ''}" onclick="scToggleStar('${s.id}')">${s.starred ? ico('star', 'ico--fill') + ' Starred' : ico('star') + ' Star'}</button>
+      <button class="sc-actbtn sc-choose-btn${s.is_chosen ? ' on' : ''}" onclick="scChoose('${s.id}')">${s.is_chosen ? 'Chosen' : 'Choose this scenario'}</button>
     </div>
     ${SCENARIO_GROUPS.map(g => `
       <div class="sc-group">
@@ -7625,9 +7667,9 @@ function renderScenarios() {
     + `<option value="untyped"${tf === 'untyped' ? ' selected' : ''}>Untyped</option>`
     + scTypesSorted().map(t => `<option value="${escapeHtml(String(t.id))}"${tf === String(t.id) ? ' selected' : ''}>${escapeHtml(t.name || 'Type')}</option>`).join('');
   const toolbar = `<div class="sc-gridbar">
-      <button class="sc-filter-chip${scStarredOnly ? ' on' : ''}" onclick="scToggleStarredFilter()">★ Show starred${starredCount ? ` (${starredCount})` : ''}</button>
+      <button class="sc-filter-chip${scStarredOnly ? ' on' : ''}" onclick="scToggleStarredFilter()">${ico('star', scStarredOnly ? 'ico--fill' : '')} Show starred${starredCount ? ` (${starredCount})` : ''}</button>
       <select class="sc-type-filter" onchange="scSetTypeFilter(this.value)">${typeOpts}</select>
-      <button class="sc-types-btn" onclick="openTypesManager()">⚙ Types</button>
+      <button class="sc-types-btn" onclick="openTypesManager()">${ico('gear')} Types</button>
     </div>`;
   const grid = list.length
     ? `<div class="sc-grid">${list.map(scGridCardHtml).join('')}</div>`
@@ -7657,7 +7699,7 @@ function scGridCardHtml(s) {
   return `<div class="sc-gcard${s.is_chosen ? ' chosen' : ''}" onclick="scOpenDetail('${s.id}')">
     <div class="sc-gcard-top">
       <span class="sc-gname">${nameDisp}</span>
-      <button class="sc-star${s.starred ? ' on' : ''}" onclick="event.stopPropagation();scToggleStar('${s.id}')" aria-label="${s.starred ? 'Unstar' : 'Star'} scenario">${s.starred ? '★' : '☆'}</button>
+      <button class="sc-star${s.starred ? ' on' : ''}" onclick="event.stopPropagation();scToggleStar('${s.id}')" aria-label="${s.starred ? 'Unstar' : 'Star'} scenario">${s.starred ? ico('star', 'ico--fill') : ico('star')}</button>
     </div>
     ${(s.is_chosen || type) ? `<div class="sc-gbadges">${s.is_chosen ? '<span class="sc-chosen-badge">✓ Chosen</span>' : ''}${type ? scTypeBadgeHtml(type) : ''}</div>` : ''}
     <div class="sc-gtotal">${scMoney(c.total)}</div>
@@ -7815,7 +7857,7 @@ function scEstHtml(s){
   const c = scCompute(s, scGuests(s));
   return `<div class="sc-est">
     <div class="sc-est-head" onclick="scToggleEst('${s.id}')">
-      <span class="sc-est-caption">Live estimate<span class="sc-est-caret">${open ? '▾' : '▸'}</span></span>
+      <span class="sc-est-caption">Live estimate<span class="sc-est-caret">${ico('chevron', open ? 'ico--down' : '')}</span></span>
       <span class="sc-est-total" id="sc-total-${s.id}">${scMoney(c.total)}</span>
     </div>
     ${open ? scEstBodyHtml(s, c) : ''}
@@ -7864,7 +7906,7 @@ function scRowHtml(it, guests){
     <div class="sci-line1">
       ${labelDisp}
       <span class="sci-sub" id="sci-sub-${it.id}">${scMoney(sub)}</span>
-      <button class="sci-del" onclick="scDelItem('${it.id}')" aria-label="Delete line">✕</button>
+      <button class="sci-del" onclick="scDelItem('${it.id}')" aria-label="Delete line">${ico('trash')}</button>
     </div>
     <div class="sci-line2">
       <span class="sci-badge sci-scaling" onclick="sciCycleScaling('${it.id}')">${scLabel}</span>
@@ -8348,7 +8390,7 @@ function vfAddVideo(o) {
     vfAppend('vf-videos-list',
       `<input type="hidden" class="vf-v-kind" value="upload"><input type="hidden" class="vf-v-url" value="${vfEsc(o.url || '')}"><input type="hidden" class="vf-v-ts" value="${o.trim_start == null ? 0 : o.trim_start}"><input type="hidden" class="vf-v-te" value="${o.trim_end == null ? '' : o.trim_end}"><input type="hidden" class="vf-v-poster" value="${vfEsc(o.poster_url || '')}"><input type="hidden" class="vf-v-fx" value="${o.focal_x == null ? 50 : o.focal_x}"><input type="hidden" class="vf-v-fy" value="${o.focal_y == null ? 50 : o.focal_y}"><input type="hidden" class="vf-v-zoom" value="${o.focal_zoom == null ? 1 : o.focal_zoom}"><input type="hidden" class="vf-v-cap" value="${o.captured_at == null ? '' : o.captured_at}"><input type="hidden" class="vf-v-local" value="${vfEsc(o._localUrl || '')}">`
       + `<div class="vf-v-main"><span class="vf-v-badge vf-v-upload">Upload</span><input type="text" class="vf-v-label vf-item" placeholder="Label" value="${vfEsc(o.label || '')}"></div>`
-      + `<div class="vf-v-actions"><button type="button" class="btn btn-secondary btn-sm" onclick="vvEditRow(this)">✎ Trim · poster · crop</button></div>`);
+      + `<div class="vf-v-actions"><button type="button" class="btn btn-secondary btn-sm" onclick="vvEditRow(this)">${ico('edit')} Trim · poster · crop</button></div>`);
   }
 }
 function vfCollectVideos() {
@@ -8480,7 +8522,7 @@ function venueVideosHtml(v) {
   const uploads = sorted.filter(s => s.vid.kind !== 'embed');
   const hasAny = sorted.length > 0;
   if (!hasAny) {
-    return `<div class="psec"><div class="psec-title vv-heading" onclick="vuToggle()">Walkthrough Videos <span class="vv-add-hint">＋ add</span></div><div class="vv-empty">No videos yet — tap ＋ add here or the button up top.</div></div>`;
+    return `<div class="psec"><div class="psec-title vv-heading" onclick="vuToggle()">Walkthrough Videos <span class="vv-add-hint">${ico('plus')} add</span></div><div class="vv-empty">No videos yet — tap ＋ add here or the button up top.</div></div>`;
   }
   const segs = uploads.map((s, i) => `<button class="vpl-seg" onclick="vplSegJump(event,${i})" aria-label="Video ${i + 1}"><span class="vpl-seg-fill" data-seg="${i}"></span></button>`).join('');
   const stage = uploads.length
@@ -8491,23 +8533,23 @@ function venueVideosHtml(v) {
          <button class="vpl-tap" id="vpl-tap" onclick="vplStageTap(event)" aria-label="Open fullscreen player"></button>
          <div class="vpl-overlay" id="vpl-overlay">
            <div class="vpl-ovtop">
-             <button class="vpl-obtn" onclick="vplGalleryOpen(event)" aria-label="All videos">▦</button>
+             <button class="vpl-obtn" onclick="vplGalleryOpen(event)" aria-label="All videos">${ico('grid')}</button>
              <span class="vpl-fscap" id="vpl-fscap"></span>
            </div>
            <div class="vpl-ovbottom">
              <input type="range" class="vpl-scrub" id="vpl-scrub" min="0" max="1" step="0.05" value="0" oninput="vplScrub(this.value)" onpointerdown="vplBump()">
              <div class="vpl-ovrow">
-               <button class="vpl-obtn" onclick="vplPrev(event)" aria-label="Previous video">‹</button>
-               <button class="vpl-obtn" id="vpl-play" onclick="vplPlayToggle(event)" aria-label="Play/pause">⏸</button>
-               <button class="vpl-obtn" onclick="vplNextBtn(event)" aria-label="Next video">›</button>
-               <button class="vpl-obtn" id="vpl-vol" onclick="vplVolToggle(event)" aria-label="Mute/unmute">🔊</button>
-               <button class="vpl-obtn vpl-min" onclick="vplExitBtn(event)" aria-label="Minimize (or swipe down)">✕</button>
+               <button class="vpl-obtn" onclick="vplPrev(event)" aria-label="Previous video">${ico('chevron', 'ico--left')}</button>
+               <button class="vpl-obtn" id="vpl-play" onclick="vplPlayToggle(event)" aria-label="Play/pause">${ico('pause', 'ico--fill')}</button>
+               <button class="vpl-obtn" onclick="vplNextBtn(event)" aria-label="Next video">${ico('chevron')}</button>
+               <button class="vpl-obtn" id="vpl-vol" onclick="vplVolToggle(event)" aria-label="Mute/unmute">${ico('volume')}</button>
+               <button class="vpl-obtn vpl-min" onclick="vplExitBtn(event)" aria-label="Minimize (or swipe down)">${ico('chevron', 'ico--down')}</button>
              </div>
            </div>
          </div>
        </div>`
-    : `<button class="vpl-stage vpl-embeds-only" onclick="vplOpenGrid()"><span class="vpl-embed-hint">▶ Browse videos</span></button>`;
-  return `<div class="psec"><div class="psec-title vv-heading" onclick="vuToggle()">Walkthrough Videos <span class="vv-add-hint">＋ add</span></div>
+    : `<button class="vpl-stage vpl-embeds-only" onclick="vplOpenGrid()"><span class="vpl-embed-hint">${ico('play', 'ico--fill')} Browse videos</span></button>`;
+  return `<div class="psec"><div class="psec-title vv-heading" onclick="vuToggle()">Walkthrough Videos <span class="vv-add-hint">${ico('plus')} add</span></div>
     <div class="vplayer" id="vpl-root">
       ${stage}
     </div></div>`;
@@ -8653,9 +8695,9 @@ function vplMarkSegments() {
 }
 function vplSyncButtons() {
   const el = vplFront(); const playing = el && !el.paused;
-  const pb = document.getElementById('vpl-play'); if (pb) pb.textContent = playing ? '⏸' : '▶';
+  const pb = document.getElementById('vpl-play'); if (pb) pb.innerHTML = playing ? ico('pause', 'ico--fill') : ico('play', 'ico--fill');
 }
-function vplUpdateVolIcon() { const b = document.getElementById('vpl-vol'); if (b) b.textContent = (vplState && vplState.muted) ? '🔇' : '🔊'; }
+function vplUpdateVolIcon() { const b = document.getElementById('vpl-vol'); if (b) b.innerHTML = (vplState && vplState.muted) ? ico('mute') : ico('volume'); }
 function vplPlayToggle(e) { if (e) e.stopPropagation(); vplBump(); const el = vplFront(); if (!el) return; if (el.paused) el.play().catch(() => {}); else el.pause(); }
 function vplVolToggle(e) { if (e) e.stopPropagation(); vplBump(); if (!vplState) return; vplState.muted = !vplState.muted; const el = vplFront(); if (el) el.muted = vplState.muted; vplUpdateVolIcon(); }
 function vplScrub(val) {
@@ -8736,13 +8778,13 @@ async function vplOpenGrid() {
   const body = document.getElementById('vm-grid-body'); if (!body) return;
   body.innerHTML = sorted.map(({ vid, origIdx }) => {
     const isEmbed = vid.kind === 'embed';
-    const badge = isEmbed ? (vid.provider === 'vimeo' ? 'Vimeo' : 'YouTube') : '▶';
-    const edit = isEmbed ? '' : `<button class="vm-tile-act" onclick="event.stopPropagation();vvEditProfile(${origIdx})" aria-label="Edit">✎</button>`;
+    const badge = isEmbed ? (vid.provider === 'vimeo' ? 'Vimeo' : 'YouTube') : ico('play', 'ico--fill');
+    const edit = isEmbed ? '' : `<button class="vm-tile-act" onclick="event.stopPropagation();vvEditProfile(${origIdx})" aria-label="Edit">${ico('edit')}</button>`;
     return `<div class="vm-tile" onclick="vmGridPick(${origIdx})">
       <div class="pcrop vm-tile-crop"><img class="vm-tile-img" data-oi="${origIdx}" alt=""></div>
       <span class="vm-tile-badge">${badge}</span>
       <div class="vm-tile-foot"><span class="vm-tile-label">${escapeHtml(vid.label || (isEmbed ? 'Embedded video' : 'Walkthrough'))}</span>
-        <span class="vm-tile-acts">${edit}<button class="vm-tile-act" onclick="event.stopPropagation();vpVideoRemove(${origIdx})" aria-label="Remove">🗑</button></span></div>
+        <span class="vm-tile-acts">${edit}<button class="vm-tile-act" onclick="event.stopPropagation();vpVideoRemove(${origIdx})" aria-label="Remove">${ico('trash', 'ico--danger')}</button></span></div>
     </div>`;
   }).join('');
   document.getElementById('vm-grid').classList.add('open');
@@ -8786,14 +8828,14 @@ window.vmGridClose = vmGridClose; window.vmGridPick = vmGridPick; window.vmEmbed
 // ── In-place upload panel on the venue profile (photos + videos, one place) ──
 let vuOpen = false, vuLinksOpen = false, vuReport = '';
 function venueUploadPanelHtml() {
-  return `<div class="vu-bar"><button type="button" class="vu-add-btn" onclick="vuToggle()">＋ Add photos &amp; videos</button></div>
+  return `<div class="vu-bar"><button type="button" class="vu-add-btn" onclick="vuToggle()">${ico('plus')} Add photos &amp; videos</button></div>
     <div id="vu-panel" class="vu-panel"${vuOpen ? '' : ' hidden'}>
       <input type="file" id="vu-file" accept="image/*,video/mp4,video/quicktime,.mov,.mp4" multiple style="display:none" onchange="vuPickFiles(event)">
-      <button type="button" class="btn btn-primary btn-sm vu-upload-btn" onclick="document.getElementById('vu-file').click()">⬆ Upload photos &amp; videos</button>
+      <button type="button" class="btn btn-primary btn-sm vu-upload-btn" onclick="document.getElementById('vu-file').click()">${ico('upload')} Upload photos &amp; videos</button>
       <div class="vu-hint">Pick any mix — each file routes itself by type. Photos ≤50MB · videos ≤500MB (resumable). Videos are private; photos are public by link.</div>
       <div id="vu-progress" class="vu-progress" hidden><div class="vu-prog-line" id="vu-prog-line"></div><div class="vf-video-bar"><span id="vu-prog-fill"></span></div></div>
       <div id="vu-report" class="vu-report"${vuReport ? '' : ' hidden'}>${vuReport ? escapeHtml(vuReport) : ''}</div>
-      <button type="button" class="vu-link-toggle" onclick="vuLinksToggle()">Add by link ${vuLinksOpen ? '▴' : '▾'}</button>
+      <button type="button" class="vu-link-toggle" onclick="vuLinksToggle()">Add by link ${ico('chevron', vuLinksOpen ? 'ico--up' : 'ico--down')}</button>
       <div id="vu-links"${vuLinksOpen ? '' : ' hidden'}>
         <div class="mood-url-row"><input type="text" id="vu-photo-url" placeholder="Paste image URL…"><button type="button" class="btn btn-secondary btn-sm" onclick="vuAddPhotoUrl()">Add photo</button></div>
         <div class="mood-url-row" style="margin-top:0.4rem;"><input type="text" id="vu-video-url" placeholder="YouTube or Vimeo link…"><button type="button" class="btn btn-secondary btn-sm" onclick="vuAddEmbed()">Add video</button></div>
@@ -8999,7 +9041,7 @@ function venueStoragePathFromUrl(url) {
 function vfPhotoError(msg) { const el = document.getElementById('vf-photo-error'); if (el) el.textContent = msg || ''; }
 function vfPhotoUploadState(loading) {
   const btn = document.getElementById('vf-photo-upload-btn');
-  if (btn) { btn.disabled = loading; btn.innerHTML = loading ? '<span class="mood-spinner"></span> Uploading…' : '📷 Upload from device'; }
+  if (btn) { btn.disabled = loading; btn.innerHTML = loading ? '<span class="mood-spinner"></span> Uploading…' : ico('camera') + ' Upload from device'; }
 }
 // Upload one or more device images → venue-images bucket → append a photo row for each.
 async function vfUploadPhoto(event) {
@@ -9057,7 +9099,7 @@ function vfAppend(listId, innerHtml) {
   if (!c) return;
   const d = document.createElement('div');
   d.className = 'vf-row';
-  d.innerHTML = innerHtml + `<button type="button" class="vf-del" onclick="this.closest('.vf-row').remove()" aria-label="Remove">✕</button>`;
+  d.innerHTML = innerHtml + `<button type="button" class="vf-del" onclick="this.closest('.vf-row').remove()" aria-label="Remove">${ico('trash', 'ico--danger')}</button>`;
   c.appendChild(d);
 }
 
@@ -9106,7 +9148,7 @@ function renderVenueForm(row) {
 
     <div class="vf-section-title">Photos</div>
     <input type="file" id="vf-photo-file" accept="image/*" multiple style="display:none" onchange="vfUploadPhoto(event)">
-    <button type="button" class="btn btn-secondary btn-sm" id="vf-photo-upload-btn" onclick="document.getElementById('vf-photo-file').click()" style="width:100%;justify-content:center;margin-bottom:0.5rem;">📷 Upload from device</button>
+    <button type="button" class="btn btn-secondary btn-sm" id="vf-photo-upload-btn" onclick="document.getElementById('vf-photo-file').click()" style="width:100%;justify-content:center;margin-bottom:0.5rem;"><svg class="ico" aria-hidden="true"><use href="#i-camera"/></svg> Upload from device</button>
     <div style="display:flex;gap:0.4rem;margin-bottom:0.4rem;">
       <input type="text" id="vf-photo-url-input" placeholder="Paste image URL…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();vfAddPhotoByUrl();}">
       <button type="button" class="btn btn-secondary btn-sm" id="vf-photo-url-btn" onclick="vfAddPhotoByUrl()">Add URL</button>
@@ -9118,7 +9160,7 @@ function renderVenueForm(row) {
     <div class="vf-section-title">Walkthrough videos</div>
     <div class="vf-video-note">Private reference — not shareable or downloadable. iPhone .mov works; if a clip won't play on desktop Chrome it's HEVC — record in <strong>Settings → Camera → Formats → Most Compatible</strong> for universal playback.</div>
     <input type="file" id="vf-video-file" accept="video/mp4,video/quicktime,.mov,.mp4" style="display:none" onchange="vfUploadVideo(event)">
-    <button type="button" class="btn btn-secondary btn-sm" id="vf-video-upload-btn" onclick="document.getElementById('vf-video-file').click()" style="width:100%;justify-content:center;margin-bottom:0.5rem;">⬆ Upload video (up to 500MB)</button>
+    <button type="button" class="btn btn-secondary btn-sm" id="vf-video-upload-btn" onclick="document.getElementById('vf-video-file').click()" style="width:100%;justify-content:center;margin-bottom:0.5rem;"><svg class="ico" aria-hidden="true"><use href="#i-upload"/></svg> Upload video (up to 500MB)</button>
     <div id="vf-video-progress" class="vf-video-progress" hidden><div class="vf-video-bar"><span id="vf-video-bar-fill"></span></div><span id="vf-video-pct">0%</span></div>
     <div style="display:flex;gap:0.4rem;margin-bottom:0.35rem;">
       <input type="text" id="vf-video-url-input" placeholder="YouTube or Vimeo link…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();vfAddVideoEmbed();}">
@@ -9498,26 +9540,26 @@ window.addEventListener('DOMContentLoaded', () => {
 <!-- Lightbox -->
 <div id="lightbox">
   <div id="lightbox-venue"></div>
-  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
-  <button id="lightbox-prev" onclick="lightboxNav(-1)">‹</button>
+  <button id="lightbox-close" onclick="closeLightbox()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
+  <button id="lightbox-prev" onclick="lightboxNav(-1)" aria-label="Previous"><svg class="ico ico--left" aria-hidden="true"><use href="#i-chevron"/></svg></button>
   <img id="lightbox-img" src="" alt="">
-  <button id="lightbox-next" onclick="lightboxNav(1)">›</button>
+  <button id="lightbox-next" onclick="lightboxNav(1)" aria-label="Next"><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg></button>
   <div id="lightbox-dots"></div>
   <div id="lightbox-counter"></div>
-  <button id="lb-edit-btn" onclick="vpEditOpen()" aria-label="Edit this photo" hidden>✎ Edit</button>
+  <button id="lb-edit-btn" onclick="vpEditOpen()" aria-label="Edit this photo" hidden<svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg> Edit</button>
 </div>
 
 <!-- Venue photo edit view (caption, framing, delete) — opened from the lightbox ✎ -->
 <div id="vp-edit-overlay" onclick="if(event.target===this)vpEditClose()">
   <div class="me-sheet">
-    <div class="sce-head"><span class="sce-title">Edit photo</span><button class="sce-close" onclick="vpEditClose()" aria-label="Close">✕</button></div>
+    <div class="sce-head"><span class="sce-title">Edit photo</span><button class="sce-close" onclick="vpEditClose()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button></div>
     <div class="sce-body">
       <div class="pcrop pcrop-43 me-thumb-wrap"><img id="vp-thumb" alt=""></div>
       <label class="sce-l" for="vp-caption">Caption</label>
       <input type="text" id="vp-caption" class="sce-inp" placeholder="Caption (optional)">
       <div class="me-actions">
-        <button type="button" class="btn btn-secondary" onclick="vpEditAdjust()">⛶ Adjust framing</button>
-        <button type="button" class="btn btn-danger" onclick="vpEditDelete()">🗑 Delete</button>
+        <button type="button" class="btn btn-secondary" onclick="vpEditAdjust()"><svg class="ico" aria-hidden="true"><use href="#i-frame"/></svg> Adjust framing</button>
+        <button type="button" class="btn btn-danger" onclick="vpEditDelete()"<svg class="ico ico--danger" aria-hidden="true"><use href="#i-trash"/></svg> Delete</button>
       </div>
       <div class="sce-actions"><button type="button" class="btn btn-secondary" onclick="vpEditClose()">Cancel</button><button type="button" class="btn btn-primary" onclick="vpEditSave()">Save</button></div>
     </div>
@@ -9527,14 +9569,14 @@ window.addEventListener('DOMContentLoaded', () => {
 <!-- Venue video grid: all videos as posters; tap an upload to play it, an embed opens its own player -->
 <div id="vm-grid" onclick="if(event.target===this)vmGridClose()">
   <div class="vm-grid-sheet">
-    <div class="sce-head"><span class="sce-title">All videos</span><button class="sce-close" onclick="vmGridClose()" aria-label="Close">✕</button></div>
+    <div class="sce-head"><span class="sce-title">All videos</span><button class="sce-close" onclick="vmGridClose()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button></div>
     <div class="sce-body"><div id="vm-grid-body" class="vm-grid-body"></div></div>
   </div>
 </div>
 <!-- Embedded (YouTube/Vimeo) player overlay — embeds never join the rotation -->
 <div id="vm-embed" onclick="if(event.target===this)vmEmbedClose()">
   <div class="vm-embed-sheet">
-    <button class="vm-embed-close" onclick="vmEmbedClose()" aria-label="Close">✕</button>
+    <button class="vm-embed-close" onclick="vmEmbedClose()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     <div class="vm-embed-frame-wrap"><iframe id="vm-embed-frame" title="Video" frameborder="0" allow="fullscreen; picture-in-picture" allowfullscreen></iframe></div>
   </div>
 </div>
@@ -9543,7 +9585,7 @@ window.addEventListener('DOMContentLoaded', () => {
 <!-- Venue video editor: trim range (stored, no re-encode) + poster capture + framing -->
 <div id="vv-editor" onclick="if(event.target===this)vvCloseEditor()">
   <div class="vve-sheet">
-    <div class="sce-head"><span class="sce-title">Trim &amp; poster</span><button class="sce-close" onclick="vvCloseEditor()" aria-label="Close">✕</button></div>
+    <div class="sce-head"><span class="sce-title">Trim &amp; poster</span><button class="sce-close" onclick="vvCloseEditor()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button></div>
     <div class="sce-body">
       <video id="vve-video" playsinline preload="metadata" controls controlsList="nodownload noremoteplayback" disablePictureInPicture></video>
       <input type="range" id="vve-scrub" class="vve-scrub" min="0" max="100" step="0.05" value="0" oninput="vveScrub(this.value)">
@@ -9551,12 +9593,12 @@ window.addEventListener('DOMContentLoaded', () => {
       <div class="vve-btns">
         <button type="button" class="btn btn-secondary btn-sm" onclick="vveSetIn()">Set in</button>
         <button type="button" class="btn btn-secondary btn-sm" onclick="vveSetOut()">Set out</button>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="vvePreview()">▶ Preview trim</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="vvePreview()"><svg class="ico ico--fill" aria-hidden="true"><use href="#i-play"/></svg> Preview trim</button>
         <button type="button" class="btn btn-secondary btn-sm" onclick="vveResetTrim()">Reset</button>
       </div>
       <div class="vve-poster-row">
-        <button type="button" class="btn btn-secondary btn-sm" onclick="vveCapturePoster()">📷 Capture poster</button>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="vveAdjustCrop()">⛶ Framing</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="vveCapturePoster()"><svg class="ico" aria-hidden="true"><use href="#i-camera"/></svg> Capture poster</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="vveAdjustCrop()"><svg class="ico" aria-hidden="true"><use href="#i-frame"/></svg> Framing</button>
         <img id="vve-poster-prev" class="vve-poster-prev" alt="" hidden>
       </div>
       <div class="sce-note">Trim sets a stored playback range — the original file is never changed. Poster capture needs a decodable frame (HEVC .mov may not capture on desktop Chrome).</div>
@@ -9570,7 +9612,7 @@ window.addEventListener('DOMContentLoaded', () => {
   <div class="crop-sheet">
     <div class="sce-head">
       <span class="sce-title">Adjust crop</span>
-      <button class="sce-close" onclick="closeCropEditor()" aria-label="Close">✕</button>
+      <button class="sce-close" onclick="closeCropEditor()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     </div>
     <div class="sce-body">
       <div class="crop-shape-toggle">
@@ -9598,7 +9640,7 @@ window.addEventListener('DOMContentLoaded', () => {
   <div class="nv-sheet">
     <div class="sce-head">
       <span class="sce-title">Add venue</span>
-      <button class="sce-close" onclick="closeNewVenueOverlay()" aria-label="Close">✕</button>
+      <button class="sce-close" onclick="closeNewVenueOverlay()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     </div>
     <div class="sce-body">
       <label class="sce-l" for="nv-name">Venue name</label>
@@ -9617,7 +9659,7 @@ window.addEventListener('DOMContentLoaded', () => {
   <div class="st-sheet">
     <div class="sce-head">
       <span class="sce-title">Scenario types</span>
-      <button class="sce-close" onclick="closeTypesManager()" aria-label="Close">✕</button>
+      <button class="sce-close" onclick="closeTypesManager()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     </div>
     <div class="sce-body">
       <div id="st-list"></div>
@@ -9635,7 +9677,7 @@ window.addEventListener('DOMContentLoaded', () => {
   <div class="sce-sheet">
     <div class="sce-head">
       <span class="sce-title">Draft questions</span>
-      <button class="sce-close" onclick="scEmailClose()" aria-label="Close">✕</button>
+      <button class="sce-close" onclick="scEmailClose()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     </div>
     <div class="sce-body">
       <label class="sce-l" for="sce-to">To</label>
@@ -9659,7 +9701,7 @@ window.addEventListener('DOMContentLoaded', () => {
   <div class="te-sheet">
     <div class="te-head">
       <span class="te-title">Theme Colours</span>
-      <button class="te-close" onclick="closeThemeEditor()" aria-label="Close">✕</button>
+      <button class="te-close" onclick="closeThemeEditor()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     </div>
     <div class="te-note">Set <strong>ground</strong>, <strong>hero</strong> and <strong>accent</strong> per theme — every other colour is derived from these. Green and red stay fixed.</div>
     <div id="te-list" class="te-body"></div>
@@ -9670,7 +9712,7 @@ window.addEventListener('DOMContentLoaded', () => {
   <div class="do-sheet">
     <div class="do-head">
       <span class="do-title">Wedding Dates</span>
-      <button class="do-close" onclick="closeDatesOverlay()" aria-label="Close">✕</button>
+      <button class="do-close" onclick="closeDatesOverlay()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     </div>
     <div class="do-add">
       <input type="date" id="do-new-date">
@@ -9682,15 +9724,15 @@ window.addEventListener('DOMContentLoaded', () => {
 
 <!-- Mood image viewer -->
 <div id="mood-lightbox">
-  <button id="ml-close" onclick="closeMoodViewer()" aria-label="Close">✕</button>
+  <button id="ml-close" onclick="closeMoodViewer()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
   <img id="ml-img" src="" alt="" draggable="false">
-  <button id="ml-edit-btn" onclick="moodOpenEdit(event)" aria-label="Edit this photo">✎ Edit</button>
+  <button id="ml-edit-btn" onclick="moodOpenEdit(event)" aria-label="Edit this photo"<svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg> Edit</button>
 </div>
 
 <!-- Mood: theme panel (palette / vibe / description), opened by tapping the hero -->
 <div id="mood-theme-overlay" onclick="if(event.target===this)moodCloseThemePanel()">
   <div class="mt-sheet">
-    <div class="sce-head"><span class="sce-title" id="mood-sub">Palette &amp; Vision</span><button class="sce-close" onclick="moodCloseThemePanel()" aria-label="Close">✕</button></div>
+    <div class="sce-head"><span class="sce-title" id="mood-sub">Palette &amp; Vision</span><button class="sce-close" onclick="moodCloseThemePanel()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button></div>
     <div class="sce-body">
       <div class="mt-block"><div class="mt-lbl">Palette</div><div id="mood-palette-swatches" class="mood-palette"></div></div>
       <div class="mt-block"><div class="mt-lbl">Vibe words</div><div id="mood-vibe-pills" style="display:flex;flex-wrap:wrap;gap:0.5rem;"></div></div>
@@ -9702,7 +9744,7 @@ window.addEventListener('DOMContentLoaded', () => {
 <!-- Mood: single-photo edit view (label, tags, adjust crop, delete) -->
 <div id="mood-edit-overlay" onclick="if(event.target===this)moodCloseEdit()">
   <div class="me-sheet">
-    <div class="sce-head"><span class="sce-title">Edit photo</span><button class="sce-close" onclick="moodCloseEdit()" aria-label="Close">✕</button></div>
+    <div class="sce-head"><span class="sce-title">Edit photo</span><button class="sce-close" onclick="moodCloseEdit()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button></div>
     <div class="sce-body">
       <div class="pcrop pcrop-43 me-thumb-wrap"><img id="me-thumb" alt=""></div>
       <label class="sce-l" for="me-label">Label</label>
@@ -9710,8 +9752,8 @@ window.addEventListener('DOMContentLoaded', () => {
       <label class="sce-l">Theme tags</label>
       <div class="mood-theme-picker" id="me-themes"></div>
       <div class="me-actions">
-        <button class="btn btn-secondary" onclick="moodEditAdjust()">⛶ Adjust crop</button>
-        <button class="btn btn-danger" onclick="moodEditDelete()">🗑 Delete</button>
+        <button class="btn btn-secondary" onclick="moodEditAdjust()"><svg class="ico" aria-hidden="true"><use href="#i-frame"/></svg> Adjust crop</button>
+        <button class="btn btn-danger" onclick="moodEditDelete()"<svg class="ico ico--danger" aria-hidden="true"><use href="#i-trash"/></svg> Delete</button>
       </div>
       <div class="sce-actions"><button class="btn btn-secondary" onclick="moodCloseEdit()">Cancel</button><button class="btn btn-primary" onclick="moodEditSave()">Save</button></div>
     </div>
@@ -9721,7 +9763,7 @@ window.addEventListener('DOMContentLoaded', () => {
 <!-- Mood: batch tag sheet (selection mode) -->
 <div id="mood-tag-overlay" onclick="if(event.target===this)moodCloseTagSheet()">
   <div class="me-sheet">
-    <div class="sce-head"><span class="sce-title">Tag selected</span><button class="sce-close" onclick="moodCloseTagSheet()" aria-label="Close">✕</button></div>
+    <div class="sce-head"><span class="sce-title">Tag selected</span><button class="sce-close" onclick="moodCloseTagSheet()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button></div>
     <div class="sce-body">
       <div class="sce-note">Add these theme tags to the selected photos.</div>
       <div class="mood-theme-picker" id="mood-tag-picker"></div>
@@ -9752,7 +9794,7 @@ window.addEventListener('DOMContentLoaded', () => {
   <div id="venue-form-sheet">
     <div id="venue-form-head">
       <div id="venue-form-title">Add Venue</div>
-      <button class="vf-close" onclick="closeVenueForm()" aria-label="Close">✕</button>
+      <button class="vf-close" onclick="closeVenueForm()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     </div>
     <div id="venue-form-body"></div>
     <div id="venue-form-foot">
@@ -9786,7 +9828,7 @@ window.addEventListener('DOMContentLoaded', () => {
 <!-- SWIPE OVERLAY -->
 <div id="swipe-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;flex-direction:column;">
   <div style="position:absolute;top:1rem;right:1rem;">
-    <button onclick="closeSwipe()" style="background:rgba(255,255,255,0.15);border:none;color:white;font-size:1.2rem;width:36px;height:36px;border-radius:50%;cursor:pointer;">✕</button>
+    <button onclick="closeSwipe()" aria-label="Close" style="background:rgba(255,255,255,0.15);border:none;color:white;font-size:1.2rem;width:36px;height:36px;border-radius:50%;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
   </div>
   <div style="font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:1.2rem;">Swipe to decide</div>
   <div id="swipe-card" style="position:relative;width:min(320px,85vw);background:white;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);cursor:grab;user-select:none;touch-action:none;">
@@ -9804,9 +9846,9 @@ window.addEventListener('DOMContentLoaded', () => {
     </div>
   </div>
   <div style="display:flex;gap:1.5rem;margin-top:1.5rem;">
-    <button onclick="recordSwipe('left')" style="width:60px;height:60px;border-radius:50%;background:#e53e3e;border:none;color:white;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 20px rgba(229,62,62,0.5);">✕</button>
+    <button onclick="recordSwipe('left')" aria-label="Pass" style="width:60px;height:60px;border-radius:50%;background:#e53e3e;border:none;color:white;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 20px rgba(229,62,62,0.5);"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     <button onclick="closeSwipe()" style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:white;font-size:0.8rem;cursor:pointer;margin-top:8px;">Back</button>
-    <button onclick="recordSwipe('right')" style="width:60px;height:60px;border-radius:50%;background:#48bb78;border:none;color:white;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 20px rgba(72,187,120,0.5);">♥</button>
+    <button onclick="recordSwipe('right')" aria-label="Like" style="width:60px;height:60px;border-radius:50%;background:#48bb78;border:none;color:white;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 20px rgba(72,187,120,0.5);"><svg class="ico ico--fill" aria-hidden="true"><use href="#i-heart"/></svg></button>
   </div>
 </div>
 
