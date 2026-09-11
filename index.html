@@ -1281,12 +1281,13 @@ textarea.inline-edit { min-height: 56px; resize: vertical; line-height: 1.4; }
 .vpl-overlay.show .vpl-obtn, .vpl-overlay.show .vpl-scrub { pointer-events: auto; }
 .vpl-ovtop { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 0.5rem; padding: max(0.6rem, env(safe-area-inset-top)) max(0.8rem, env(safe-area-inset-right)) 0.6rem max(0.8rem, env(safe-area-inset-left)); background: linear-gradient(rgba(0,0,0,0.5), transparent); }
 .vpl-ovbottom { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 0.5rem; padding: 0.7rem max(0.9rem, env(safe-area-inset-right)) max(0.9rem, env(safe-area-inset-bottom)) max(0.9rem, env(safe-area-inset-left)); background: linear-gradient(transparent, rgba(0,0,0,0.6)); }
-.vpl-ovrow { display: flex; align-items: center; justify-content: center; gap: 1.3rem; }
-.vpl-obtn { background: none; border: 0; color: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+.vpl-ovrow { display: flex; align-items: center; justify-content: center; gap: 0.9rem; }
+.vpl-obtn { background: none; border: 0; color: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; min-width: 46px; min-height: 46px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+.vpl-min { background: rgba(255,255,255,0.18); min-width: 52px; min-height: 52px; font-size: 1.1rem; }
 .vpl-fscap { flex: 1; text-align: center; color: #fff; font-size: 0.8rem; opacity: 0.85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .vpl-scrub { width: 100%; accent-color: #fff; height: 3px; }
 /* Fullscreen presentation: fixed full-viewport (identical on iOS) + real element fullscreen where supported */
-#vpl-root.is-fs { position: fixed; inset: 0; z-index: 4000; background: #000; border-radius: 0; display: flex; align-items: center; justify-content: center; }
+#vpl-root.is-fs { position: fixed; inset: 0; z-index: 100000; background: #000; border-radius: 0; display: flex; align-items: center; justify-content: center; }
 #vpl-root.is-fs .vpl-stage { position: static; width: 100%; height: 100%; aspect-ratio: auto; }
 #vpl-root.is-fs .vpl-video { object-fit: contain; }
 #vpl-root.is-fs .vpl-seg { pointer-events: auto; }
@@ -6801,13 +6802,21 @@ setInterval(updateDashboard, 60000);
 // of the body position-fixed trick), plus overscroll-behavior:contain on the sheet.
 let datesLockedPage = null;
 let datesLockedScrollY = 0;
+let datesLockedView = null;
+let datesLockedViewY = 0;
 function lockBackgroundScroll() {
   const page = document.querySelector('.page.active');
   datesLockedPage = page || null;
   datesLockedScrollY = page ? page.scrollTop : 0;
   if (page) page.style.overflow = 'hidden';
+  // The venue profile scrolls in its own flex child, not the .page — lock that too.
+  const view = document.querySelector('#venue-profile-view.active');
+  datesLockedView = view || null;
+  datesLockedViewY = view ? view.scrollTop : 0;
+  if (view) view.style.overflow = 'hidden';
 }
 function unlockBackgroundScroll() {
+  if (datesLockedView) { datesLockedView.style.overflow = ''; datesLockedView.scrollTop = datesLockedViewY; datesLockedView = null; }
   if (!datesLockedPage) return; // idempotent: nothing locked → safe no-op
   datesLockedPage.style.overflow = '';
   datesLockedPage.scrollTop = datesLockedScrollY; // return to the same position
@@ -8484,7 +8493,6 @@ function venueVideosHtml(v) {
            <div class="vpl-ovtop">
              <button class="vpl-obtn" onclick="vplGalleryOpen(event)" aria-label="All videos">▦</button>
              <span class="vpl-fscap" id="vpl-fscap"></span>
-             <button class="vpl-obtn" onclick="vplExitBtn(event)" aria-label="Minimize">⤢</button>
            </div>
            <div class="vpl-ovbottom">
              <input type="range" class="vpl-scrub" id="vpl-scrub" min="0" max="1" step="0.05" value="0" oninput="vplScrub(this.value)" onpointerdown="vplBump()">
@@ -8493,6 +8501,7 @@ function venueVideosHtml(v) {
                <button class="vpl-obtn" id="vpl-play" onclick="vplPlayToggle(event)" aria-label="Play/pause">⏸</button>
                <button class="vpl-obtn" onclick="vplNextBtn(event)" aria-label="Next video">›</button>
                <button class="vpl-obtn" id="vpl-vol" onclick="vplVolToggle(event)" aria-label="Mute/unmute">🔊</button>
+               <button class="vpl-obtn vpl-min" onclick="vplExitBtn(event)" aria-label="Minimize (or swipe down)">✕</button>
              </div>
            </div>
          </div>
@@ -8505,6 +8514,10 @@ function venueVideosHtml(v) {
 }
 async function hydrateVenueVideos(v) {
   if (vplState && vplState.io) { try { vplState.io.disconnect(); } catch (e) {} }
+  // If a fullscreen player was reparented to <body> and the profile re-rendered, drop the orphan.
+  const stray = document.querySelector('body > #vpl-root'); if (stray) stray.remove();
+  document.removeEventListener('keydown', vplFsKey);
+  unlockBackgroundScroll();
   vplState = null;
   const sorted = vmSorted(v.videos);
   const rotation = sorted.filter(s => s.vid.kind !== 'embed');
@@ -8669,27 +8682,51 @@ function vplEnter() {
   if (!vplState || vplState.fs) return;
   const root = document.getElementById('vpl-root'); if (!root) return;
   vplState.fs = true;
+  // Reparent to <body> so the overlay escapes the profile's stacking context and
+  // covers all app chrome (topbar/header/nav); the same node keeps the video playing.
+  vplState.origParent = root.parentNode;
+  vplState.origNext = root.nextSibling;
+  document.body.appendChild(root);
   root.classList.add('is-fs');
   lockBackgroundScroll();
   vplState.muted = false; const f = vplFront(); if (f) { f.muted = false; f.play().catch(() => {}); }
   vplState.playing = true;
   vplSyncButtons(); vplUpdateVolIcon(); vplShowControls();
   document.addEventListener('keydown', vplFsKey);
+  root.addEventListener('touchstart', vplTouchStart, { passive: true });
+  root.addEventListener('touchmove', vplTouchMove, { passive: true });
+  root.addEventListener('touchend', vplTouchEnd, { passive: true });
   if (root.requestFullscreen) root.requestFullscreen().catch(() => {});
 }
 function vplExit() {
   if (!vplState || !vplState.fs) return;
   vplState.fs = false;
-  const root = document.getElementById('vpl-root'); if (root) root.classList.remove('is-fs');
+  const root = document.getElementById('vpl-root');
+  if (root) {
+    root.classList.remove('is-fs');
+    root.removeEventListener('touchstart', vplTouchStart);
+    root.removeEventListener('touchmove', vplTouchMove);
+    root.removeEventListener('touchend', vplTouchEnd);
+  }
   vplHideControls();
   document.removeEventListener('keydown', vplFsKey);
   if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+  // Return the player to its inline slot in the profile.
+  if (root && vplState.origParent) {
+    if (vplState.origNext && vplState.origNext.parentNode === vplState.origParent) vplState.origParent.insertBefore(root, vplState.origNext);
+    else vplState.origParent.appendChild(root);
+  }
+  vplState.origParent = null; vplState.origNext = null;
   unlockBackgroundScroll();
   vplState.muted = true; const f = vplFront(); if (f) { f.muted = true; f.play().catch(() => {}); }
   vplUpdateVolIcon();
 }
 function vplExitBtn(e) { if (e) e.stopPropagation(); vplExit(); }
 function vplFsKey(e) { if (e.key === 'Escape') vplExit(); }
+// Swipe down anywhere to dismiss fullscreen — the gesture reached for first on a phone.
+function vplTouchStart(e) { const t = e.touches && e.touches[0]; if (!t || !vplState) return; vplState._tsY = t.clientY; vplState._tsX = t.clientX; vplState._swipe = false; }
+function vplTouchMove(e) { if (!vplState || vplState._tsY == null) return; const t = e.touches && e.touches[0]; if (!t) return; const dy = t.clientY - vplState._tsY, dx = t.clientX - vplState._tsX; if (dy > 60 && Math.abs(dy) > Math.abs(dx) * 1.3) vplState._swipe = true; }
+function vplTouchEnd() { if (!vplState) return; const sw = vplState._swipe; vplState._tsY = null; vplState._tsX = null; vplState._swipe = false; if (sw) vplExit(); }
 function vplGalleryOpen(e) { if (e) e.stopPropagation(); vplExit(); vplOpenGrid(); }
 
 // ── Grid overlay: ALL videos (posters), tap upload → jump+play, embed → own player ──
