@@ -2869,6 +2869,28 @@ input:focus, select:focus, textarea:focus {
 .ico--down { transform: rotate(90deg); }
 .ico--left { transform: rotate(180deg); }
 .nav-icon .ico { vertical-align: -0.15em; }
+/* Venue auto-fill (Fill from URL) */
+.vaf { background: var(--surface); border: 1px solid var(--gold); border-radius: 12px; padding: 0.8rem; margin-bottom: 1rem; }
+.vaf-row { display: flex; gap: 0.5rem; }
+.vaf-input { flex: 1; font-size: 16px; padding: 0.55rem 0.7rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--dark); }
+.vaf-hint { font-size: 0.64rem; color: var(--muted-light); line-height: 1.5; margin-top: 0.5rem; }
+.vaf-status { font-size: 0.72rem; margin-top: 0.5rem; color: var(--muted); }
+.vaf-status.vaf-ok { color: var(--sage); }
+.vaf-status.vaf-err { color: var(--love); }
+.vaf-missing { margin-top: 0.6rem; background: var(--love-light); border-radius: 8px; padding: 0.5rem 0.7rem; }
+.vaf-missing-title { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--love); font-weight: 600; }
+.vaf-missing ul { margin: 0.3rem 0; padding-left: 1.1rem; }
+.vaf-missing li { font-size: 0.74rem; color: var(--dark); }
+.vaf-missing-note { font-size: 0.64rem; color: var(--muted); }
+.vaf-photos { margin-top: 0.7rem; }
+.vaf-photos-title { font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+.vaf-photos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
+.vaf-photo { position: relative; aspect-ratio: 4/3; padding: 0; border: 2px solid transparent; border-radius: 8px; overflow: hidden; cursor: pointer; background: #14181f; }
+.vaf-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vaf-photo.on { border-color: var(--gold); }
+.vaf-photo.on::after { content: ''; position: absolute; top: 5px; right: 5px; width: 16px; height: 16px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 2px #fff; }
+.vaf-auto { border-left: 3px solid var(--gold) !important; background: var(--gold-pale) !important; }
+label.vf-check.vaf-auto { color: var(--gold); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
@@ -9144,10 +9166,21 @@ function vfAppend(listId, innerHtml) {
 
 function renderVenueForm(row) {
   const r = row || {};
+  vafImages = []; vafSelected = new Set(); // clear any prior auto-fill session
   const la = (r.local_area && typeof r.local_area === 'object') ? r.local_area : {};
   document.getElementById('venue-form-title').textContent = row ? 'Edit Venue' : 'Add Venue';
   const numAttr = (v) => v == null ? '' : vfEsc(v);
   document.getElementById('venue-form-body').innerHTML = `
+    ${row ? '' : `<div class="vaf" id="vaf">
+      <div class="vaf-row">
+        <input type="url" id="vaf-url" class="vaf-input" placeholder="Paste a venue page URL to auto-fill…" autocomplete="off">
+        <button type="button" class="btn btn-primary btn-sm" id="vaf-go" onclick="vafExtract()">Fill</button>
+      </div>
+      <div class="vaf-hint">Reads the page and fills stated facts below. Auto-filled fields are marked — edit or clear any before saving. Nothing is saved until you press Save.</div>
+      <div id="vaf-status" class="vaf-status" hidden></div>
+      <div id="vaf-missing" class="vaf-missing" hidden></div>
+      <div id="vaf-photos" class="vaf-photos" hidden></div>
+    </div>`}
     <div class="vf-section-title">Basics</div>
     <div class="form-row"><label>Name *</label><input type="text" id="vf-name" value="${vfEsc(r.name)}" placeholder="Venue name"></div>
     <div class="form-row"><label>Subtitle</label><input type="text" id="vf-subtitle" value="${vfEsc(r.subtitle)}" placeholder="e.g. Ivy Palace · Sintra · Est. 1743"></div>
@@ -9286,6 +9319,22 @@ async function saveVenueForm() {
     focal_zoom: vfNum(row.querySelector('.vf-photo-zoom'), 1),
   })).filter(p => p.url);
 
+  // Import selected auto-fill candidate photos server-side (download → venue-images), then include them.
+  if (vafSelected && vafSelected.size) {
+    vafStatus('Importing ' + vafSelected.size + ' photo' + (vafSelected.size > 1 ? 's' : '') + '…', '');
+    try {
+      const r = await vafFn('import-photos', { urls: [...vafSelected] });
+      if (r && r.ok && Array.isArray(r.photos) && r.photos.length) {
+        r.photos.slice().reverse().forEach(p => photos.unshift({ url: p.url, thumb: null, caption: '', focal_x: 50, focal_y: 50, focal_zoom: 1 }));
+        vafStatus('Imported ' + r.photos.length + ' photo' + (r.photos.length > 1 ? 's' : '') + '.', 'ok');
+      } else if (!confirm('None of the selected photos could be imported (they may be too small, or the site blocked the download). Save the venue anyway?')) {
+        vafStatus('Save cancelled.', 'err'); return;
+      }
+    } catch (e) {
+      if (!confirm('Photo import failed (network, or the function isn’t deployed). Save the venue without the imported photos?')) { vafStatus('Save cancelled.', 'err'); return; }
+    }
+  }
+
   const videos = vfCollectVideos();
 
   const laText = vfText('vf-la-text');
@@ -9354,6 +9403,79 @@ async function saveVenueForm() {
 window.openVenueForm = openVenueForm;
 window.closeVenueForm = closeVenueForm;
 window.saveVenueForm = saveVenueForm;
+
+// ── Auto-fill a new venue from a URL via the venue-autofill Edge Function ──
+const VENUE_FN_URL = SUPABASE_URL + '/functions/v1/venue-autofill';
+let vafImages = [], vafSelected = new Set();
+const VAF_FIELDS = { // extracted key → form input id
+  name: 'vf-name', subtitle: 'vf-subtitle', area: 'vf-area', dist: 'vf-dist', dist_min: 'vf-dist-min',
+  capacity: 'vf-capacity', best_season: 'vf-season', overview: 'vf-overview', cost_estimate: 'vf-cost',
+  website: 'vf-website', contact_email: 'vf-contact-email', contact_phone: 'vf-contact-phone',
+};
+async function vafFn(action, body) {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) throw new Error('not signed in');
+  const res = await fetch(VENUE_FN_URL, {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, ...body }),
+  });
+  return res.json();
+}
+function vafStatus(msg, kind) {
+  const el = document.getElementById('vaf-status'); if (!el) return;
+  el.hidden = !msg; el.textContent = msg || ''; el.className = 'vaf-status' + (kind ? ' vaf-' + kind : '');
+}
+async function vafExtract() {
+  const input = document.getElementById('vaf-url'); if (!input) return;
+  const url = (input.value || '').trim();
+  if (!url) { vafStatus('Paste a venue URL first.', 'err'); return; }
+  const btn = document.getElementById('vaf-go'); if (btn) btn.disabled = true;
+  vafStatus('Reading the page…', '');
+  let r;
+  try { r = await vafFn('extract', { url }); }
+  catch (e) { vafStatus('Could not reach the server. Check your connection and that the function is deployed.', 'err'); if (btn) btn.disabled = false; return; }
+  if (btn) btn.disabled = false;
+  if (!r || !r.ok) { vafStatus((r && r.message) || 'Extraction failed.', 'err'); vafRenderMissing([]); vafImages = []; vafRenderPhotos(); return; }
+  vafApplyFields(r.fields || {});
+  vafRenderMissing(r.missing || []);
+  vafImages = (r.images || []).map(i => i.url); vafSelected = new Set();
+  vafRenderPhotos();
+  vafStatus('Filled from the page — review, edit or clear any field, then Save.', 'ok');
+}
+function vafSet(id, val) {
+  const el = document.getElementById(id); if (!el || val == null || val === '') return;
+  el.value = val; el.classList.add('vaf-auto');
+}
+function vafApplyFields(f) {
+  for (const [key, id] of Object.entries(VAF_FIELDS)) vafSet(id, f[key]);
+  const chk = (id, v) => { const el = document.getElementById(id); if (el && v === true) { el.checked = true; const w = el.closest('.vf-check'); if (w) w.classList.add('vaf-auto'); } };
+  chk('vf-ocean', f.ocean); chk('vf-onsite', f.on_site_rooms); chk('vf-catering', f.catering_included);
+  if (Array.isArray(f.tags)) f.tags.forEach(t => { if (t) vfAddTag(t); });
+}
+function vafRenderMissing(missing) {
+  const el = document.getElementById('vaf-missing'); if (!el) return;
+  if (!missing || !missing.length) { el.hidden = true; el.innerHTML = ''; return; }
+  el.hidden = false;
+  el.innerHTML = `<div class="vaf-missing-title">Not stated on this page</div>`
+    + `<ul>${missing.map(m => `<li>${escapeHtml(m.label)}</li>`).join('')}</ul>`
+    + `<div class="vaf-missing-note">Keep digging on their site, or add these to your coordinator questions.</div>`;
+}
+function vafRenderPhotos() {
+  const el = document.getElementById('vaf-photos'); if (!el) return;
+  if (!vafImages.length) { el.hidden = true; el.innerHTML = ''; return; }
+  el.hidden = false;
+  el.innerHTML = `<div class="vaf-photos-title">Photos found — tap to select (imported to your bucket on Save)</div>`
+    + `<div class="vaf-photos-grid">${vafImages.map((u, i) =>
+      `<button type="button" class="vaf-photo${vafSelected.has(u) ? ' on' : ''}" data-i="${i}" onclick="vafTogglePhoto(${i})"><img src="${escapeHtml(u)}" alt="" loading="lazy" onerror="this.closest('.vaf-photo').remove()"></button>`
+    ).join('')}</div>`;
+}
+function vafTogglePhoto(i) {
+  const u = vafImages[i]; if (!u) return;
+  if (vafSelected.has(u)) vafSelected.delete(u); else vafSelected.add(u);
+  const btn = document.querySelector(`.vaf-photo[data-i="${i}"]`); if (btn) btn.classList.toggle('on');
+}
+window.vafExtract = vafExtract; window.vafTogglePhoto = vafTogglePhoto;
 window.vfAddTag = vfAddTag;
 window.vfAddPro = vfAddPro;
 window.vfAddCon = vfAddCon;
