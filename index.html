@@ -1263,21 +1263,35 @@ textarea.inline-edit { min-height: 56px; resize: vertical; line-height: 1.4; }
 .vv-ctrl { min-width: 34px; min-height: 30px; background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 7px; cursor: pointer; font-size: 0.8rem; }
 .vv-ctrl:hover { border-color: var(--gold); color: var(--gold); }
 /* Continuous venue video player (story-bar) */
+/* Inline preview: clean — segments + video only. Interaction lives in fullscreen. */
 .vplayer { border-radius: 12px; overflow: hidden; background: #000; }
-.vpl-segs { display: flex; gap: 3px; padding: 6px 6px 0; background: #000; }
-.vpl-seg { flex: 1; height: 3px; padding: 0; border: 0; background: rgba(255,255,255,0.28); border-radius: 2px; overflow: hidden; cursor: pointer; position: relative; }
+.vpl-stage { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; display: block; border: 0; padding: 0; overflow: hidden; }
+.vpl-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; z-index: 1; transition: opacity 0.18s ease; }
+.vpl-video.vpl-front { opacity: 1; z-index: 2; }
+.vpl-segs { position: absolute; top: 0; left: 0; right: 0; display: flex; gap: 3px; padding: 6px; z-index: 4; }
+.vpl-seg { flex: 1; height: 3px; padding: 0; border: 0; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden; position: relative; pointer-events: none; }
 .vpl-seg-fill { position: absolute; inset: 0; width: 0%; background: #fff; border-radius: 2px; }
 .vpl-seg-fill.done { width: 100%; }
-.vpl-stage { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; display: block; border: 0; padding: 0; }
-.vpl-video { width: 100%; height: 100%; object-fit: cover; display: block; }
-.vpl-tap { position: absolute; inset: 0 0 44px 0; background: transparent; border: 0; cursor: pointer; }
-.vpl-big { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 56px; height: 56px; border-radius: 50%; border: 0; background: rgba(0,0,0,0.5); color: #fff; font-size: 1.3rem; cursor: pointer; z-index: 2; }
-.vpl-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 44px; display: flex; align-items: center; gap: 0.5rem; padding: 0 0.6rem; background: linear-gradient(transparent, rgba(0,0,0,0.55)); z-index: 3; }
-.vpl-btn { background: none; border: 0; color: #fff; font-size: 1rem; cursor: pointer; min-width: 30px; }
-.vpl-scrub { flex: 1; accent-color: #fff; height: 3px; }
+.vpl-tap { position: absolute; inset: 0; background: transparent; border: 0; cursor: pointer; z-index: 3; }
 .vpl-embeds-only { display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .vpl-embed-hint { color: #fff; font-size: 0.85rem; letter-spacing: 0.04em; }
-.vpl-caption { font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; min-height: 1em; }
+/* Control overlay — only shown (and interactive) in fullscreen, revealed by a tap */
+.vpl-overlay { position: absolute; inset: 0; z-index: 5; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+.vpl-overlay.show { opacity: 1; }
+.vpl-overlay.show .vpl-obtn, .vpl-overlay.show .vpl-scrub { pointer-events: auto; }
+.vpl-ovtop { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 0.5rem; padding: max(0.6rem, env(safe-area-inset-top)) max(0.8rem, env(safe-area-inset-right)) 0.6rem max(0.8rem, env(safe-area-inset-left)); background: linear-gradient(rgba(0,0,0,0.5), transparent); }
+.vpl-ovbottom { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 0.5rem; padding: 0.7rem max(0.9rem, env(safe-area-inset-right)) max(0.9rem, env(safe-area-inset-bottom)) max(0.9rem, env(safe-area-inset-left)); background: linear-gradient(transparent, rgba(0,0,0,0.6)); }
+.vpl-ovrow { display: flex; align-items: center; justify-content: center; gap: 1.3rem; }
+.vpl-obtn { background: none; border: 0; color: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+.vpl-fscap { flex: 1; text-align: center; color: #fff; font-size: 0.8rem; opacity: 0.85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vpl-scrub { width: 100%; accent-color: #fff; height: 3px; }
+/* Fullscreen presentation: fixed full-viewport (identical on iOS) + real element fullscreen where supported */
+#vpl-root.is-fs { position: fixed; inset: 0; z-index: 4000; background: #000; border-radius: 0; display: flex; align-items: center; justify-content: center; }
+#vpl-root.is-fs .vpl-stage { position: static; width: 100%; height: 100%; aspect-ratio: auto; }
+#vpl-root.is-fs .vpl-video { object-fit: contain; }
+#vpl-root.is-fs .vpl-seg { pointer-events: auto; }
+#vpl-root.is-fs .vpl-segs { padding-top: max(6px, env(safe-area-inset-top)); padding-left: max(6px, env(safe-area-inset-left)); padding-right: max(6px, env(safe-area-inset-right)); }
+#vpl-root.is-fs .vpl-ovtop { padding-top: max(1.6rem, calc(env(safe-area-inset-top) + 0.9rem)); }
 /* Video grid overlay */
 #vm-grid, #vm-embed { position: fixed; inset: 0; z-index: 1355; background: rgba(0,0,0,0.6); display: none; align-items: stretch; justify-content: center; }
 #vm-grid.open, #vm-embed.open { display: flex; }
@@ -8459,82 +8473,156 @@ function venueVideosHtml(v) {
   if (!hasAny) {
     return `<div class="psec"><div class="psec-title vv-heading" onclick="vuToggle()">Walkthrough Videos <span class="vv-add-hint">＋ add</span></div><div class="vv-empty">No videos yet — tap ＋ add here or the button up top.</div></div>`;
   }
-  const segs = uploads.map((s, i) => `<button class="vpl-seg" onclick="vplSegJump(${i})" aria-label="Video ${i + 1}"><span class="vpl-seg-fill" data-seg="${i}"></span></button>`).join('');
+  const segs = uploads.map((s, i) => `<button class="vpl-seg" onclick="vplSegJump(event,${i})" aria-label="Video ${i + 1}"><span class="vpl-seg-fill" data-seg="${i}"></span></button>`).join('');
   const stage = uploads.length
     ? `<div class="vpl-stage" id="vpl-stage">
-         <video class="vpl-video" id="vpl-video" playsinline preload="none" muted controlsList="nodownload noremoteplayback" disablePictureInPicture></video>
-         <button class="vpl-tap" id="vpl-tap" onclick="vplOpenGrid()" aria-label="Browse all videos"></button>
-         <button class="vpl-big" id="vpl-big" onclick="vplPlayToggle(event)" aria-label="Play">▶</button>
-         <div class="vpl-bar" id="vpl-bar">
-           <button class="vpl-btn" id="vpl-play" onclick="vplPlayToggle(event)" aria-label="Play/pause">▶</button>
-           <input type="range" class="vpl-scrub" id="vpl-scrub" min="0" max="1" step="0.01" value="0" oninput="vplScrub(this.value)">
-           <button class="vpl-btn" id="vpl-mute" onclick="vplMuteToggle(event)" aria-label="Mute/unmute">🔇</button>
+         <video class="vpl-video vpl-front" id="vpl-a" playsinline preload="none" muted controlsList="nodownload noremoteplayback" disablePictureInPicture></video>
+         <video class="vpl-video" id="vpl-b" playsinline preload="none" muted controlsList="nodownload noremoteplayback" disablePictureInPicture></video>
+         <div class="vpl-segs" id="vpl-segs">${segs}</div>
+         <button class="vpl-tap" id="vpl-tap" onclick="vplStageTap(event)" aria-label="Open fullscreen player"></button>
+         <div class="vpl-overlay" id="vpl-overlay">
+           <div class="vpl-ovtop">
+             <button class="vpl-obtn" onclick="vplGalleryOpen(event)" aria-label="All videos">▦</button>
+             <span class="vpl-fscap" id="vpl-fscap"></span>
+             <button class="vpl-obtn" onclick="vplExitBtn(event)" aria-label="Minimize">⤢</button>
+           </div>
+           <div class="vpl-ovbottom">
+             <input type="range" class="vpl-scrub" id="vpl-scrub" min="0" max="1" step="0.05" value="0" oninput="vplScrub(this.value)" onpointerdown="vplBump()">
+             <div class="vpl-ovrow">
+               <button class="vpl-obtn" onclick="vplPrev(event)" aria-label="Previous video">‹</button>
+               <button class="vpl-obtn" id="vpl-play" onclick="vplPlayToggle(event)" aria-label="Play/pause">⏸</button>
+               <button class="vpl-obtn" onclick="vplNextBtn(event)" aria-label="Next video">›</button>
+               <button class="vpl-obtn" id="vpl-vol" onclick="vplVolToggle(event)" aria-label="Mute/unmute">🔊</button>
+             </div>
+           </div>
          </div>
        </div>`
     : `<button class="vpl-stage vpl-embeds-only" onclick="vplOpenGrid()"><span class="vpl-embed-hint">▶ Browse videos</span></button>`;
   return `<div class="psec"><div class="psec-title vv-heading" onclick="vuToggle()">Walkthrough Videos <span class="vv-add-hint">＋ add</span></div>
-    <div class="vplayer">
-      ${uploads.length ? `<div class="vpl-segs" id="vpl-segs">${segs}</div>` : ''}
+    <div class="vplayer" id="vpl-root">
       ${stage}
-    </div>
-    <div class="vpl-caption" id="vpl-caption"></div></div>`;
+    </div></div>`;
 }
 async function hydrateVenueVideos(v) {
+  if (vplState && vplState.io) { try { vplState.io.disconnect(); } catch (e) {} }
   vplState = null;
   const sorted = vmSorted(v.videos);
   const rotation = sorted.filter(s => s.vid.kind !== 'embed');
-  if (!rotation.length) return; // nothing to rotate (embeds-only or empty)
-  const el = document.getElementById('vpl-video'); if (!el) return;
-  vplState = { rotation, all: sorted, cur: 0, playing: false, muted: true, ts: 0, te: null, wasPlaying: false, io: null, seeking: false };
-  el.muted = true;
-  el.addEventListener('timeupdate', vplTick);
-  el.addEventListener('ended', () => vplNext());
-  el.addEventListener('play', () => { vplState.playing = true; vplSyncButtons(); });
-  el.addEventListener('pause', () => { if (!vplState.seeking) { vplState.playing = false; vplSyncButtons(); } });
-  // Pause when scrolled out of view; resume only if it had been playing.
+  if (!rotation.length) return; // embeds-only or empty: no rotating player
+  const a = document.getElementById('vpl-a'), b = document.getElementById('vpl-b');
+  if (!a || !b) return;
+  vplState = { rotation, all: sorted, cur: 0, playing: false, muted: true, ts: 0, te: null, slot: 0, preIdx: -1, io: null, seeking: false, fs: false, ctrlTimer: null, controlsVisible: false };
+  [a, b].forEach(el => {
+    el.muted = true;
+    el.addEventListener('timeupdate', vplTick);
+    el.addEventListener('ended', (e) => { if (e.target === vplFront()) vplAdvance(); });
+    el.addEventListener('play', () => { if (el === vplFront()) { vplState.playing = true; vplSyncButtons(); } });
+    el.addEventListener('pause', () => { if (el === vplFront() && !vplState.seeking) { vplState.playing = false; vplSyncButtons(); } });
+  });
+  // Real element fullscreen (where supported) exiting via Esc/system → close our overlay too.
+  document.onfullscreenchange = function () { if (!document.fullscreenElement && vplState && vplState.fs) vplExit(); };
+  // Muted preview auto-plays only while in view; never while fullscreen (it already fills the screen).
   const stage = document.getElementById('vpl-stage');
   if (stage && 'IntersectionObserver' in window) {
     vplState.io = new IntersectionObserver((entries) => {
-      const e = entries[0]; if (!e) return;
-      if (e.intersectionRatio < 0.5) { if (vplState.playing) { vplState.wasPlaying = true; el.pause(); } }
-      else if (vplState.wasPlaying) { vplState.wasPlaying = false; el.play().catch(() => {}); }
+      const e = entries[0]; if (!e || !vplState || vplState.fs) return;
+      const f = vplFront(); if (!f) return;
+      if (e.intersectionRatio >= 0.5) { vplState.playing = true; f.play().catch(() => {}); }
+      else { vplState.playing = false; f.pause(); }
     }, { threshold: [0, 0.5, 1] });
     vplState.io.observe(stage);
   }
-  await vplLoad(0, false);
+  await vplGo(0, false);
 }
-async function vplLoad(i, autoplay) {
-  if (!vplState || !vplState.rotation.length) return;
-  vplState.cur = ((i % vplState.rotation.length) + vplState.rotation.length) % vplState.rotation.length;
-  const el = document.getElementById('vpl-video'); if (!el) return;
-  const vid = vplState.rotation[vplState.cur].vid;
-  vplState.ts = Number(vid.trim_start) || 0;
-  vplState.te = (vid.trim_end == null || vid.trim_end === '') ? null : Number(vid.trim_end);
-  applyFocal(el, vid);
-  const cap = document.getElementById('vpl-caption'); if (cap) cap.textContent = vid.label || '';
-  vplMarkSegments();
+function vplFront() { return document.getElementById(vplState && vplState.slot === 1 ? 'vpl-b' : 'vpl-a'); }
+function vplBack() { return document.getElementById(vplState && vplState.slot === 1 ? 'vpl-a' : 'vpl-b'); }
+function vplApplyFrontClass() {
+  const frontId = (vplState && vplState.slot === 1) ? 'vpl-b' : 'vpl-a';
+  ['vpl-a', 'vpl-b'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('vpl-front', id === frontId); });
+}
+async function vplSign(vid) {
   let src = null, poster = null;
   if (vid.url) { const { data } = await sb.storage.from(VVID_BUCKET).createSignedUrl(vid.url, 7200); src = data && data.signedUrl; }
   if (vid.poster_url) { const { data } = await sb.storage.from(VVID_BUCKET).createSignedUrl(vid.poster_url, 7200); poster = data && data.signedUrl; }
+  return { src, poster };
+}
+// Load a rotation clip into a specific element, seeked to its trim_start. Resolves when ready.
+async function vplLoadInto(el, rotIdx, autoplay) {
+  if (!el || !vplState) return;
+  const vid = vplState.rotation[rotIdx].vid;
+  applyFocal(el, vid);
+  const { src, poster } = await vplSign(vid);
   if (poster) el.poster = poster; else el.removeAttribute('poster');
   if (!src) return;
+  const ts = Number(vid.trim_start) || 0;
   el.preload = 'metadata';
-  const onMeta = () => {
-    const dur = el.duration || 0;
-    if (vplState.te == null || vplState.te > dur + 0.5) vplState.te = null;
-    try { el.currentTime = vplState.ts; } catch (e) {}
-    const scrub = document.getElementById('vpl-scrub');
-    if (scrub) { scrub.min = vplState.ts; scrub.max = (vplState.te == null ? dur : vplState.te) || (vplState.ts + 1); scrub.step = 0.05; scrub.value = vplState.ts; }
-    if (autoplay) el.play().catch(() => {});
-  };
-  el.addEventListener('loadedmetadata', onMeta, { once: true });
-  el.src = src;
+  await new Promise(res => {
+    const onMeta = () => { try { el.currentTime = ts; } catch (e) {} if (autoplay) el.play().catch(() => {}); res(); };
+    el.addEventListener('loadedmetadata', onMeta, { once: true });
+    el.src = src;
+  });
 }
-function vplTick() {
+function vplSetMeta(rotIdx) {
+  vplState.cur = ((rotIdx % vplState.rotation.length) + vplState.rotation.length) % vplState.rotation.length;
+  const vid = vplState.rotation[vplState.cur].vid;
+  vplState.ts = Number(vid.trim_start) || 0;
+  vplState.te = (vid.trim_end == null || vid.trim_end === '') ? null : Number(vid.trim_end);
+  const cap = document.getElementById('vpl-fscap'); if (cap) cap.textContent = vid.label || '';
+  vplMarkSegments();
+}
+function vplSetScrubBounds(el) {
+  const dur = el.duration || 0;
+  if (vplState.te == null || vplState.te > dur + 0.5) vplState.te = null;
+  const scrub = document.getElementById('vpl-scrub');
+  if (scrub) { scrub.min = vplState.ts; scrub.max = (vplState.te == null ? dur : vplState.te) || (vplState.ts + 1); scrub.value = vplState.ts; }
+}
+// Deliberate jump: load into the current front element (a brief load is expected here).
+async function vplGo(rotIdx, autoplay) {
+  if (!vplState || !vplState.rotation.length) return;
+  vplSetMeta(rotIdx);
+  const el = vplFront();
+  await vplLoadInto(el, vplState.cur, autoplay);
+  el.muted = vplState.fs ? vplState.muted : true;
+  vplSetScrubBounds(el);
+  vplPreloadNext();
+}
+// Preload exactly one ahead into the back element, seeked to its trim_start.
+function vplPreloadNext() {
   if (!vplState) return;
-  const el = document.getElementById('vpl-video'); if (!el) return;
+  if (vplState.rotation.length < 2) { vplState.preIdx = -1; return; }
+  const ni = (vplState.cur + 1) % vplState.rotation.length;
+  if (vplState.preIdx === ni) return;
+  const back = vplBack();
+  vplLoadInto(back, ni, false).then(() => { if (vplState) vplState.preIdx = ni; });
+}
+// Seamless advance at trim_end / clip end: swap to the preloaded back element.
+function vplAdvance() {
+  if (!vplState) return;
+  const len = vplState.rotation.length;
+  if (len === 1) { const el = vplFront(); try { el.currentTime = vplState.ts; } catch (e) {} if (vplState.playing) el.play().catch(() => {}); return; }
+  const ni = (vplState.cur + 1) % len;
+  if (vplState.preIdx === ni) {
+    const oldFront = vplFront();
+    vplState.slot = 1 - vplState.slot; // the preloaded back becomes the front
+    const nf = vplFront();
+    vplApplyFrontClass();
+    nf.muted = vplState.fs ? vplState.muted : true;
+    if (oldFront) oldFront.pause();
+    vplSetMeta(ni);
+    vplSetScrubBounds(nf);
+    try { nf.currentTime = vplState.ts; } catch (e) {}
+    if (vplState.playing) nf.play().catch(() => {});
+    vplState.preIdx = -1;
+    vplPreloadNext();
+  } else {
+    vplGo(ni, vplState.playing); // preload wasn't ready — fall back to a direct load
+  }
+}
+function vplTick(e) {
+  if (!vplState) return;
+  const el = vplFront(); if (!el || (e && e.target !== el)) return;
   const end = vplState.te == null ? (el.duration || 0) : vplState.te;
-  if (end && el.currentTime >= end - 0.03) { vplNext(); return; }
+  if (end && el.currentTime >= end - 0.03) { vplAdvance(); return; }
   const scrub = document.getElementById('vpl-scrub');
   if (scrub && !vplState.seeking) scrub.value = el.currentTime;
   const span = (end - vplState.ts) || 1;
@@ -8542,32 +8630,67 @@ function vplTick() {
   const fill = document.querySelector(`.vpl-seg-fill[data-seg="${vplState.cur}"]`);
   if (fill) fill.style.width = (frac * 100) + '%';
 }
-function vplNext() { if (vplState) vplLoad(vplState.cur + 1, vplState.playing); }
 function vplMarkSegments() {
   if (!vplState) return;
   document.querySelectorAll('.vpl-seg-fill').forEach(f => {
     const idx = Number(f.getAttribute('data-seg'));
-    f.style.width = idx < vplState.cur ? '100%' : (idx === vplState.cur ? '0%' : '0%');
+    f.style.width = idx < vplState.cur ? '100%' : '0%';
     f.classList.toggle('done', idx < vplState.cur);
   });
 }
 function vplSyncButtons() {
-  const playing = vplState && vplState.playing;
+  const el = vplFront(); const playing = el && !el.paused;
   const pb = document.getElementById('vpl-play'); if (pb) pb.textContent = playing ? '⏸' : '▶';
-  const big = document.getElementById('vpl-big'); if (big) big.hidden = !!playing;
 }
-function vplPlayToggle(e) { if (e) e.stopPropagation(); const el = document.getElementById('vpl-video'); if (!el) return; if (el.paused) el.play().catch(() => {}); else el.pause(); }
-function vplMuteToggle(e) { if (e) e.stopPropagation(); const el = document.getElementById('vpl-video'); if (!el || !vplState) return; vplState.muted = !vplState.muted; el.muted = vplState.muted; const mb = document.getElementById('vpl-mute'); if (mb) mb.textContent = vplState.muted ? '🔇' : '🔊'; }
+function vplUpdateVolIcon() { const b = document.getElementById('vpl-vol'); if (b) b.textContent = (vplState && vplState.muted) ? '🔇' : '🔊'; }
+function vplPlayToggle(e) { if (e) e.stopPropagation(); vplBump(); const el = vplFront(); if (!el) return; if (el.paused) el.play().catch(() => {}); else el.pause(); }
+function vplVolToggle(e) { if (e) e.stopPropagation(); vplBump(); if (!vplState) return; vplState.muted = !vplState.muted; const el = vplFront(); if (el) el.muted = vplState.muted; vplUpdateVolIcon(); }
 function vplScrub(val) {
-  const el = document.getElementById('vpl-video'); if (!el || !vplState) return;
-  vplState.seeking = true;
+  const el = vplFront(); if (!el || !vplState) return;
+  vplBump(); vplState.seeking = true;
   let t = Number(val);
   const end = vplState.te == null ? (el.duration || 0) : vplState.te;
   t = Math.max(vplState.ts, Math.min(t, end || t));
   try { el.currentTime = t; } catch (e) {}
   clearTimeout(vplState._seekT); vplState._seekT = setTimeout(() => { vplState.seeking = false; }, 250);
 }
-function vplSegJump(i) { if (vplState) vplLoad(i, vplState.playing || true); }
+function vplSegJump(e, i) { if (e) e.stopPropagation(); if (!vplState) return; vplBump(); vplGo(i, true); }
+function vplPrev(e) { if (e) e.stopPropagation(); if (!vplState) return; vplBump(); vplGo(vplState.cur - 1, true); }
+function vplNextBtn(e) { if (e) e.stopPropagation(); if (!vplState) return; vplBump(); vplGo(vplState.cur + 1, true); }
+// Inline preview: a tap enters fullscreen. In fullscreen: a tap toggles the control overlay.
+function vplStageTap(e) { if (!vplState) return; if (vplState.fs) vplToggleControls(); else vplEnter(); }
+function vplShowControls() { const ov = document.getElementById('vpl-overlay'); if (ov) ov.classList.add('show'); if (vplState) vplState.controlsVisible = true; vplBump(); }
+function vplHideControls() { const ov = document.getElementById('vpl-overlay'); if (ov) ov.classList.remove('show'); if (vplState) { vplState.controlsVisible = false; clearTimeout(vplState.ctrlTimer); } }
+function vplToggleControls() { if (vplState && vplState.controlsVisible) vplHideControls(); else vplShowControls(); }
+function vplBump() { if (!vplState || !vplState.fs) return; clearTimeout(vplState.ctrlTimer); vplState.ctrlTimer = setTimeout(() => { if (vplState && vplState.fs) vplHideControls(); }, 3000); }
+// Fullscreen: a fixed full-viewport overlay (works identically on iOS); also real element
+// fullscreen where the browser supports it — the same overlay renders inside it.
+function vplEnter() {
+  if (!vplState || vplState.fs) return;
+  const root = document.getElementById('vpl-root'); if (!root) return;
+  vplState.fs = true;
+  root.classList.add('is-fs');
+  lockBackgroundScroll();
+  vplState.muted = false; const f = vplFront(); if (f) { f.muted = false; f.play().catch(() => {}); }
+  vplState.playing = true;
+  vplSyncButtons(); vplUpdateVolIcon(); vplShowControls();
+  document.addEventListener('keydown', vplFsKey);
+  if (root.requestFullscreen) root.requestFullscreen().catch(() => {});
+}
+function vplExit() {
+  if (!vplState || !vplState.fs) return;
+  vplState.fs = false;
+  const root = document.getElementById('vpl-root'); if (root) root.classList.remove('is-fs');
+  vplHideControls();
+  document.removeEventListener('keydown', vplFsKey);
+  if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+  unlockBackgroundScroll();
+  vplState.muted = true; const f = vplFront(); if (f) { f.muted = true; f.play().catch(() => {}); }
+  vplUpdateVolIcon();
+}
+function vplExitBtn(e) { if (e) e.stopPropagation(); vplExit(); }
+function vplFsKey(e) { if (e.key === 'Escape') vplExit(); }
+function vplGalleryOpen(e) { if (e) e.stopPropagation(); vplExit(); vplOpenGrid(); }
 
 // ── Grid overlay: ALL videos (posters), tap upload → jump+play, embed → own player ──
 async function vplOpenGrid() {
@@ -8608,7 +8731,7 @@ function vmGridPick(origIdx) {
   const vid = (v._row.videos || [])[origIdx]; if (!vid) return;
   if (vid.kind === 'embed') { vmEmbedOpen(origIdx); return; }
   vmGridClose();
-  if (vplState) { const ri = vplState.rotation.findIndex(r => r.origIdx === origIdx); if (ri >= 0) vplLoad(ri, true); }
+  if (vplState) { const ri = vplState.rotation.findIndex(r => r.origIdx === origIdx); if (ri >= 0) { vplGo(ri, true); vplEnter(); } }
 }
 function vmEmbedOpen(origIdx) {
   const v = VENUES[currentIdx]; if (!v || !v._row) return;
@@ -8621,7 +8744,7 @@ function vmEmbedOpen(origIdx) {
 }
 function vmEmbedClose() { const f = document.getElementById('vm-embed-frame'); if (f) f.src = ''; const o = document.getElementById('vm-embed'); if (o) o.classList.remove('open'); if (!document.getElementById('vm-grid').classList.contains('open')) unlockBackgroundScroll(); document.removeEventListener('keydown', vmEmbedKey); }
 function vmEmbedKey(e) { if (e.key === 'Escape') vmEmbedClose(); }
-window.vplPlayToggle = vplPlayToggle; window.vplMuteToggle = vplMuteToggle; window.vplScrub = vplScrub; window.vplSegJump = vplSegJump; window.vplOpenGrid = vplOpenGrid;
+window.vplStageTap = vplStageTap; window.vplSegJump = vplSegJump; window.vplPlayToggle = vplPlayToggle; window.vplVolToggle = vplVolToggle; window.vplScrub = vplScrub; window.vplPrev = vplPrev; window.vplNextBtn = vplNextBtn; window.vplGalleryOpen = vplGalleryOpen; window.vplExitBtn = vplExitBtn; window.vplBump = vplBump; window.vplOpenGrid = vplOpenGrid;
 window.vmGridClose = vmGridClose; window.vmGridPick = vmGridPick; window.vmEmbedOpen = vmEmbedOpen; window.vmEmbedClose = vmEmbedClose;
 // ── In-place upload panel on the venue profile (photos + videos, one place) ──
 let vuOpen = false, vuLinksOpen = false, vuReport = '';
