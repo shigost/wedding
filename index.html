@@ -8455,12 +8455,30 @@ function vvePreview() {
   if (vvePreviewStop) clearInterval(vvePreviewStop);
   vvePreviewStop = setInterval(() => { const end = vveCtx.te == null ? vveCtx.dur : vveCtx.te; if (vid.currentTime >= end) { vid.pause(); clearInterval(vvePreviewStop); vvePreviewStop = null; } }, 60);
 }
+// Ensure a decoded frame exists before we draw. iOS won't paint a frame from a
+// video that has only loaded metadata and never played/seeked — nudge it (a
+// muted play/pause is allowed here because capture runs inside a user tap).
+async function vveEnsureFrame(vid) {
+  if (vid.readyState >= 2) return;
+  try { const wasMuted = vid.muted; vid.muted = true; await vid.play(); vid.pause(); vid.muted = wasMuted; } catch (e) {}
+  if (vid.readyState >= 2) return;
+  await new Promise(res => {
+    let done = false; const fin = () => { if (done) return; done = true; res(); };
+    vid.addEventListener('loadeddata', fin, { once: true });
+    vid.addEventListener('seeked', fin, { once: true });
+    try { vid.currentTime = vid.currentTime; } catch (e) {}
+    setTimeout(fin, 1500);
+  });
+}
 async function vveCapturePoster() {
   const vid = document.getElementById('vve-video');
+  await vveEnsureFrame(vid);
   const c = document.createElement('canvas'); c.width = vid.videoWidth || 1280; c.height = vid.videoHeight || 720;
-  try { c.getContext('2d').drawImage(vid, 0, 0, c.width, c.height); } catch (e) { vfVideoError('Could not capture this frame (HEVC video may not be decodable here).'); return; }
-  const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.82));
-  if (!blob) return;
+  if (!vid.videoWidth || !vid.videoHeight) { vfVideoError('Video isn’t ready yet — give it a second to load, then capture.'); return; }
+  try { c.getContext('2d').drawImage(vid, 0, 0, c.width, c.height); } catch (e) { vfVideoError('Could not capture this frame (the video may not be decodable here).'); return; }
+  let blob;
+  try { blob = await new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('empty')), 'image/jpeg', 0.82)); }
+  catch (e) { vfVideoError('Could not read the captured frame. Reload and try again.'); return; }
   vveCtx.posterBlob = blob;
   const prev = document.getElementById('vve-poster-prev'); if (prev) { prev.src = URL.createObjectURL(blob); prev.hidden = false; }
 }
@@ -8799,9 +8817,30 @@ async function vplOpenGrid() {
       continue;
     }
     applyFocal(img, vid);
-    if (vid.poster_url) { const { data } = await sb.storage.from(VVID_BUCKET).createSignedUrl(vid.poster_url, 7200); if (data && data.signedUrl) img.src = data.signedUrl; else img.closest('.vm-tile-crop').classList.add('vm-noposter'); }
-    else img.closest('.vm-tile-crop').classList.add('vm-noposter');
+    if (vid.poster_url) {
+      const { data } = await sb.storage.from(VVID_BUCKET).createSignedUrl(vid.poster_url, 7200);
+      if (data && data.signedUrl) { img.src = data.signedUrl; continue; }
+    }
+    await vmTileStill(img, vid); // no saved poster (or it failed to sign): show a frame from the video itself
   }
+}
+// Fallback tile preview: swap the empty <img> for a muted video seeked to trim_start.
+// Display-only (never drawn to canvas), so it needs no CORS and always renders a frame.
+async function vmTileStill(img, vid) {
+  const crop = img.closest('.vm-tile-crop'); if (!crop) return;
+  if (!vid.url) { crop.classList.add('vm-noposter'); return; }
+  const { data } = await sb.storage.from(VVID_BUCKET).createSignedUrl(vid.url, 7200);
+  if (!data || !data.signedUrl) { crop.classList.add('vm-noposter'); return; }
+  const ts = Number(vid.trim_start) || 0;
+  const vel = document.createElement('video');
+  vel.className = 'vm-tile-img'; vel.muted = true; vel.defaultMuted = true; vel.tabIndex = -1;
+  vel.setAttribute('playsinline', ''); vel.setAttribute('webkit-playsinline', '');
+  vel.setAttribute('preload', 'metadata'); vel.setAttribute('disablepictureinpicture', '');
+  vel.setAttribute('controlslist', 'nodownload noremoteplayback'); vel.setAttribute('aria-hidden', 'true');
+  applyFocal(vel, vid);
+  vel.addEventListener('loadedmetadata', () => { if (ts > 0) { try { vel.currentTime = ts; } catch (e) {} } });
+  vel.src = data.signedUrl + (ts > 0 ? '#t=' + ts : ''); // media fragment nudges the initial frame to trim_start
+  img.replaceWith(vel);
 }
 function vmGridClose() { const g = document.getElementById('vm-grid'); if (g) g.classList.remove('open'); unlockBackgroundScroll(); document.removeEventListener('keydown', vmGridKey); }
 function vmGridKey(e) { if (e.key === 'Escape') vmGridClose(); }
@@ -9587,7 +9626,7 @@ window.addEventListener('DOMContentLoaded', () => {
   <div class="vve-sheet">
     <div class="sce-head"><span class="sce-title">Trim &amp; poster</span><button class="sce-close" onclick="vvCloseEditor()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button></div>
     <div class="sce-body">
-      <video id="vve-video" playsinline preload="metadata" controls controlsList="nodownload noremoteplayback" disablePictureInPicture></video>
+      <video id="vve-video" playsinline crossorigin="anonymous" preload="metadata" controls controlsList="nodownload noremoteplayback" disablePictureInPicture></video>
       <input type="range" id="vve-scrub" class="vve-scrub" min="0" max="100" step="0.05" value="0" oninput="vveScrub(this.value)">
       <div class="vve-times" id="vve-times">In 0:00 · Out (end)</div>
       <div class="vve-btns">
