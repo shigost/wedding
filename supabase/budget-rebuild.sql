@@ -16,7 +16,7 @@ alter table public.budget_items add column if not exists balance_due   numeric; 
 alter table public.budget_items add column if not exists notes         text;
 alter table public.budget_items add column if not exists payer         text;
 alter table public.budget_items add column if not exists due_date      date;
-alter table public.budget_items add column if not exists vendor_id     uuid references public.vendors(id) on delete set null;
+alter table public.budget_items add column if not exists vendor_id     bigint references public.vendors(id) on delete set null;
 alter table public.budget_items add column if not exists vendor_name   text;                             -- snapshot so finance-only users see it without vendors access
 alter table public.budget_items add column if not exists doc_url       text;                             -- path in the private budget-docs bucket
 alter table public.budget_items add column if not exists doc_name      text;

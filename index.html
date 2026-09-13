@@ -5949,8 +5949,9 @@ async function saveBudgetItem() {
   const status = document.getElementById('bi-status').value;
   let balance = document.getElementById('bi-balance').value === '' ? null : num(document.getElementById('bi-balance').value);
   if (status === 'paid') { deposit = total; balance = 0; }
-  const vendorId = document.getElementById('bi-vendor').value || null;
-  const vendorName = vendorId ? ((vendors.find(v => String(v.id) === String(vendorId)) || {}).name || null) : null;
+  const vendorRaw = document.getElementById('bi-vendor').value;
+  const vendorId = vendorRaw ? Number(vendorRaw) : null; // vendors.id is bigint — send a number, not a string
+  const vendorName = vendorId != null ? ((vendors.find(v => String(v.id) === String(vendorId)) || {}).name || null) : null;
   const rec = {
     name, cat: document.getElementById('bi-cat').value, state: 'active', status,
     total: total || 0, deposit_paid: deposit || 0, balance_due: balance,
