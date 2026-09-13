@@ -133,8 +133,8 @@ end $$;
 insert into public.user_roles(user_id, email, role)
 select id, email, 'owner' from auth.users
 where email in (
-  'alyssastills@icloud.com',
-  'TALERAN_EMAIL_HERE@example.com'   -- <<< REPLACE with Taleran's login email before running
+  'OWNER_1_EMAIL_HERE@example.com',   -- <<< your login email (fill in locally; do not commit)
+  'OWNER_2_EMAIL_HERE@example.com'    -- <<< Taleran's login email (fill in locally; do not commit)
 )
 on conflict (user_id) do update set role = 'owner';
 
