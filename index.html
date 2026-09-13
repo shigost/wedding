@@ -2891,6 +2891,70 @@ input:focus, select:focus, textarea:focus {
 .vaf-photo.on::after { content: ''; position: absolute; top: 5px; right: 5px; width: 16px; height: 16px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 2px #fff; }
 .vaf-auto { border-left: 3px solid var(--gold) !important; background: var(--gold-pale) !important; }
 label.vf-check.vaf-auto { color: var(--gold); }
+/* No-access screen (pending / unassigned users) */
+#no-access { position: fixed; inset: 0; z-index: 9999; background: var(--ground, #1a2130); display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+#no-access[hidden] { display: none; }
+.na-card { max-width: 360px; text-align: center; background: var(--surface, #fff); border: 1px solid var(--border); border-radius: 16px; padding: 1.6rem; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+.na-title { font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 1.5rem; color: var(--dark); margin-bottom: 0.6rem; }
+.na-body { font-size: 0.85rem; color: var(--muted); line-height: 1.6; margin-bottom: 1.2rem; }
+/* User & access management (owner only) */
+#user-admin { position: fixed; inset: 0; z-index: 1300; background: rgba(0,0,0,0.5); display: none; align-items: stretch; justify-content: center; }
+#user-admin.open { display: flex; }
+@media (min-width: 481px) { #user-admin { align-items: center; } }
+.ua-loading { padding: 1rem; color: var(--muted); font-size: 0.85rem; }
+.ua-user { border: 1px solid var(--border); border-radius: 12px; padding: 0.8rem; margin-bottom: 0.8rem; background: var(--surface); }
+.ua-user.pending { border-color: var(--love); }
+.ua-uhead { display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; }
+.ua-name { flex: 1; font-size: 0.95rem; padding: 0.4rem 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--dark); }
+.ua-email { font-size: 0.68rem; color: var(--muted-light); margin: 0.3rem 0 0.5rem; word-break: break-all; }
+.ua-rolerow { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.ua-role, .ua-perm { font-size: 0.8rem; padding: 0.3rem 0.4rem; border: 1px solid var(--border); border-radius: 7px; background: var(--bg); color: var(--dark); }
+.ua-role { flex: 1; }
+.ua-perms { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem; }
+.ua-sec { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; }
+.ua-sec-name { font-size: 0.7rem; color: var(--muted); text-transform: capitalize; }
+/* Read-only sections: hide the obvious edit affordances (RLS is the hard guarantee) */
+body[data-ro~="venues"] #page-venues #vtab-add,
+body[data-ro~="venues"] #page-venues [onclick*="openVenueForm"],
+body[data-ro~="venues"] #page-venues .vu-bar,
+body[data-ro~="venues"] #page-venues #vu-panel,
+body[data-ro~="venues"] #page-venues .vaf,
+body[data-ro~="venues"] #page-venues .vm-tile-acts,
+body[data-ro~="venues"] #lb-edit-btn,
+body[data-ro~="scenarios"] #page-scenarios [onclick*="addScenario"],
+body[data-ro~="scenarios"] #page-scenarios .sc-del,
+body[data-ro~="scenarios"] #page-scenarios .sc-actbtn,
+body[data-ro~="scenarios"] #page-scenarios .sc-star,
+body[data-ro~="scenarios"] #page-scenarios .sci-add,
+body[data-ro~="scenarios"] #page-scenarios .sci-del,
+body[data-ro~="scenarios"] #page-scenarios .sc-addq,
+body[data-ro~="mood_board"] #page-moodboard .mood-tb-add,
+body[data-ro~="mood_board"] #page-moodboard [onclick*="moodEnterSelect"],
+body[data-ro~="mood_board"] #page-moodboard [onclick*="moodSetCover"],
+body[data-ro~="budget"] #page-budget [onclick*="addBudgetItem"],
+body[data-ro~="budget"] #page-budget [onclick*="startEditBudgetItem"],
+body[data-ro~="budget"] #page-budget [onclick*="removeBudgetItem"],
+body[data-ro~="budget"] #page-budget [onclick*="openEditBudget"],
+body[data-ro~="guests"] #page-guests [onclick*="addGuestDirect"],
+body[data-ro~="guests"] #page-guests .gt-actions,
+body[data-ro~="tasks"] #page-timeline [onclick*="addTimelineTask"],
+body[data-ro~="tasks"] #page-timeline [onclick*="removeTimelineTask"],
+body[data-ro~="tasks"] #page-timeline [onclick*="startEditTask"],
+body[data-ro~="itinerary"] #page-itinerary [onclick*="addItinItem"],
+body[data-ro~="itinerary"] #page-itinerary [onclick*="removeItinItem"],
+body[data-ro~="vendors"] #page-vendors [onclick*="addVendor"],
+body[data-ro~="vendors"] #page-vendors [onclick*="removeVendor"] { display: none !important; }
+/* Read-only: disable inline tap-to-edit fields */
+body[data-ro~="guests"] #page-guests .inline-tap,
+body[data-ro~="itinerary"] #page-itinerary .inline-tap,
+body[data-ro~="vendors"] #page-vendors .inline-tap { pointer-events: none; }
+/* Dashboard: breathing room on desktop */
+#quick-links { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem; }
+@media (min-width: 700px) {
+  #page-dashboard .page-body { max-width: 920px; margin: 0 auto; }
+  #page-dashboard .stat-grid { max-width: 620px; margin-left: auto; margin-right: auto; }
+  #quick-links { grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
@@ -2947,6 +3011,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     <div class="theme-dot" data-t="editorial" onclick="setTheme('editorial')" title="Arena"></div>
     <div class="theme-dot" data-t="noite" onclick="setTheme('noite')" title="Noche"></div>
     <button class="theme-edit-btn" onclick="openThemeEditor()" title="Edit colours" aria-label="Edit theme colours"><svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg></button>
+    <button class="theme-edit-btn" id="user-admin-btn" hidden onclick="openUserAdmin()" title="Manage access" aria-label="Manage user access"><svg class="ico" aria-hidden="true"><use href="#i-nav-guests"/></svg></button>
   </div>
 </div>
 
@@ -3002,52 +3067,16 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
           <div class="stat-num" id="dash-days">—</div>
           <div class="stat-label" id="dash-days-label">Days Away</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" id="guests-stat">
           <div class="stat-num" id="dash-guests">0</div>
           <div class="stat-label">Expected</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" id="budget-stat">
           <div class="stat-num" id="dash-budget">—</div>
           <div class="stat-label">Spent</div>
         </div>
       </div>
-      <div class="quick-links">
-        <div class="quick-link" onclick="showPage('venues')">
-          <span class="ql-icon">🏛</span>
-          <div class="ql-title">Venues</div>
-          <div class="ql-sub">5 shortlisted</div>
-        </div>
-        <div class="quick-link" onclick="showPage('guests')">
-          <span class="ql-icon">♡</span>
-          <div class="ql-title">Guest List</div>
-          <div class="ql-sub" id="ql-guests">Add guests</div>
-        </div>
-        <div class="quick-link" onclick="showPage('budget')">
-          <span class="ql-icon">◈</span>
-          <div class="ql-title">Budget</div>
-          <div class="ql-sub" id="ql-budget">€60k target</div>
-        </div>
-        <div class="quick-link" onclick="showPage('timeline')">
-          <span class="ql-icon">◷</span>
-          <div class="ql-title">Tasks</div>
-          <div class="ql-sub" id="ql-timeline">Planning tasks</div>
-        </div>
-        <div class="quick-link" onclick="showPage('itinerary')">
-          <span class="ql-icon">📅</span>
-          <div class="ql-title">Itinerary</div>
-          <div class="ql-sub" id="ql-itinerary">Plan your days</div>
-        </div>
-        <div class="quick-link" onclick="showPage('vendors')">
-          <span class="ql-icon">✧</span>
-          <div class="ql-title">Vendors</div>
-          <div class="ql-sub" id="ql-vendors">Track suppliers</div>
-        </div>
-        <div class="quick-link" onclick="showPage('moodboard')">
-          <span class="ql-icon">◉</span>
-          <div class="ql-title">Mood Board</div>
-          <div class="ql-sub">Vision & palette</div>
-        </div>
-      </div>
+      <div class="quick-links" id="quick-links"></div>
     </div>
   </div>
 
@@ -3694,17 +3723,144 @@ function hideLogin() {
 async function initAuthGate() {
   try {
     const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-      hideLogin();
-      loadAllData();
-    } else {
-      showLogin();
-    }
+    if (session) { await enterApp(); }
+    else { showLogin(); }
   } catch(e) {
     console.error('session check error', e);
     showLogin();
   }
 }
+
+// ── ROLES & PERMISSIONS ─────────────────────────────────────────────────────
+// A role sets defaults; per-user JSONB overrides sit on top. Enforcement is RLS
+// (see supabase/roles-and-rls.sql); this mirrors it to drive the UI only.
+let ME = null; // { user_id, email, display_name, role, permissions, is_owner }
+const PERM_SECTIONS = ['venues','scenarios','budget','guests','tasks','itinerary','mood_board','couple_gallery','vendors'];
+const ROLE_DEFAULTS = { // MUST match public.role_defaults() in the SQL
+  owner:        { venues:'edit',scenarios:'edit',budget:'edit',guests:'edit',tasks:'edit',itinerary:'edit',mood_board:'edit',couple_gallery:'edit',vendors:'edit' },
+  collaborator: { venues:'edit',scenarios:'edit',mood_board:'edit',tasks:'edit',itinerary:'edit',guests:'edit' },
+  financial:    { budget:'edit',scenarios:'read',venues:'read',mood_board:'read' },
+  vendor:       { venues:'read',mood_board:'read',couple_gallery:'read' },
+};
+const PAGE_SECTION = { dashboard:null, venues:'venues', guests:'guests', budget:'budget', timeline:'tasks', itinerary:'itinerary', vendors:'vendors', moodboard:'mood_board', scenarios:'scenarios' };
+function permLevel(section) {
+  if (!ME || !ME.role) return 'none';
+  const o = ME.permissions || {};
+  if (o[section] === 'none' || o[section] === 'read' || o[section] === 'edit') return o[section]; // explicit override wins
+  return (ROLE_DEFAULTS[ME.role] || {})[section] || 'none';
+}
+function canRead(s) { const l = permLevel(s); return l === 'read' || l === 'edit'; }
+function canEdit(s) { return permLevel(s) === 'edit'; }
+window.canRead = canRead; window.canEdit = canEdit;
+async function loadMe() {
+  try {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) { ME = null; return; }
+    const { data } = await sb.from('user_roles').select('*').eq('user_id', user.id).maybeSingle();
+    ME = {
+      user_id: user.id, email: user.email,
+      display_name: (data && data.display_name) || null,
+      role: (data && data.role) || null,
+      permissions: (data && data.permissions) || {},
+      is_owner: !!(data && data.role === 'owner'),
+    };
+  } catch (e) { console.error('loadMe', e); ME = { user_id: null, email: null, role: null, permissions: {}, is_owner: false }; }
+}
+function applyPermsToChrome() {
+  document.querySelectorAll('.nav-item, .nav-menu-item').forEach(n => {
+    const sec = PAGE_SECTION[n.dataset.page];
+    n.style.display = (sec && !canRead(sec)) ? 'none' : '';
+  });
+  document.body.setAttribute('data-ro', PERM_SECTIONS.filter(s => permLevel(s) === 'read').join(' '));
+  const adminBtn = document.getElementById('user-admin-btn');
+  if (adminBtn) adminBtn.hidden = !(ME && ME.is_owner);
+}
+async function enterApp() {
+  await loadMe();
+  if (!ME || !ME.role) { showNoAccess(); return; } // no row or pending → strictly no access
+  hideNoAccess(); hideLogin();
+  applyPermsToChrome();
+  loadAllData();
+}
+function showNoAccess() {
+  hideLogin();
+  let el = document.getElementById('no-access');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'no-access';
+    el.innerHTML = `<div class="na-card"><div class="na-title">No access yet</div>`
+      + `<div class="na-body">This account isn’t set up for the planner yet. Ask an owner to grant you access, then sign in again.</div>`
+      + `<button class="btn btn-secondary" onclick="doLogout()">Sign out</button></div>`;
+    document.body.appendChild(el);
+  }
+  el.hidden = false;
+}
+function hideNoAccess() { const el = document.getElementById('no-access'); if (el) el.hidden = true; }
+
+// ── User & access management (owner only; RLS also restricts these rows to owners) ──
+const UA_ROLES = ['owner','collaborator','financial','vendor'];
+async function openUserAdmin() {
+  if (!ME || !ME.is_owner) return;
+  const ov = document.getElementById('user-admin'); if (!ov) return;
+  ov.classList.add('open'); lockBackgroundScroll(); document.addEventListener('keydown', uaKey);
+  const body = document.getElementById('ua-body'); body.innerHTML = '<div class="ua-loading">Loading…</div>';
+  const { data, error } = await sb.from('user_roles').select('*').order('created_at', { ascending: true });
+  if (error) { body.innerHTML = '<div class="ua-loading">Could not load users.</div>'; console.error('user_roles load', error); return; }
+  body.innerHTML = (data && data.length) ? data.map(uaRowHtml).join('') : '<div class="ua-loading">No users yet.</div>';
+}
+function closeUserAdmin() { const ov = document.getElementById('user-admin'); if (ov) ov.classList.remove('open'); unlockBackgroundScroll(); document.removeEventListener('keydown', uaKey); }
+function uaKey(e) { if (e.key === 'Escape') closeUserAdmin(); }
+function uaRowHtml(u) {
+  const effOf = (s) => { const o = u.permissions || {}; if (o[s]) return o[s]; return (ROLE_DEFAULTS[u.role] || {})[s] || 'none'; };
+  const roleSel = `<select class="ua-role" onchange="uaRoleChange('${u.user_id}', this.value)">`
+    + `<option value=""${!u.role ? ' selected' : ''}>Pending — no access</option>`
+    + UA_ROLES.map(r => `<option value="${r}"${u.role === r ? ' selected' : ''}>${r[0].toUpperCase() + r.slice(1)}</option>`).join('')
+    + `</select>`;
+  const secs = PERM_SECTIONS.map(s => {
+    const ov = (u.permissions || {})[s] || '';
+    return `<div class="ua-sec"><span class="ua-sec-name">${escapeHtml(s.replace('_', ' '))}</span>`
+      + `<select class="ua-perm" onchange="uaPermChange('${u.user_id}','${s}',this.value)">`
+      + `<option value=""${!ov ? ' selected' : ''}>default (${effOf(s)})</option>`
+      + `<option value="none"${ov === 'none' ? ' selected' : ''}>none</option>`
+      + `<option value="read"${ov === 'read' ? ' selected' : ''}>read</option>`
+      + `<option value="edit"${ov === 'edit' ? ' selected' : ''}>edit</option>`
+      + `</select></div>`;
+  }).join('');
+  return `<div class="ua-user${!u.role ? ' pending' : ''}">
+    <div class="ua-uhead">
+      <input class="ua-name" value="${escapeHtml(u.display_name || '')}" placeholder="Display name" onchange="uaNameChange('${u.user_id}', this.value)">
+      <button class="btn btn-danger btn-sm" onclick="uaRemove('${u.user_id}')">${ico('trash', 'ico--danger')} Remove</button>
+    </div>
+    <div class="ua-email">${escapeHtml(u.email || u.user_id)}</div>
+    <div class="ua-rolerow"><span class="ua-sec-name">Role</span>${roleSel}</div>
+    <div class="ua-perms">${secs}</div>
+  </div>`;
+}
+async function uaSelfRefresh(uid) { if (uid === (ME && ME.user_id)) { await loadMe(); applyPermsToChrome(); updateDashboard(); } }
+async function uaRoleChange(uid, role) {
+  const { error } = await sb.from('user_roles').update({ role: role || null }).eq('user_id', uid);
+  if (error) { alert('Could not update role.'); console.error(error); return; }
+  await uaSelfRefresh(uid); openUserAdmin();
+}
+async function uaNameChange(uid, name) {
+  await sb.from('user_roles').update({ display_name: name.trim() || null }).eq('user_id', uid);
+}
+async function uaPermChange(uid, sec, val) {
+  const { data } = await sb.from('user_roles').select('permissions').eq('user_id', uid).maybeSingle();
+  const perms = (data && data.permissions) || {};
+  if (val) perms[sec] = val; else delete perms[sec];
+  const { error } = await sb.from('user_roles').update({ permissions: perms }).eq('user_id', uid);
+  if (error) { alert('Could not update permission.'); console.error(error); return; }
+  await uaSelfRefresh(uid);
+}
+async function uaRemove(uid) {
+  if (!confirm("Remove this person's access? Their Supabase login stays, but they lose all access here until re-added.")) return;
+  const { error } = await sb.from('user_roles').delete().eq('user_id', uid);
+  if (error) { alert('Could not remove access.'); console.error(error); return; }
+  openUserAdmin();
+}
+window.openUserAdmin = openUserAdmin; window.closeUserAdmin = closeUserAdmin;
+window.uaRoleChange = uaRoleChange; window.uaNameChange = uaNameChange; window.uaPermChange = uaPermChange; window.uaRemove = uaRemove;
 
 async function doLogin(event) {
   if (event) event.preventDefault();
@@ -3724,8 +3880,7 @@ async function doLogin(event) {
     const { error } = await sb.auth.signInWithPassword({ email, password });
     if (error) throw error;
     if (passEl) passEl.value = '';
-    hideLogin();
-    loadAllData();
+    await enterApp();
   } catch(e) {
     console.error('login error', e.message || e);
     if (err) err.textContent = 'Incorrect email or password';
@@ -5150,8 +5305,8 @@ async function loadThemesFromDB(){
     const rows = await dbLoad('themes');
     if(Array.isArray(rows) && rows.length){
       rows.forEach(r => { if(r && THEMES[r.key]) THEMES[r.key] = {...THEMES[r.key], ...r}; });
-    } else {
-      for(const k of THEME_ORDER){ await dbInsert('themes', THEME_DEFAULTS[k]); } // first-run seed
+    } else if (ME && ME.is_owner) {
+      for(const k of THEME_ORDER){ await dbInsert('themes', THEME_DEFAULTS[k]); } // first-run seed (owner only)
     }
     cacheThemes();
     setTheme(S.get('theme') || 'beira'); // re-apply with authoritative values
@@ -5257,6 +5412,8 @@ setTheme(S.get('theme') || 'beira');
 // ── NAV
 function showPage(id) {
   closeNavMenu(); // every navigation path (bar, hamburger menu, or programmatic tile) closes the menu
+  const _sec = PAGE_SECTION[id];
+  if (_sec && !canRead(_sec)) id = 'dashboard'; // no access → never route there (RLS still enforces)
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-'+id));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === id));
   document.querySelectorAll('.nav-menu-item').forEach(n => n.classList.toggle('active', n.dataset.page === id));
@@ -5577,7 +5734,7 @@ function renderGuests() {
   const st = guestStats();
   const headerEl = document.getElementById('guest-header-sub');
   if (headerEl) headerEl.textContent = `${st.invited} invited · ${st.rsvps} RSVPs received · ${st.expected} expected`;
-  document.getElementById('ql-guests').textContent = `${st.invited} inv · ${st.rsvps} RSVP · ${st.expected} exp`;
+  if (typeof renderDashTiles === 'function') renderDashTiles(); // dashboard subtitles are data-driven now
 
   // Normalize a guest's party into a key (blank/missing → null = "No party")
   const partyKey = g => (g.party_name && g.party_name.trim()) ? g.party_name : null;
@@ -6149,7 +6306,7 @@ function vendorExpandedHtml(v) {
 }
 function renderVendors() {
   document.getElementById('vendor-sub').textContent = `${vendors.length} vendors · ${vendors.filter(v=>v.status==='booked'||v.status==='paid').length} booked`;
-  document.getElementById('ql-vendors').textContent = vendors.length + ' tracked';
+  if (typeof renderDashTiles === 'function') renderDashTiles();
   const list = document.getElementById('vendor-list');
   if (vendors.length === 0) {
     list.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✧</div>
@@ -6863,6 +7020,38 @@ function updateDashboard() {
   const pct = Math.min(100, Math.round((total / 60000) * 100));
   const bEl = document.getElementById('dash-budget');
   if (bEl) bEl.textContent = pct + '%';
+
+  // Summary stat cards that expose section data are gated too (no leaking spend/guests).
+  const gStat = document.getElementById('guests-stat'); if (gStat) gStat.style.display = canRead('guests') ? '' : 'none';
+  const bStat = document.getElementById('budget-stat'); if (bStat) bStat.style.display = canRead('budget') ? '' : 'none';
+
+  renderDashTiles();
+}
+
+// Dashboard quick-links: render only sections the user can read; every subtitle is live.
+// Budget shows a count (not a figure) on purpose — the budget numbers are placeholder.
+const DASH_TILES = [
+  { page:'venues',    section:'venues',     icon:'i-nav-venues',    title:'Venues',     sub:() => { const n = activeVenueCount(); return n ? `${n} shortlisted` : 'Add venues'; } },
+  { page:'scenarios', section:'scenarios',  icon:'i-nav-scenarios', title:'Scenarios',  sub:() => { const n = (scenarios||[]).length; return n ? `${n} option${n>1?'s':''}` : 'Build options'; } },
+  { page:'guests',    section:'guests',     icon:'i-nav-guests',    title:'Guest List', sub:() => { const s = guestStats(); return (guests && guests.length) ? `${s.invited} inv · ${s.expected} exp` : 'Add guests'; } },
+  { page:'budget',    section:'budget',     icon:'i-nav-budget',    title:'Budget',     sub:() => { const n = (budgetItems||[]).length; return n ? `${n} line${n>1?'s':''}` : 'Track spend'; } },
+  { page:'timeline',  section:'tasks',      icon:'i-nav-tasks',     title:'Tasks',      sub:() => { const a = timelineTasks||[]; const done = a.filter(t=>t.done).length; return a.length ? `${done}/${a.length} done` : 'Planning tasks'; } },
+  { page:'itinerary', section:'itinerary',  icon:'i-nav-itinerary', title:'Itinerary',  sub:() => { const n = (itinItems||[]).length; return n ? `${n} item${n>1?'s':''}` : 'Plan your days'; } },
+  { page:'vendors',   section:'vendors',    icon:'i-nav-vendors',   title:'Vendors',    sub:() => { const n = (vendors||[]).length; return n ? `${n} tracked` : 'Track suppliers'; } },
+  { page:'moodboard', section:'mood_board', icon:'i-nav-mood',      title:'Mood Board', sub:() => { const n = (moodImages||[]).length; return n ? `${n} image${n>1?'s':''}` : 'Vision & palette'; } },
+];
+function activeVenueCount() {
+  if (!Array.isArray(VENUES)) return 0;
+  return VENUES.filter(v => v && v.name && !(v._row && v._row.archived)).length;
+}
+function renderDashTiles() {
+  const wrap = document.getElementById('quick-links'); if (!wrap) return;
+  wrap.innerHTML = DASH_TILES.filter(t => canRead(t.section)).map(t =>
+    `<div class="quick-link" onclick="showPage('${t.page}')">`
+    + `<span class="ql-icon"><svg class="ico" aria-hidden="true"><use href="#${t.icon}"/></svg></span>`
+    + `<div class="ql-title">${t.title}</div>`
+    + `<div class="ql-sub">${escapeHtml(String(t.sub() || ''))}</div>`
+    + `</div>`).join('');
 }
 
 // Keep countdown live — refresh every minute
@@ -7341,7 +7530,7 @@ function renderItinerary() {
   const total = itinItems.length;
   const done = itinItems.filter(x => x.done).length;
   document.getElementById('itinerary-sub').textContent = `${done}/${total} complete`;
-  document.getElementById('ql-itinerary').textContent = `${total} items`;
+  if (typeof renderDashTiles === 'function') renderDashTiles();
 
   // Build day tabs
   const days = ['all', ...new Set(itinItems.map(x => x.date))];
@@ -8199,7 +8388,7 @@ async function loadAllData() {
       timelineTasks = t;
     } else {
       timelineTasks = DEFAULT_TIMELINE.map(d => ({...d, when_label: d.when}));
-      (async () => {
+      if (canEdit('tasks')) (async () => { // only an editor may seed defaults into the DB
         for (const task of DEFAULT_TIMELINE) {
           await dbInsert('timeline_tasks', { task: task.task, when_label: task.when, priority: task.priority, done: false, status: 'upcoming', sort_order: task.id });
         }
@@ -8209,7 +8398,7 @@ async function loadAllData() {
     }
     vendors = v;
     archivedVenues = a.map(av => ({...av, reasonLabel: av.reason_label, archivedAt: av.archived_at}));
-    if (archivedVenues.length === 0) {
+    if (archivedVenues.length === 0 && canEdit('venues')) {
       for (const av of ARCHIVED_DEFAULTS) {
         const row = await dbInsert('archived_venues', {
           id: av.id, name: av.name, type: av.type,
@@ -8222,8 +8411,8 @@ async function loadAllData() {
     moodImages = m;
     itinItems = itin.length > 0 ? itin : [];
 
-    // If no timeline tasks in DB yet, seed with defaults
-    if (t.length === 0) {
+    // If no timeline tasks in DB yet, seed with defaults (editors only).
+    if (t.length === 0 && canEdit('tasks')) {
       for (const task of DEFAULT_TIMELINE) {
         await dbInsert('timeline_tasks', { task: task.task, when_label: task.when, priority: task.priority, done: false, status: 'upcoming', sort_order: task.id });
       }
@@ -9873,6 +10062,18 @@ window.addEventListener('DOMContentLoaded', () => {
     </div>
     <div class="te-note">Set <strong>ground</strong>, <strong>hero</strong> and <strong>accent</strong> per theme — every other colour is derived from these. Green and red stay fixed.</div>
     <div id="te-list" class="te-body"></div>
+  </div>
+</div>
+
+<!-- User & access management (owner only) -->
+<div id="user-admin" onclick="if(event.target===this)closeUserAdmin()">
+  <div class="te-sheet">
+    <div class="te-head">
+      <span class="te-title">Users &amp; Access</span>
+      <button class="te-close" onclick="closeUserAdmin()" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </div>
+    <div class="te-note">Accounts are created in Supabase; new sign-ins appear here as <strong>Pending</strong> with no access until you assign a role. A role sets defaults — override any section below. Removing access deletes their permissions row (their login remains in Supabase).</div>
+    <div id="ua-body" class="te-body"></div>
   </div>
 </div>
 
