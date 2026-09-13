@@ -2955,6 +2955,46 @@ body[data-ro~="vendors"] #page-vendors .inline-tap { pointer-events: none; }
   #page-dashboard .stat-grid { max-width: 620px; margin-left: auto; margin-right: auto; }
   #quick-links { grid-template-columns: repeat(4, 1fr); gap: 1rem; }
 }
+/* Budget rebuild */
+.b-figs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+@media (min-width: 600px) { .b-figs { grid-template-columns: repeat(4, 1fr); } }
+.b-fig { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem; text-align: center; }
+.b-fig .bt-num { font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 1.3rem; color: var(--dark); }
+.b-fig .bt-label { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-top: 0.1rem; }
+.bt-hint { font-size: 0.55rem; color: var(--muted-light); margin-top: 0.15rem; }
+.b-master-row { margin-top: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
+.b-master-lbl { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+#b-master-display { font-family: var(--font-display, 'Cormorant Garamond', serif); font-size: 1.05rem; color: var(--dark); }
+.b-help { font-size: 0.66rem; color: var(--muted-light); line-height: 1.5; }
+.b-wish-add { display: flex; gap: 0.4rem; margin: 0.5rem 0; flex-wrap: wrap; }
+.b-wish-add input { flex: 2; min-width: 130px; }
+.b-wish-add select { flex: 1; min-width: 120px; }
+.bw-item { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.4rem 0; border-bottom: 1px solid var(--border); }
+.bw-item.promoted { opacity: 0.55; }
+.bw-name { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: var(--dark); }
+.bw-cat { font-size: 0.58rem; color: var(--muted-light); text-transform: uppercase; letter-spacing: 0.06em; margin-left: 0.4rem; }
+.bw-check { color: var(--sage); display: inline-flex; }
+.bw-right { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+.b-next { border-left: 3px solid var(--gold); }
+.b-next-lbl { font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+.b-next-main { font-size: 1.05rem; color: var(--dark); margin-top: 0.2rem; font-family: var(--font-display, 'Cormorant Garamond', serif); }
+.b-next-date { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; }
+.budget-item { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+.bi-main { flex: 1; min-width: 0; }
+.bi-meta { font-size: 0.66rem; color: var(--muted); margin-top: 0.2rem; }
+.bi-notes-row { font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; font-style: italic; }
+.bi-by { font-size: 0.56rem; color: var(--muted-light); margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.bi-money { text-align: right; white-space: nowrap; }
+.bi-total { font-size: 0.9rem; color: var(--dark); font-variant-numeric: tabular-nums; }
+.bi-sub { font-size: 0.6rem; color: var(--muted); margin-top: 0.1rem; }
+.bi-ctrls { display: flex; gap: 0.3rem; flex-shrink: 0; }
+.b-doc-row { display: flex; align-items: center; gap: 0.5rem; }
+.b-doc-name { font-size: 0.7rem; color: var(--muted); }
+.b-doc-link { background: none; border: none; color: var(--gold); font-size: 0.7rem; cursor: pointer; padding: 0.2rem 0; text-decoration: underline; font-family: inherit; }
+.b-cl-row { display: flex; gap: 0.6rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.b-cl-date { flex-shrink: 0; font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-light); min-width: 68px; padding-top: 0.1rem; }
+.b-cl-main { font-size: 0.78rem; color: var(--dark); }
+.b-cl-sub { font-size: 0.66rem; color: var(--muted); margin-top: 0.1rem; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
@@ -2973,6 +3013,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></symbol>
   <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></symbol>
@@ -3219,101 +3260,84 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   <!-- BUDGET -->
   <div class="page" id="page-budget">
     <div class="page-header">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">
-        <div>
-          <div class="page-title">Budget</div>
-          <div class="page-sub" id="b-page-sub">Target: €60,000</div>
-        </div>
-        <button class="currency-toggle btn btn-secondary btn-sm" onclick="toggleCurrency()" title="Switch currency" style="margin-top:0.3rem;flex-shrink:0;">$ USD</button>
-      </div>
+      <div class="page-title">Budget</div>
+      <div class="page-sub" id="b-page-sub">Target · —</div>
     </div>
     <div class="page-body">
 
-      <!-- Overview -->
+      <!-- Next payment due -->
+      <div class="card b-next" id="b-next" hidden></div>
+
+      <!-- Overview: four labelled figures -->
       <div class="card">
         <div class="card-title">Overview</div>
-        <div class="budget-totals">
-          <div class="budget-total-card">
-            <div class="bt-num" id="b-spent">€0</div>
-            <div class="bt-label">Committed</div>
-          </div>
-          <div class="budget-total-card">
-            <div class="bt-num" id="b-remaining">€60,000</div>
-            <div class="bt-label">Remaining</div>
-          </div>
-          <div class="budget-total-card">
-            <div class="bt-num" id="b-pct">0%</div>
-            <div class="bt-label">Used</div>
-          </div>
+        <div class="b-figs">
+          <div class="b-fig"><div class="bt-num" id="b-spent">$0</div><div class="bt-label">Spent</div><div class="bt-hint">actually paid</div></div>
+          <div class="b-fig"><div class="bt-num" id="b-committed">$0</div><div class="bt-label">Committed</div><div class="bt-hint">paid + owed on contracts</div></div>
+          <div class="b-fig"><div class="bt-num" id="b-projected">$0</div><div class="bt-label">Projected</div><div class="bt-hint">everything incl. estimates</div></div>
+          <div class="b-fig"><div class="bt-num" id="b-remaining">$0</div><div class="bt-label">Remaining</div><div class="bt-hint">target − committed</div></div>
         </div>
-        <div class="budget-bar-wrap">
-          <div class="budget-bar-fill" id="b-bar" style="width:0%"></div>
-        </div>
-        <div style="margin-top:0.8rem;display:flex;align-items:center;gap:0.5rem;">
-          <span style="font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">Master budget:</span>
-          <span id="b-master-display" style="font-family:var(--font-display);font-size:1rem;color:var(--dark);"></span>
-          <button class="btn btn-secondary btn-sm" onclick="openEditBudget()" style="margin-left:auto"><svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg> Edit budget</button>
+        <div class="b-master-row">
+          <span class="b-master-lbl">Target</span>
+          <span id="b-master-display"></span>
+          <button class="btn btn-secondary btn-sm b-edit-ctl" onclick="openEditBudget()" style="margin-left:auto"><svg class="ico" aria-hidden="true"><use href="#i-edit"/></svg> Edit target</button>
         </div>
       </div>
 
-      <!-- Edit master budget modal trigger -->
+      <!-- Edit target -->
       <div id="b-edit-wrap" style="display:none;" class="card">
-        <div class="card-title">Edit Master Budget</div>
-        <div class="form-row">
-          <label>New budget target (€)</label>
-          <input type="number" id="b-new-master" placeholder="60000">
-        </div>
-        <div class="form-row">
-          <label>Reason for change</label>
-          <input type="text" id="b-change-reason" placeholder="e.g. Added contingency buffer">
-        </div>
-        <div style="display:flex;gap:0.5rem;">
-          <button class="btn btn-primary" onclick="saveMasterBudget()">Save</button>
-          <button class="btn btn-secondary" onclick="closeEditBudget()">Cancel</button>
-        </div>
+        <div class="card-title">Edit target</div>
+        <div class="form-row"><label>New target ($)</label><input type="number" id="b-new-master" placeholder="60000"></div>
+        <div class="form-row"><label>Reason for change</label><input type="text" id="b-change-reason" placeholder="e.g. Added contingency buffer"></div>
+        <div style="display:flex;gap:0.5rem;"><button class="btn btn-primary" onclick="saveMasterBudget()">Save</button><button class="btn btn-secondary" onclick="closeEditBudget()">Cancel</button></div>
       </div>
 
-      <!-- Add expense -->
-      <div class="card">
-        <div class="card-title">Add expense</div>
+      <!-- Wishlist -->
+      <div class="card" id="b-wishlist-card">
+        <div class="card-title">Wishlist</div>
+        <div class="b-help">Things you'll need but haven't priced — no amount, no effect on totals. Promote one to a real item when a quote comes in.</div>
+        <div class="b-wish-add b-edit-ctl">
+          <input type="text" id="bw-name" placeholder="e.g. Sax player" onkeydown="if(event.key==='Enter')addWishlist()">
+          <select id="bw-cat"></select>
+          <button class="btn btn-secondary btn-sm" onclick="addWishlist()">+ Add</button>
+        </div>
+        <div id="b-wishlist-list"></div>
+      </div>
+
+      <!-- Add / edit expense -->
+      <div class="card b-edit-ctl" id="b-item-form-card">
+        <div class="card-title" id="b-item-form-title">Add expense</div>
         <div class="form-grid">
-          <div class="form-row">
-            <label>Item</label>
-            <input type="text" id="b-name" placeholder="e.g. Photographer" onkeydown="if(event.key==='Enter')addBudgetItem()">
-          </div>
-          <div class="form-row">
-            <label>Category</label>
-            <select id="b-cat">
-              <option>Venue</option>
-              <option>Photography & Video</option>
-              <option>Florals</option>
-              <option>Catering</option>
-              <option>Music & Entertainment</option>
-              <option>Attire & Beauty</option>
-              <option>Transport</option>
-              <option>Accommodation</option>
-              <option>Stationery</option>
-              <option>Planner & Coordination</option>
-              <option>Other</option>
-            </select>
-          </div>
+          <div class="form-row"><label>Item</label><input type="text" id="bi-name" placeholder="e.g. Photographer"></div>
+          <div class="form-row"><label>Category</label><select id="bi-cat"></select></div>
         </div>
         <div class="form-grid">
-          <div class="form-row">
-            <label>Amount (€)</label>
-            <input type="number" id="b-amount" placeholder="0">
-          </div>
-          <div class="form-row">
-            <label>Status</label>
-            <select id="b-status">
-              <option value="estimated">Estimated</option>
-              <option value="quoted">Quoted</option>
-              <option value="booked">Booked</option>
-              <option value="paid">Paid</option>
-            </select>
-          </div>
+          <div class="form-row"><label>Status</label><select id="bi-status">
+            <option value="estimated">Estimated</option>
+            <option value="quoted">Quoted</option>
+            <option value="booked">Booked — contract signed</option>
+            <option value="paid">Paid in full</option>
+          </select></div>
+          <div class="form-row"><label>Total ($)</label><input type="number" id="bi-total" placeholder="0" oninput="bMoneyInput()"></div>
         </div>
-        <button class="btn btn-primary" onclick="addBudgetItem()">+ Add Item</button>
+        <div class="form-grid">
+          <div class="form-row"><label>Deposit paid ($)</label><input type="number" id="bi-deposit" placeholder="0" oninput="bMoneyInput()"></div>
+          <div class="form-row"><label>Balance due ($)</label><input type="number" id="bi-balance" placeholder="0" oninput="bBalanceTouched=true"></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row"><label>Next payment due</label><input type="date" id="bi-due"></div>
+          <div class="form-row"><label>Payer</label><input type="text" id="bi-payer" placeholder="e.g. Alyssa / Bob"></div>
+        </div>
+        <div class="form-row"><label>Vendor</label><select id="bi-vendor"><option value="">— none —</option></select></div>
+        <div class="form-row"><label>Notes</label><textarea id="bi-notes" rows="2" placeholder="e.g. waiting on revised quote"></textarea></div>
+        <div class="form-row"><label>Quote / document (PDF)</label>
+          <input type="file" id="bi-doc" accept="application/pdf,.pdf,image/*" style="display:none" onchange="bDocPick(event)">
+          <div class="b-doc-row"><button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('bi-doc').click()">Attach file</button><span id="bi-doc-name" class="b-doc-name"></span></div>
+        </div>
+        <div style="display:flex;gap:0.5rem;margin-top:0.4rem;">
+          <button id="b-item-save" class="btn btn-primary" onclick="saveBudgetItem()">+ Add item</button>
+          <button id="b-item-cancel" class="btn btn-secondary" hidden onclick="cancelBudgetItem()">Cancel</button>
+        </div>
       </div>
 
       <!-- Budget items -->
@@ -3321,13 +3345,13 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
 
       <!-- Change log -->
       <div class="card" id="b-changelog-card" style="display:none;">
-        <div class="card-title">Budget Change Log</div>
+        <div class="card-title">Change log</div>
         <div id="b-changelog"></div>
       </div>
 
       <div style="margin-top:0.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
-        <button class="btn btn-secondary btn-sm" onclick="exportBudget()"<svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Export CSV</button>
-        <button class="btn btn-secondary btn-sm" onclick="toggleChangelog()">◷ Change Log</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportBudget()"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg> Export CSV</button>
+        <button class="btn btn-secondary btn-sm" onclick="toggleChangelog()">Change log</button>
       </div>
     </div>
   </div>
@@ -3615,42 +3639,11 @@ let scTypeFilter = 'all';  // grid type filter: 'all' | 'untyped' | <type id>
 
 
 
-// ── CURRENCY TOGGLE
-let currentCurrency = S.get('currency') || 'EUR';
-const EUR_TO_USD = 1.09; // approximate — update periodically
-
-function toggleCurrency() {
-  currentCurrency = currentCurrency === 'EUR' ? 'USD' : 'EUR';
-  S.set('currency', currentCurrency);
-  // Update currency button label
-  document.querySelectorAll('.currency-toggle').forEach(el => {
-    el.textContent = currentCurrency === 'EUR' ? '$ USD' : '€ EUR';
-    el.title = currentCurrency === 'EUR' ? 'Switch to USD' : 'Switch to EUR';
-  });
-  // Re-render affected pages
-  renderBudget();
-  if (document.getElementById('page-venues').classList.contains('active')) {
-    venueRenderProfile(currentIdx);
-  }
-}
-
-function fmtMoney(eur) {
-  if (currentCurrency === 'USD') {
-    return '$' + Math.round(eur * EUR_TO_USD).toLocaleString();
-  }
-  return '€' + eur.toLocaleString();
-}
-
-function convertPriceString(str) {
-  // Convert price strings like "€19,900–€24,000" or "€60,000"
-  if (currentCurrency === 'EUR' || !str) return str;
-  return str.replace(/€([\d,]+)/g, (match, num) => {
-    const val = parseInt(num.replace(/,/g, ''));
-    return '$' + Math.round(val * EUR_TO_USD).toLocaleString();
-  });
-}
-
-window.toggleCurrency = toggleCurrency;
+// ── CURRENCY: USD only. No toggle, no conversion — every quote is USD.
+function fmtMoney(n) { return '$' + (Math.round(Number(n) || 0)).toLocaleString(); }
+// Legacy venue price strings are stored as "€…" (stale Portugal data on venues that
+// aren't in use) — pass them through unchanged rather than convert.
+function convertPriceString(str) { return str; }
 
 
 // ── HAPTICS
@@ -5809,182 +5802,282 @@ function exportGuests() {
   downloadCSV(rows.join('\n'), 'guest-list.csv');
 }
 
-// ── BUDGET
+// ── BUDGET (USD only; collaborative; wishlist + four-figure overview) ──
 // budgetItems declared at top
-let MASTER_BUDGET = S.get('masterBudget') || 60000;
-let budgetChangelog = S.get('budgetChangelog') || [];
+let MASTER_BUDGET = 60000;     // authoritative value from budget_meta (DB)
+let budgetChangelog = [];      // from budget_changelog (DB)
 let showChangelog = false;
+let nameById = {};             // user_id → display name (get_display_names RPC)
+let editingBudgetId = null;    // item being edited in the shared form
+let promotingWishlistId = null;// wishlist row being promoted
+let pendingDoc = null;         // picked-but-not-yet-uploaded attachment
+let bBalanceTouched = false;   // user overrode the auto balance
+const BUDGET_CATS = ['Venue','Photography & Video','Florals','Catering','Music & Entertainment','Attire & Beauty','Transport','Accommodation','Stationery','Planner & Coordination','Travel & site visits','Other'];
+const num = (v) => { const n = Number(v); return isNaN(n) ? 0 : n; };
+const nameOf = (uid) => uid ? (nameById[uid] || 'someone') : null;
+function itemBalance(i) { return i.balance_due == null ? Math.max(0, num(i.total) - num(i.deposit_paid)) : num(i.balance_due); }
 
-function openEditBudget() {
-  document.getElementById('b-edit-wrap').style.display = 'block';
-  document.getElementById('b-new-master').value = MASTER_BUDGET;
+async function loadBudgetMeta() {
+  try { const { data } = await sb.from('budget_meta').select('target').eq('id', 1).maybeSingle(); if (data && data.target != null) MASTER_BUDGET = num(data.target); }
+  catch (e) { console.error('budget_meta', e); }
 }
-function closeEditBudget() {
-  document.getElementById('b-edit-wrap').style.display = 'none';
+async function loadBudgetChangelog() {
+  try { const { data } = await sb.from('budget_changelog').select('*').order('created_at', { ascending: false }); budgetChangelog = Array.isArray(data) ? data : []; }
+  catch (e) { budgetChangelog = []; }
 }
-function saveMasterBudget() {
+async function loadDisplayNames() {
+  try { const { data } = await sb.rpc('get_display_names'); nameById = {}; (data || []).forEach(r => { nameById[r.user_id] = r.display_name || 'Unnamed'; }); }
+  catch (e) { console.error('display names', e); }
+}
+async function logBudgetChange(label, fromAmt, toAmt, reason) {
+  const saved = await dbInsert('budget_changelog', { label, from_amount: fromAmt == null ? null : num(fromAmt), to_amount: toAmt == null ? null : num(toAmt), reason: reason || null });
+  if (saved) budgetChangelog.unshift(saved);
+}
+
+// Single source of truth for the four figures + next payment (page AND dashboard).
+function computeBudget() {
+  const active = (budgetItems || []).filter(i => i.state !== 'wishlist');
+  let spent = 0, owed = 0, projected = 0;
+  for (const i of active) {
+    spent += num(i.deposit_paid);
+    projected += num(i.total);
+    if (i.status === 'booked') owed += itemBalance(i); // signed contract → balance is committed
+  }
+  const committed = spent + owed;
+  const remaining = MASTER_BUDGET - committed;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const next = active
+    .filter(i => i.due_date && itemBalance(i) > 0 && new Date(i.due_date) >= today)
+    .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))[0] || null;
+  return { spent, committed, projected, remaining, next };
+}
+
+// ── Master target (shared; editable by anyone with budget-edit) ──
+function openEditBudget() { document.getElementById('b-edit-wrap').style.display = 'block'; document.getElementById('b-new-master').value = MASTER_BUDGET; }
+function closeEditBudget() { document.getElementById('b-edit-wrap').style.display = 'none'; }
+async function saveMasterBudget() {
   const newVal = parseFloat(document.getElementById('b-new-master').value);
   const reason = document.getElementById('b-change-reason').value.trim();
   if (!newVal || newVal <= 0) return;
-  const entry = {
-    date: new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }),
-    from: MASTER_BUDGET,
-    to: newVal,
-    reason: reason || 'No reason given',
-  };
-  budgetChangelog.unshift(entry);
+  const old = MASTER_BUDGET;
+  const { error } = await sb.from('budget_meta').update({ target: newVal, updated_at: new Date().toISOString() }).eq('id', 1);
+  if (error) { alert('Could not update the target.'); console.error(error); return; }
   MASTER_BUDGET = newVal;
-  S.set('masterBudget', MASTER_BUDGET);
-  S.set('budgetChangelog', budgetChangelog);
-  closeEditBudget();
-  renderBudget();
+  if (old !== newVal) await logBudgetChange('Master budget', old, newVal, reason || null);
+  document.getElementById('b-change-reason').value = '';
+  closeEditBudget(); renderBudget();
 }
-function toggleChangelog() {
-  showChangelog = !showChangelog;
-  renderBudget();
-}
-window.openEditBudget = openEditBudget;
-window.closeEditBudget = closeEditBudget;
-window.saveMasterBudget = saveMasterBudget;
-window.toggleChangelog = toggleChangelog;
+function toggleChangelog() { showChangelog = !showChangelog; renderBudget(); }
+window.openEditBudget = openEditBudget; window.closeEditBudget = closeEditBudget; window.saveMasterBudget = saveMasterBudget; window.toggleChangelog = toggleChangelog;
 
-async function addBudgetItem() {
-  const name = document.getElementById('b-name').value.trim();
-  const cat = document.getElementById('b-cat').value;
-  const amount = parseFloat(document.getElementById('b-amount').value) || 0;
-  const status = document.getElementById('b-status').value;
+// ── Wishlist ──
+async function addWishlist() {
+  const nameEl = document.getElementById('bw-name'); const name = nameEl.value.trim();
   if (!name) return;
-  document.getElementById('b-name').value = '';
-  document.getElementById('b-amount').value = '';
-  const row = await dbInsert('budget_items', { name, cat, amount, status });
+  nameEl.value = '';
+  const row = await dbInsert('budget_items', { name, cat: document.getElementById('bw-cat').value, state: 'wishlist' });
   if (row) { budgetItems.push(row); renderBudget(); }
 }
+function promoteWishlist(id) {
+  const item = (budgetItems || []).find(x => x.id === id); if (!item) return;
+  startBudgetForm(null);
+  document.getElementById('bi-name').value = item.name;
+  setSelect('bi-cat', item.cat);
+  promotingWishlistId = id;
+  document.getElementById('b-item-form-title').textContent = 'Promote to expense';
+  document.getElementById('b-item-form-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+window.addWishlist = addWishlist; window.promoteWishlist = promoteWishlist;
+
+// ── Shared add/edit expense form ──
+function setSelect(id, val) { const el = document.getElementById(id); if (el) el.value = val == null ? '' : val; }
+function bMoneyInput() {
+  if (bBalanceTouched) return;
+  const bal = Math.max(0, num(document.getElementById('bi-total').value) - num(document.getElementById('bi-deposit').value));
+  document.getElementById('bi-balance').value = bal || '';
+}
+function startBudgetForm(item) {
+  editingBudgetId = item ? item.id : null;
+  promotingWishlistId = null;
+  bBalanceTouched = !!(item && item.balance_due != null);
+  pendingDoc = null;
+  const g = (id) => document.getElementById(id);
+  g('bi-name').value = item ? (item.name || '') : '';
+  setSelect('bi-cat', item ? item.cat : BUDGET_CATS[0]);
+  setSelect('bi-status', item ? (item.status || 'estimated') : 'estimated');
+  g('bi-total').value = item && item.total != null ? item.total : '';
+  g('bi-deposit').value = item && item.deposit_paid ? item.deposit_paid : '';
+  g('bi-balance').value = item ? (item.balance_due != null ? item.balance_due : (item.total != null ? Math.max(0, num(item.total) - num(item.deposit_paid)) : '')) : '';
+  g('bi-due').value = item && item.due_date ? item.due_date : '';
+  g('bi-payer').value = item && item.payer ? item.payer : '';
+  setSelect('bi-vendor', item && item.vendor_id ? item.vendor_id : '');
+  g('bi-notes').value = item && item.notes ? item.notes : '';
+  g('bi-doc-name').textContent = item && item.doc_name ? item.doc_name : '';
+  g('b-item-form-title').textContent = item ? 'Edit expense' : 'Add expense';
+  g('b-item-save').textContent = item ? 'Save changes' : '+ Add item';
+  g('b-item-cancel').hidden = !item;
+}
+function cancelBudgetItem() { startBudgetForm(null); }
+function startEditBudgetItem(id) {
+  const item = (budgetItems || []).find(x => x.id === id); if (!item) return;
+  startBudgetForm(item);
+  document.getElementById('b-item-form-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+window.startEditBudgetItem = startEditBudgetItem; window.cancelBudgetItem = cancelBudgetItem; window.bMoneyInput = bMoneyInput;
+
+// Attachment: hold the picked file until save, then upload to the private bucket.
+function bDocPick(ev) { const f = ev.target.files && ev.target.files[0]; if (!f) return; pendingDoc = f; document.getElementById('bi-doc-name').textContent = f.name; }
+window.bDocPick = bDocPick;
+async function uploadBudgetDoc(file) {
+  const ext = (file.name.split('.').pop() || 'pdf').toLowerCase().replace(/[^a-z0-9]/g, '') || 'pdf';
+  const path = `docs/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error } = await sb.storage.from('budget-docs').upload(path, file, { contentType: file.type || 'application/pdf', upsert: false });
+  if (error) { console.error('doc upload', error); return null; }
+  return { url: path, name: file.name };
+}
+async function openBudgetDoc(id) {
+  const item = (budgetItems || []).find(x => x.id === id); if (!item || !item.doc_url) return;
+  const { data } = await sb.storage.from('budget-docs').createSignedUrl(item.doc_url, 3600);
+  if (data && data.signedUrl) window.open(data.signedUrl, '_blank');
+}
+window.openBudgetDoc = openBudgetDoc;
+
+async function saveBudgetItem() {
+  const name = document.getElementById('bi-name').value.trim(); if (!name) return;
+  const total = num(document.getElementById('bi-total').value);
+  let deposit = num(document.getElementById('bi-deposit').value);
+  const status = document.getElementById('bi-status').value;
+  let balance = document.getElementById('bi-balance').value === '' ? null : num(document.getElementById('bi-balance').value);
+  if (status === 'paid') { deposit = total; balance = 0; }
+  const vendorId = document.getElementById('bi-vendor').value || null;
+  const vendorName = vendorId ? ((vendors.find(v => String(v.id) === String(vendorId)) || {}).name || null) : null;
+  const rec = {
+    name, cat: document.getElementById('bi-cat').value, state: 'active', status,
+    total: total || 0, deposit_paid: deposit || 0, balance_due: balance,
+    due_date: document.getElementById('bi-due').value || null,
+    payer: document.getElementById('bi-payer').value.trim() || null,
+    notes: document.getElementById('bi-notes').value.trim() || null,
+    vendor_id: vendorId, vendor_name: vendorName,
+  };
+  if (pendingDoc) { const up = await uploadBudgetDoc(pendingDoc); if (up) { rec.doc_url = up.url; rec.doc_name = up.name; } }
+
+  if (editingBudgetId) {
+    const prev = (budgetItems.find(x => x.id === editingBudgetId)) || {};
+    await dbUpdate('budget_items', editingBudgetId, rec);
+    if (num(prev.total) !== rec.total) await logBudgetChange(name, prev.total, rec.total, 'Total updated');
+    const idx = budgetItems.findIndex(x => x.id === editingBudgetId);
+    if (idx >= 0) budgetItems[idx] = { ...budgetItems[idx], ...rec };
+  } else {
+    if (promotingWishlistId) rec.from_wishlist = true;
+    const row = await dbInsert('budget_items', rec);
+    if (row) {
+      budgetItems.push(row);
+      await logBudgetChange(name, null, rec.total, promotingWishlistId ? 'Promoted from wishlist' : 'Added');
+      if (promotingWishlistId) { // mark the origin wishlist row promoted (kept, checked + dimmed)
+        await dbUpdate('budget_items', promotingWishlistId, { from_wishlist: true, total: rec.total });
+        const w = budgetItems.find(x => x.id === promotingWishlistId); if (w) { w.from_wishlist = true; w.total = rec.total; }
+      }
+    }
+  }
+  pendingDoc = null; document.getElementById('bi-doc').value = '';
+  startBudgetForm(null);
+  renderBudget();
+}
+window.saveBudgetItem = saveBudgetItem;
 
 async function removeBudgetItem(id) {
+  if (!confirm('Remove this item?')) return;
   await dbDelete('budget_items', id);
   budgetItems = budgetItems.filter(x => x.id !== id);
   renderBudget();
 }
-
-function startEditBudgetItem(id) {
-  const item = budgetItems.find(x => x.id === id);
-  if (!item) return;
-  const el = document.getElementById('b-item-' + id);
-  if (!el) return;
-  el.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:0.5rem;padding:0.7rem;background:var(--gold-pale);border-radius:8px;">
-      <div style="display:flex;gap:0.5rem;">
-        <input type="text" id="be-name-${id}" value="${escapeHtml(item.name)}" style="flex:2;font-size:0.82rem;">
-        <input type="number" id="be-amount-${id}" value="${item.amount}" style="flex:1;font-size:0.82rem;">
-      </div>
-      <div style="display:flex;gap:0.5rem;">
-        <select id="be-status-${id}" style="flex:1;font-size:0.78rem;">
-          ${['estimated','quoted','booked','paid'].map(s => `<option value="${s}"${item.status===s?' selected':''}>${s}</option>`).join('')}
-        </select>
-        <button class="btn btn-gold btn-sm" onclick="saveEditBudgetItem(${id})">Save</button>
-        <button class="btn btn-secondary btn-sm" onclick="renderBudget()" aria-label="Cancel">${ico('close')}</button>
-      </div>
-    </div>
-  `;
-}
-
-async function saveEditBudgetItem(id) {
-  const item = budgetItems.find(x => x.id === id);
-  if (!item) return;
-  const name = document.getElementById('be-name-' + id)?.value.trim();
-  const amount = parseFloat(document.getElementById('be-amount-' + id)?.value) || 0;
-  const status = document.getElementById('be-status-' + id)?.value;
-  if (!name) return;
-
-  // Log the change
-  const oldAmount = item.amount;
-  if (oldAmount !== amount) {
-    budgetChangelog.unshift({
-      date: new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }),
-      from: oldAmount,
-      to: amount,
-      reason: `${item.name} updated to ${name}`,
-    });
-    S.set('budgetChangelog', budgetChangelog);
-  }
-
-  item.name = name;
-  item.amount = amount;
-  item.status = status;
-  await dbUpdate('budget_items', id, { name, amount, status });
-  renderBudget();
-}
-
-window.startEditBudgetItem = startEditBudgetItem;
-window.saveEditBudgetItem = saveEditBudgetItem;
+window.removeBudgetItem = removeBudgetItem;
 
 function renderBudget() {
-  const total = budgetItems.reduce((s,i) => s+i.amount, 0);
-  const remaining = MASTER_BUDGET - total;
-  const pct = Math.min(100, Math.round((total / MASTER_BUDGET) * 100));
-  const spentEl = document.getElementById('b-spent');
-  const remEl = document.getElementById('b-remaining');
-  const pctEl = document.getElementById('b-pct');
-  const bar = document.getElementById('b-bar');
-  const masterEl = document.getElementById('b-master-display');
-  if (spentEl) spentEl.textContent = fmtMoney(total);
-  if (remEl) remEl.textContent = fmtMoney(Math.max(0, remaining));
-  if (pctEl) pctEl.textContent = pct + '%';
-  if (bar) { bar.style.width = pct + '%'; bar.classList.toggle('over', total > MASTER_BUDGET); }
-  if (masterEl) masterEl.textContent = fmtMoney(MASTER_BUDGET);
-  const qlBudget = document.getElementById('ql-budget');
-  if (qlBudget) qlBudget.textContent = pct + '% used · €' + Math.max(0,remaining).toLocaleString() + ' left';
-  const dashBudget = document.getElementById('dash-budget');
-  if (dashBudget) dashBudget.textContent = pct + '%';
+  const editable = canEdit('budget');
+  ['bw-cat', 'bi-cat'].forEach(id => { const el = document.getElementById(id); if (el && !el.options.length) el.innerHTML = BUDGET_CATS.map(c => `<option>${escapeHtml(c)}</option>`).join(''); });
+  const vSel = document.getElementById('bi-vendor');
+  if (vSel) { const cur = vSel.value; const list = (canRead('vendors') && Array.isArray(vendors)) ? vendors : []; vSel.innerHTML = `<option value="">— none —</option>` + list.map(v => `<option value="${v.id}">${escapeHtml(v.name || 'Vendor')}</option>`).join(''); vSel.value = cur; }
 
-  // Changelog
+  const b = computeBudget();
+  const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  set('b-spent', fmtMoney(b.spent));
+  set('b-committed', fmtMoney(b.committed));
+  set('b-projected', fmtMoney(b.projected));
+  set('b-remaining', fmtMoney(b.remaining));
+  set('b-master-display', fmtMoney(MASTER_BUDGET));
+  set('b-page-sub', 'Target · ' + fmtMoney(MASTER_BUDGET));
+
+  const nextEl = document.getElementById('b-next');
+  if (nextEl) {
+    if (b.next) {
+      const who = b.next.vendor_name ? ' · ' + escapeHtml(b.next.vendor_name) : '';
+      nextEl.hidden = false;
+      nextEl.innerHTML = `<div class="b-next-lbl">Next payment</div><div class="b-next-main">${fmtMoney(itemBalance(b.next))} · ${escapeHtml(b.next.name)}${who}</div><div class="b-next-date">due ${escapeHtml(fmtDateLong(b.next.due_date))}</div>`;
+    } else { nextEl.hidden = true; nextEl.innerHTML = ''; }
+  }
+
+  document.querySelectorAll('#page-budget .b-edit-ctl').forEach(el => { el.style.display = editable ? '' : 'none'; });
+
+  const wl = document.getElementById('b-wishlist-list');
+  if (wl) {
+    const wishes = (budgetItems || []).filter(i => i.state === 'wishlist' || i.from_wishlist);
+    wl.innerHTML = wishes.length ? wishes.map(w => {
+      const promoted = w.from_wishlist || w.state !== 'wishlist';
+      const amt = promoted && w.total != null ? ' · ' + fmtMoney(w.total) : '';
+      const promoteBtn = (!promoted && editable) ? `<button class="btn btn-secondary btn-sm" onclick="promoteWishlist('${w.id}')">Promote</button>` : '';
+      const check = promoted ? `<span class="bw-check">${ico('check')}</span>` : '';
+      return `<div class="bw-item${promoted ? ' promoted' : ''}"><span class="bw-name">${check}${escapeHtml(w.name)}<span class="bw-cat">${escapeHtml(w.cat || '')}</span></span><span class="bw-right">${amt}${promoteBtn}</span></div>`;
+    }).join('') : `<div class="b-help" style="margin-top:0.4rem;">Nothing yet.</div>`;
+  }
+
   const clCard = document.getElementById('b-changelog-card');
   const clEl = document.getElementById('b-changelog');
-  if (clCard) clCard.style.display = showChangelog && budgetChangelog.length > 0 ? 'block' : 'none';
+  if (clCard) clCard.style.display = (showChangelog && budgetChangelog.length) ? 'block' : 'none';
   if (clEl && showChangelog) {
-    clEl.innerHTML = budgetChangelog.length === 0
-      ? '<div style="color:var(--muted);font-size:0.8rem;">No changes yet.</div>'
-      : budgetChangelog.map(e => `
-          <div style="display:flex;gap:0.6rem;padding:0.6rem 0;border-bottom:1px solid var(--border-light);align-items:flex-start;">
-            <div style="flex-shrink:0;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted-light);min-width:70px;padding-top:0.1rem;">${e.date}</div>
-            <div style="flex:1;">
-              <div style="font-size:0.8rem;color:var(--text);">€${e.from.toLocaleString()} → <strong style="color:var(--gold)">€${e.to.toLocaleString()}</strong></div>
-              <div style="font-size:0.7rem;color:var(--muted);margin-top:0.15rem;font-style:italic;">${escapeHtml(e.reason)}</div>
-            </div>
-          </div>`).join('');
+    clEl.innerHTML = budgetChangelog.length ? budgetChangelog.map(e => {
+      const when = e.created_at ? fmtDateLong(String(e.created_at).slice(0, 10)) : '';
+      const who = e.changed_by ? ' · ' + escapeHtml(nameOf(e.changed_by)) : '';
+      const money = (e.from_amount != null || e.to_amount != null) ? `${e.from_amount != null ? fmtMoney(e.from_amount) : '—'} → <strong style="color:var(--gold)">${e.to_amount != null ? fmtMoney(e.to_amount) : '—'}</strong>` : '';
+      return `<div class="b-cl-row"><div class="b-cl-date">${escapeHtml(when)}</div><div class="b-cl-body"><div class="b-cl-main">${escapeHtml(e.label || '')} ${money}</div><div class="b-cl-sub">${escapeHtml(e.reason || '')}${who}</div></div></div>`;
+    }).join('') : '<div class="b-help">No changes yet.</div>';
   }
 
-  if (budgetItems.length === 0) {
-    document.getElementById('budget-items-wrap').innerHTML = `
-      <div class="empty-state"><div class="empty-icon">◈</div>
-      <div class="empty-text">No expenses yet. Add items above.</div></div>`;
+  const active = (budgetItems || []).filter(i => i.state !== 'wishlist');
+  const wrap = document.getElementById('budget-items-wrap');
+  if (!active.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">◈</div><div class="empty-text">No expenses yet.${editable ? ' Add one above.' : ''}</div></div>`;
     return;
   }
-
-  const cats = [...new Set(budgetItems.map(i => i.cat))];
-  document.getElementById('budget-items-wrap').innerHTML = cats.map(cat => {
-    const items = budgetItems.filter(i => i.cat === cat);
-    const catTotal = items.reduce((s,i) => s+i.amount, 0);
-    return `
-      <div class="card">
-        <div class="budget-category">${escapeHtml(cat)} · €${catTotal.toLocaleString()}</div>
-        ${items.map(item => `
-          <div class="budget-item" id="b-item-${item.id}">
-            <div style="flex:1">
-              <div class="bi-name">${escapeHtml(item.name)}</div>
-            </div>
-            <span class="pill pill-${item.status==='paid'?'sage':item.status==='booked'?'gold':'muted'} bi-status">${item.status}</span>
-            <div class="bi-amount">${fmtMoney(item.amount)}</div>
-            <button class="btn btn-secondary btn-sm" onclick="startEditBudgetItem(${item.id})" aria-label="Edit">${ico('edit')}</button>
-            <button class="btn btn-danger btn-sm" onclick="removeBudgetItem(${item.id})" aria-label="Remove">${ico('trash', 'ico--danger')}</button>
-          </div>
-        `).join('')}
-      </div>`;
+  const cats = [...new Set(active.map(i => i.cat))];
+  wrap.innerHTML = cats.map(cat => {
+    const items = active.filter(i => i.cat === cat);
+    const catTotal = items.reduce((s, i) => s + num(i.total), 0);
+    return `<div class="card"><div class="budget-category">${escapeHtml(cat || 'Other')} · ${fmtMoney(catTotal)}</div>` + items.map(item => budgetItemHtml(item, editable)).join('') + `</div>`;
   }).join('');
 }
 
+function budgetItemHtml(item, editable) {
+  const bal = itemBalance(item);
+  const pill = `<span class="pill pill-${item.status === 'paid' ? 'sage' : item.status === 'booked' ? 'gold' : 'muted'} bi-status">${escapeHtml(item.status || '—')}</span>`;
+  const money = `<div class="bi-money"><div class="bi-total">${fmtMoney(item.total)}</div>` + ((num(item.deposit_paid) > 0 || bal > 0) ? `<div class="bi-sub">${fmtMoney(item.deposit_paid)} paid · ${fmtMoney(bal)} due</div>` : '') + `</div>`;
+  const meta = [];
+  if (item.payer) meta.push('Payer: ' + escapeHtml(item.payer));
+  if (item.vendor_name) meta.push(escapeHtml(item.vendor_name));
+  if (item.due_date) meta.push('due ' + escapeHtml(fmtDateLong(item.due_date)));
+  const by = [];
+  if (item.created_by) by.push('added by ' + escapeHtml(nameOf(item.created_by)));
+  if (item.updated_by && item.updated_by !== item.created_by) by.push('updated by ' + escapeHtml(nameOf(item.updated_by)));
+  const doc = item.doc_url ? `<button class="b-doc-link" onclick="openBudgetDoc('${item.id}')">${escapeHtml(item.doc_name || 'View document')}</button>` : '';
+  const notes = item.notes ? `<div class="bi-notes-row">${escapeHtml(item.notes)}</div>` : '';
+  const ctrls = editable ? `<span class="bi-ctrls"><button class="btn btn-secondary btn-sm" onclick="startEditBudgetItem('${item.id}')" aria-label="Edit">${ico('edit')}</button><button class="btn btn-danger btn-sm" onclick="removeBudgetItem('${item.id}')" aria-label="Remove">${ico('trash', 'ico--danger')}</button></span>` : '';
+  return `<div class="budget-item" id="b-item-${item.id}"><div class="bi-main"><div class="bi-name">${escapeHtml(item.name)}</div>${meta.length ? `<div class="bi-meta">${meta.join(' · ')}</div>` : ''}${notes}${by.length ? `<div class="bi-by">${by.join(' · ')}</div>` : ''}${doc}</div>${pill}${money}${ctrls}</div>`;
+}
+
 function exportBudget() {
-  const rows = ['Item,Category,Amount,Status', ...budgetItems.map(i => `"${i.name}","${i.cat}",${i.amount},"${i.status}"`)];
+  const active = (budgetItems || []).filter(i => i.state !== 'wishlist');
+  const rows = ['Item,Category,Status,Total,Deposit paid,Balance due,Payer,Vendor,Due',
+    ...active.map(i => `"${i.name}","${i.cat}","${i.status || ''}",${num(i.total)},${num(i.deposit_paid)},${itemBalance(i)},"${i.payer || ''}","${i.vendor_name || ''}","${i.due_date || ''}"`)];
   downloadCSV(rows.join('\n'), 'budget.csv');
 }
 
@@ -7015,11 +7108,9 @@ function updateDashboard() {
   const gEl = document.getElementById('dash-guests');
   if (gEl) gEl.textContent = guestStats().expected;
 
-  // Update budget stat
-  const total = budgetItems.reduce((s,i) => s + (parseFloat(i.amount)||0), 0);
-  const pct = Math.min(100, Math.round((total / 60000) * 100));
+  // Budget stat card: Spent (actually paid), via the shared budget logic.
   const bEl = document.getElementById('dash-budget');
-  if (bEl) bEl.textContent = pct + '%';
+  if (bEl) bEl.textContent = fmtMoney(computeBudget().spent);
 
   // Summary stat cards that expose section data are gated too (no leaking spend/guests).
   const gStat = document.getElementById('guests-stat'); if (gStat) gStat.style.display = canRead('guests') ? '' : 'none';
@@ -7034,7 +7125,7 @@ const DASH_TILES = [
   { page:'venues',    section:'venues',     icon:'i-nav-venues',    title:'Venues',     sub:() => { const n = activeVenueCount(); return n ? `${n} shortlisted` : 'Add venues'; } },
   { page:'scenarios', section:'scenarios',  icon:'i-nav-scenarios', title:'Scenarios',  sub:() => { const n = (scenarios||[]).length; return n ? `${n} option${n>1?'s':''}` : 'Build options'; } },
   { page:'guests',    section:'guests',     icon:'i-nav-guests',    title:'Guest List', sub:() => { const s = guestStats(); return (guests && guests.length) ? `${s.invited} inv · ${s.expected} exp` : 'Add guests'; } },
-  { page:'budget',    section:'budget',     icon:'i-nav-budget',    title:'Budget',     sub:() => { const n = (budgetItems||[]).length; return n ? `${n} line${n>1?'s':''}` : 'Track spend'; } },
+  { page:'budget',    section:'budget',     icon:'i-nav-budget',    title:'Budget',     sub:() => { const b = computeBudget(); if (b.next) return `Next: ${fmtMoney(itemBalance(b.next))}${b.next.vendor_name ? ' · ' + b.next.vendor_name : ''}`; return b.committed ? `${fmtMoney(b.committed)} committed` : 'Track spend'; } },
   { page:'timeline',  section:'tasks',      icon:'i-nav-tasks',     title:'Tasks',      sub:() => { const a = timelineTasks||[]; const done = a.filter(t=>t.done).length; return a.length ? `${done}/${a.length} done` : 'Planning tasks'; } },
   { page:'itinerary', section:'itinerary',  icon:'i-nav-itinerary', title:'Itinerary',  sub:() => { const n = (itinItems||[]).length; return n ? `${n} item${n>1?'s':''}` : 'Plan your days'; } },
   { page:'vendors',   section:'vendors',    icon:'i-nav-vendors',   title:'Vendors',    sub:() => { const n = (vendors||[]).length; return n ? `${n} tracked` : 'Track suppliers'; } },
@@ -8419,6 +8510,9 @@ async function loadAllData() {
       timelineTasks = await dbLoad('timeline_tasks');
     }
 
+    // Budget: shared target, collaborative changelog, and display-name directory.
+    await Promise.all([loadBudgetMeta(), loadBudgetChangelog(), loadDisplayNames()]);
+
     setSyncStatus('ok', 'Live');
     updateDashboard(); // Full update after all data loaded
     renderTimeline();
@@ -8436,7 +8530,9 @@ async function loadAllData() {
 
     // Subscribe to real-time changes
     subscribeRealtime('guests', () => { dbLoad('guests').then(d => { guests = d; renderGuests(); updateDashboard(); }); });
-    subscribeRealtime('budget_items', () => { dbLoad('budget_items').then(d => { budgetItems = d; renderBudget(); }); });
+    subscribeRealtime('budget_items', () => { dbLoad('budget_items').then(d => { budgetItems = d; renderBudget(); updateDashboard(); }); });
+    subscribeRealtime('budget_meta', () => { loadBudgetMeta().then(() => { renderBudget(); updateDashboard(); }); });
+    subscribeRealtime('budget_changelog', () => { loadBudgetChangelog().then(() => { if (showChangelog) renderBudget(); }); });
     subscribeRealtime('timeline_tasks', () => { dbLoad('timeline_tasks').then(d => { timelineTasks = d; renderTimeline(); }); });
     subscribeRealtime('vendors', () => { dbLoad('vendors').then(d => { vendors = d; renderVendors(); }); });
     subscribeRealtime('itinerary_items', () => { dbLoad('itinerary_items').then(d => { itinItems = d; renderItinerary(); }); });
@@ -9859,7 +9955,6 @@ window.addEventListener('DOMContentLoaded', () => {
   window.saveEditGuest = saveEditGuest;
   window.clearCutGuests = clearCutGuests;
   window.exportGuests = exportGuests;
-  window.addBudgetItem = addBudgetItem;
   window.removeBudgetItem = removeBudgetItem;
   window.exportBudget = exportBudget;
   window.addTimelineTask = addTimelineTask;
