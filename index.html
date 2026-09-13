@@ -5237,9 +5237,8 @@ async function onThemeImageFile(key, event){
   finally{ input.value=''; }
 }
 async function onThemeImageUrl(key){
-  const el = document.getElementById(`te-url-${key}`), url = (el && el.value || '').trim();
+  const el = document.getElementById(`te-url-${key}`), url = normalizeUrl(el && el.value);
   if(!url) return;
-  if(!/^https?:\/\//i.test(url)){ alert('Enter a valid image URL (http/https).'); return; }
   const ok = await checkImageUrl(url);
   if(!ok){ alert("That URL doesn't appear to be a direct image link. Open the image, right-click → Copy image address, and paste that."); return; }
   setThemeImage(key, url);
@@ -6234,6 +6233,16 @@ function renderMoodFilterBar() {
 
 // Preload an image URL to confirm it's actually a displayable image (catches
 // webpage URLs and hotlink-blocked hosts before we save a blank card).
+// Accept bare domains (e.g. chilenobay.aubergeresorts.com) — prepend https:// unless a
+// scheme is already present. Leaves http:// / https:// untouched; handles //host and www.
+function normalizeUrl(raw) {
+  let u = (raw == null ? '' : String(raw)).trim();
+  if (!u) return '';
+  if (/^https?:\/\//i.test(u)) return u;   // already has a scheme — don't double up
+  u = u.replace(/^\/+/, '');                // protocol-relative //host → host
+  return 'https://' + u;
+}
+window.normalizeUrl = normalizeUrl;
 function checkImageUrl(url) {
   return new Promise(resolve => {
     const probe = new Image();
@@ -6363,11 +6372,10 @@ function batchReport(elId, ok, failed) {
 // Add by direct image URL — validates it's a real image first.
 async function addMoodImage() {
   const urlEl = document.getElementById('mood-url');
-  const url = urlEl.value.trim();
+  const url = normalizeUrl(urlEl.value);
   const label = document.getElementById('mood-label').value.trim();
   moodError('');
   if (!url) return;
-  if (!/^https?:\/\//i.test(url)) { moodError('Enter a valid image URL (http/https).'); return; }
   const themes = collectMoodThemes(document.getElementById('mood-add-themes'));
   const btn = document.getElementById('mood-url-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Checking…'; }
@@ -8391,7 +8399,7 @@ async function vfUploadVideo(event) {
   input.value = '';
 }
 function vfAddVideoEmbed() {
-  const el = document.getElementById('vf-video-url-input'); const url = (el.value || '').trim();
+  const el = document.getElementById('vf-video-url-input'); const url = normalizeUrl(el.value);
   vfVideoError('');
   if (!url) return;
   const p = parseVideoUrl(url);
@@ -8978,8 +8986,7 @@ async function vuPickFiles(event) {
   venueRenderProfile(currentIdx);
 }
 async function vuAddPhotoUrl() {
-  const el = document.getElementById('vu-photo-url'); const url = (el.value || '').trim(); if (!url) return;
-  if (!/^https?:\/\//i.test(url)) { alert('Enter a valid image URL (http/https).'); return; }
+  const el = document.getElementById('vu-photo-url'); const url = normalizeUrl(el.value); if (!url) return;
   const ok = await checkImageUrl(url); if (!ok) { alert("That URL isn't a direct image link."); return; }
   const v = VENUES[currentIdx]; if (!v || !v._row) return;
   const photos = (Array.isArray(v._row.photos) ? v._row.photos : []).slice();
@@ -8988,7 +8995,7 @@ async function vuAddPhotoUrl() {
   vuOpen = true; vuLinksOpen = true; venueRenderProfile(currentIdx);
 }
 async function vuAddEmbed() {
-  const el = document.getElementById('vu-video-url'); const url = (el.value || '').trim(); if (!url) return;
+  const el = document.getElementById('vu-video-url'); const url = normalizeUrl(el.value); if (!url) return;
   const p = parseVideoUrl(url); if (!p) { alert('Enter a YouTube or Vimeo link.'); return; }
   const v = VENUES[currentIdx]; if (!v || !v._row) return;
   const videos = (Array.isArray(v._row.videos) ? v._row.videos : []).slice();
@@ -9126,10 +9133,9 @@ async function vfUploadPhoto(event) {
 // Add a photo by direct URL — validates it's a real image first (mood-board style).
 async function vfAddPhotoByUrl() {
   const urlEl = document.getElementById('vf-photo-url-input');
-  const url = (urlEl ? urlEl.value : '').trim();
+  const url = normalizeUrl(urlEl ? urlEl.value : '');
   vfPhotoError('');
   if (!url) return;
-  if (!/^https?:\/\//i.test(url)) { vfPhotoError('Enter a valid image URL (http/https).'); return; }
   const btn = document.getElementById('vf-photo-url-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Checking…'; }
   const ok = await checkImageUrl(url);
@@ -9311,7 +9317,7 @@ async function saveVenueForm() {
 
   const vfNum = (el, d) => { const n = el ? Number(el.value) : NaN; return isNaN(n) ? d : n; };
   const photos = [...document.querySelectorAll('#vf-photos-list .vf-row')].map(row => ({
-    url:     row.querySelector('.vf-photo-url').value.trim(),
+    url:     normalizeUrl(row.querySelector('.vf-photo-url').value),
     caption: row.querySelector('.vf-photo-cap').value.trim(),
     thumb:   (row.querySelector('.vf-photo-thumbval') ? row.querySelector('.vf-photo-thumbval').value.trim() : '') || null,
     focal_x:    vfNum(row.querySelector('.vf-photo-fx'), 50),
@@ -9359,7 +9365,7 @@ async function saveVenueForm() {
     best_season:       vfText('vf-season'),
     overview:          vfText('vf-overview'),
     availability:      vfText('vf-availability'),
-    website:           vfText('vf-website'),
+    website:           normalizeUrl(vfText('vf-website')) || null,
     map_src:           vfText('vf-mapsrc'),
     contact_name:      vfText('vf-contact-name'),
     contact_email:     vfText('vf-contact-email'),
@@ -9428,8 +9434,9 @@ function vafStatus(msg, kind) {
 }
 async function vafExtract() {
   const input = document.getElementById('vaf-url'); if (!input) return;
-  const url = (input.value || '').trim();
+  const url = normalizeUrl(input.value);
   if (!url) { vafStatus('Paste a venue URL first.', 'err'); return; }
+  input.value = url; // show the normalized URL back to the user
   const btn = document.getElementById('vaf-go'); if (btn) btn.disabled = true;
   vafStatus('Reading the page…', '');
   let r;
