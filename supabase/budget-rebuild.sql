@@ -38,6 +38,9 @@ create trigger budget_items_touch before update on public.budget_items
   for each row execute function public.touch_budget_item();
 
 -- ── 2. Migrate placeholder rows → wishlist (keep name+cat; drop guessed money) ─
+-- The legacy amount/status columns were NOT NULL; relax that so we can clear them.
+alter table public.budget_items alter column amount drop not null;
+alter table public.budget_items alter column status drop not null;
 update public.budget_items
    set state = 'wishlist', amount = null, status = null
  where state <> 'wishlist';  -- (on first run, that's every existing row)
